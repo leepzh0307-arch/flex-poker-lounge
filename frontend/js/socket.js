@@ -32,8 +32,24 @@ class SocketClient {
         });
 
         let resolved = false;
+        let connectionTimeout = null;
+
+        // 设置连接超时
+        connectionTimeout = setTimeout(() => {
+          if (!resolved) {
+            console.error('[Socket] 连接超时');
+            this.isConnected = false;
+            resolved = true;
+            resolve(); // 即使超时也resolve，允许使用本地模式
+          }
+        }, 20000); // 20秒超时
 
         this.socket.on('connect', () => {
+          if (connectionTimeout) {
+            clearTimeout(connectionTimeout);
+            connectionTimeout = null;
+          }
+          
           console.log(`[Socket] ✅ 连接成功! id=${this.socket.id}`);
           this.isConnected = true;
           this.flushPendingEvents();
@@ -43,17 +59,44 @@ class SocketClient {
         this.socket.on('connect_error', (error) => {
           console.error(`[Socket] ❌ 连接失败: ${error.message}`);
           this.isConnected = false;
-          if (!resolved) { resolved = true; resolve(); }
+          
+          if (connectionTimeout) {
+            clearTimeout(connectionTimeout);
+            connectionTimeout = null;
+          }
+          
+          if (!resolved) { 
+            resolved = true; 
+            resolve(); // 即使连接失败也resolve，允许使用本地模式
+          }
         });
 
         this.socket.on('disconnect', (reason) => {
           console.log(`[Socket] 断开连接: ${reason}`);
           this.isConnected = false;
+          
+          // 根据断开原因决定是否重连
+          if (reason === 'io server disconnect') {
+            // 服务器主动断开，不自动重连
+            console.log('[Socket] 服务器主动断开连接');
+          } else {
+            // 其他原因，允许自动重连
+            console.log('[Socket] 网络中断，将尝试重连');
+          }
         });
 
         this.socket.on('reconnect', (attemptNum) => {
           console.log(`[Socket] 重连成功 (第${attemptNum}次尝试)`);
           this.isConnected = true;
+        });
+
+        this.socket.on('reconnect_attempt', (attemptNum) => {
+          console.log(`[Socket] 正在尝试重连... (第${attemptNum}次)`);
+        });
+
+        this.socket.on('reconnect_failed', () => {
+          console.error('[Socket] 重连失败，已达到最大重连次数');
+          this.isConnected = false;
         });
 
         this.socket.on('message', (data) => this.handleEvent('message', data));
@@ -129,30 +172,34 @@ class SocketClient {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         console.warn('[Socket] 未连接，创建房间使用临时ID');
-        resolve('TEMP' + Math.random().toString(36).substr(2, 6).toUpperCase());
+        resolve({ 
+          roomId: 'TEMP' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+          playerId: 'player_' + Date.now()
+        });
         return;
       }
       this.socket.emit('createRoom', { nickname }, (response) => {
-        response.success ? resolve(response.roomId) : reject(response.error);
+        response.success ? resolve({ roomId: response.roomId, playerId: response.playerId }) : reject(response.error);
       });
     });
   }
 
-  joinRoom(roomId, nickname) {
+  joinRoom(roomId, nickname, playerId = null) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         console.warn('[Socket] 未连接，加入房间使用本地模式');
         resolve({
           success: true,
+          playerId: 'player_' + Date.now(),
           gameState: {
-            roomId, players: [{ id: 'local', nickname, chips: 1000, seat: 1, isActive: true, isTurn: false }],
+            roomId, players: [{ id: 'local', playerId: 'player_' + Date.now(), nickname, chips: 1000, seat: 1, isActive: true, isTurn: false }],
             communityCards: [], pots: [{ amount: 0, eligiblePlayers: [] }],
             currentBet: 0, minBet: 0, maxBet: 0, gamePhase: 'WAITING', currentPlayer: null,
           }
         });
         return;
       }
-      this.socket.emit('joinRoom', { roomId, nickname }, (response) => {
+      this.socket.emit('joinRoom', { roomId, nickname, playerId }, (response) => {
         response.success ? resolve(response) : reject(response.error);
       });
     });

@@ -25,6 +25,10 @@ module.exports = (io) => {
     socket.on('disconnect', () => {
       console.log('用户断开连接:', socket.id);
       
+      // 获取socket到玩家的映射关系
+      const playerMap = roomHandler.getSocketToPlayerMap ? roomHandler.getSocketToPlayerMap() : new Map();
+      const playerInfo = playerMap.get(socket.id);
+      
       // 处理用户离开房间
       for (const [roomId, room] of rooms.entries()) {
         const playerIndex = room.players.findIndex(p => p.id === socket.id);
@@ -41,6 +45,7 @@ module.exports = (io) => {
               if (checkPlayer) {
                 // 标记玩家为离线
                 checkPlayer.isOnline = false;
+                checkPlayer.lastDisconnectAt = Date.now();
                 
                 // 更新房间状态
                 io.to(roomId).emit('gameUpdate', {
@@ -62,14 +67,24 @@ module.exports = (io) => {
               // 检查房间是否还有在线玩家
               const onlinePlayers = checkRoom.players.filter(p => p.isOnline !== false);
               if (onlinePlayers.length === 0) {
+                // 清理映射关系
+                if (playerInfo) {
+                  playerMap.delete(socket.id);
+                }
+                
                 rooms.delete(roomId);
-                console.log(`房间 ${roomId} 已删除`);
+                console.log(`房间 ${roomId} 已删除（所有玩家离线）`);
               }
             }
           }, 10000); // 10秒后检查
           
           break;
         }
+      }
+      
+      // 清理映射关系
+      if (playerInfo) {
+        playerMap.delete(socket.id);
       }
     });
   });

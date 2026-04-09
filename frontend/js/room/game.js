@@ -26,6 +26,12 @@ class GameManager {
     this.gameState.roomId = params.get('roomId');
     const nickname = params.get('nickname');
     this.gameState.isHost = params.get('isHost') === 'true';
+    
+    // 从localStorage获取playerId，用于重连
+    const savedPlayerId = localStorage.getItem('playerId');
+    if (savedPlayerId) {
+      this.gameState.playerId = savedPlayerId;
+    }
 
     roomUI.updateRoomId(this.gameState.roomId);
 
@@ -64,11 +70,16 @@ class GameManager {
 
       if (isCreating) {
         try {
-          const roomId = await socketClient.createRoom(nickname);
-          this.gameState.roomId = roomId;
-          roomUI.updateRoomId(roomId);
+          const result = await socketClient.createRoom(nickname);
+          this.gameState.roomId = result.roomId;
+          this.gameState.playerId = result.playerId;
+          
+          // 保存playerId到localStorage用于重连
+          localStorage.setItem('playerId', result.playerId);
+          
+          roomUI.updateRoomId(result.roomId);
 
-          const response = await socketClient.joinRoom(roomId, nickname);
+          const response = await socketClient.joinRoom(result.roomId, nickname, result.playerId);
           this.updateGameState(response.gameState);
         } catch (createError) {
           console.error('创建房间失败:', createError);
@@ -76,10 +87,23 @@ class GameManager {
         }
       } else {
         try {
-          const response = await socketClient.joinRoom(this.gameState.roomId, nickname);
+          const playerId = this.gameState.playerId || null;
+          const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
+          
+          // 如果是重连成功，更新playerId
+          if (response.playerId) {
+            this.gameState.playerId = response.playerId;
+            localStorage.setItem('playerId', response.playerId);
+          }
+          
           this.updateGameState(response.gameState);
         } catch (joinError) {
           console.error('加入房间失败:', joinError);
+          // 如果是重连失败，清除保存的playerId
+          if (this.gameState.playerId) {
+            localStorage.removeItem('playerId');
+            this.gameState.playerId = null;
+          }
           this.initLocalMode(nickname);
         }
       }
@@ -193,6 +217,14 @@ class GameManager {
 
   updateGameState(gameState) {
     const prevPhase = this.gameState.gamePhase;
+    
+    // 智能更新：只更新变化的部分
+    const updates = this.detectChanges(this.gameState, gameState);
+    
+    // 应用更新
+    this.applyUpdates(updates);
+    
+    // 更新当前状态
     this.gameState = { ...this.gameState, ...gameState };
 
     const phase = gameState.gamePhase || 'WAITING';
@@ -201,18 +233,25 @@ class GameManager {
 
     console.log(`[前端状态] phase=${phase}, currentPlayer=${gameState.currentPlayer}, myId=${this.gameState.myPlayerId}, isMyTurn=${gameState.currentPlayer === this.gameState.myPlayerId}, roundBets=`, gameState.roundBets);
 
-    roomUI.updateCommunityCards(gameState.communityCards || []);
+    // 只在公共牌变化时更新
+    if (updates.communityCards) {
+      roomUI.updateCommunityCards(gameState.communityCards || []);
+    }
+    
     roomUI.updatePhaseIndicator(phase);
     roomUI.updateBlindInfo(sb, bb);
 
-    for (let i = 1; i <= 9; i++) {
-      const player = gameState.players.find(p => p.seat === i);
-      const playerBet = (player && gameState.roundBets && gameState.roundBets[player.id]) || 0;
-      roomUI.updatePlayerSeat(i, player, playerBet);
+    // 优化玩家座位更新：只更新变化的玩家
+    if (updates.players) {
+      for (let i = 1; i <= 9; i++) {
+        const player = gameState.players.find(p => p.seat === i);
+        const playerBet = (player && gameState.roundBets && gameState.roundBets[player.id]) || 0;
+        roomUI.updatePlayerSeat(i, player, playerBet);
+      }
     }
 
     const myPlayer = gameState.players.find(p => p.id === this.gameState.myPlayerId);
-    if (myPlayer) {
+    if (myPlayer && (updates.players || updates.chips)) {
       roomUI.updateMyChips(myPlayer.chips);
     }
 
@@ -245,9 +284,40 @@ class GameManager {
       }
     }
 
-    if (gameState.message) {
+    if (gameState.message && updates.message) {
       roomUI.showGameStatus('游戏通知', gameState.message);
     }
+  }
+  
+  detectChanges(oldState, newState) {
+    const changes = {};
+    
+    if (oldState.gamePhase !== newState.gamePhase) {
+      changes.gamePhase = true;
+    }
+    
+    if (JSON.stringify(oldState.communityCards) !== JSON.stringify(newState.communityCards)) {
+      changes.communityCards = true;
+    }
+    
+    if (JSON.stringify(oldState.players) !== JSON.stringify(newState.players)) {
+      changes.players = true;
+    }
+    
+    if (oldState.currentPlayer !== newState.currentPlayer) {
+      changes.currentPlayer = true;
+    }
+    
+    if (newState.message && oldState.message !== newState.message) {
+      changes.message = true;
+    }
+    
+    return changes;
+  }
+  
+  applyUpdates(updates) {
+    // 可以在这里添加特定的更新逻辑
+    // 目前主要用于标识哪些部分需要更新
   }
 
   addGameLog(message, type = 'system') {

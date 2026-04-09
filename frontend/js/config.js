@@ -2,7 +2,7 @@ const config = {
   serverUrl: 'https://flex-poker-backend.onrender.com',
 
   agora: {
-    appId: 'a1b2c3d4e5f6g7h8i9j0',
+    appId: '', // 将从后端API获取
     channelPrefix: 'flex-poker-',
   },
 

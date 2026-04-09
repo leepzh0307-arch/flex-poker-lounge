@@ -10,11 +10,6 @@ class AgoraVoice {
   
   // 初始化Agora
   async initialize() {
-    if (!config.agora.appId) {
-      console.error('请在config.js中设置声网App ID');
-      return false;
-    }
-    
     try {
       // 创建Agora客户端
       this.client = AgoraRTC.createClient({
@@ -29,6 +24,18 @@ class AgoraVoice {
       
       this.client.on('user-left', (user) => {
         console.log('用户离开语音通话:', user.uid);
+      });
+      
+      this.client.on('user-published', async (user, mediaType) => {
+        if (mediaType === 'audio') {
+          await this.client.subscribe(user, mediaType);
+          const audioTrack = user.audioTrack;
+          audioTrack.play();
+        }
+      });
+      
+      this.client.on('user-unpublished', (user) => {
+        console.log('用户取消发布:', user.uid);
       });
       
       this.client.on('error', (error) => {
@@ -54,11 +61,50 @@ class AgoraVoice {
       // 生成频道名称
       const channelName = `${config.agora.channelPrefix}${roomId}`;
       
+      // 从后端获取App ID和Token
+      let appId = config.agora.appId;
+      let token = null;
+      
+      try {
+        const response = await fetch(`${config.serverUrl}/api/agora/app-id`);
+        const appIdData = await response.json();
+        if (appIdData.success) {
+          appId = appIdData.appId;
+          console.log('从后端获取App ID成功');
+        }
+      } catch (error) {
+        console.warn('获取App ID失败，使用配置中的值:', error);
+      }
+      
+      try {
+        const tokenResponse = await fetch(`${config.serverUrl}/api/agora/generate-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            channelName: channelName,
+            uid: userId.toString()
+          })
+        });
+        const tokenData = await tokenResponse.json();
+        if (tokenData.success) {
+          token = tokenData.token;
+          console.log('Token生成成功');
+          if (tokenData.message) {
+            console.log('Token信息:', tokenData.message);
+          }
+        }
+      } catch (error) {
+        console.warn('Token生成失败，使用测试模式:', error);
+        token = null;
+      }
+      
       // 加入频道
       await this.client.join(
-        config.agora.appId,
+        appId,
         channelName,
-        null, // token，开发环境可以不传
+        token,
         userId.toString()
       );
       

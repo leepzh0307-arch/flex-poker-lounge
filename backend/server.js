@@ -4,6 +4,9 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 
+// 加载环境变量
+require('dotenv').config();
+
 const app = express();
 app.use(cors());
 app.use(express.json());

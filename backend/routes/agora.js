@@ -31,6 +31,21 @@ router.post('/generate-token', (req, res) => {
       });
     }
 
+    // 验证参数格式
+    if (typeof channelName !== 'string' || channelName.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'channelName 必须是非空字符串'
+      });
+    }
+
+    if (isNaN(parseInt(uid))) {
+      return res.status(400).json({
+        success: false,
+        error: 'uid 必须是数字'
+      });
+    }
+
     // 计算过期时间
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + TOKEN_EXPIRATION_TIME;
@@ -45,7 +60,7 @@ router.post('/generate-token', (req, res) => {
       privilegeExpiredTs
     );
 
-    console.log(`[Agora] Token已生成: channel=${channelName}, uid=${uid}`);
+    console.log(`[Agora] Token已生成: channel=${channelName}, uid=${uid}, expiresAt=${privilegeExpiredTs}`);
     
     res.json({
       success: true,
@@ -58,17 +73,33 @@ router.post('/generate-token', (req, res) => {
     console.error('[Agora] Token生成失败:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Token生成失败' 
+      error: 'Token生成失败',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
 // 获取App ID的路由（App ID可以公开）
 router.get('/app-id', (req, res) => {
-  res.json({
-    success: true,
-    appId: APP_ID
-  });
+  try {
+    if (!APP_ID) {
+      return res.status(500).json({
+        success: false,
+        error: 'App ID未配置'
+      });
+    }
+    
+    res.json({
+      success: true,
+      appId: APP_ID
+    });
+  } catch (error) {
+    console.error('[Agora] 获取App ID失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '获取App ID失败'
+    });
+  }
 });
 
 module.exports = router;

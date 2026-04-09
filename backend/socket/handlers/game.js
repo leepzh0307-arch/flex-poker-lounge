@@ -5,8 +5,14 @@ const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../uti
 module.exports = (socket, rooms, io) => {
   socket.on('gameAction', ({ action, data }) => {
     try {
+      if (!action) {
+        console.error('[游戏] 缺少action参数');
+        return;
+      }
+
       let room = null;
       let roomId = null;
+      
       for (const [id, r] of rooms.entries()) {
         if (r.players.some(p => p.id === socket.id)) {
           room = r;
@@ -14,7 +20,22 @@ module.exports = (socket, rooms, io) => {
           break;
         }
       }
-      if (!room) return;
+      
+      if (!room) {
+        console.error('[游戏] 玩家不在任何房间中');
+        return;
+      }
+
+      const player = room.players.find(p => p.id === socket.id);
+      if (!player) {
+        console.error('[游戏] 玩家不存在于房间中');
+        return;
+      }
+
+      if (!player.isActive && action !== 'resetGame') {
+        console.warn(`[游戏] 玩家 ${player.nickname} 已弃牌，无法执行操作`);
+        return;
+      }
 
       switch (action) {
         case 'startGame':
@@ -36,14 +57,20 @@ module.exports = (socket, rooms, io) => {
           handleCall(room, roomId, io, socket.id);
           break;
         case 'raise':
-          handleRaise(room, roomId, io, socket.id, data.amount);
+          handleRaise(room, roomId, io, socket.id, data?.amount);
           break;
         case 'all-in':
           handleAllIn(room, roomId, io, socket.id);
           break;
+        default:
+          console.warn(`[游戏] 未知操作: ${action}`);
       }
     } catch (error) {
-      console.error('游戏操作错误:', error);
+      console.error('[游戏] 游戏操作错误:', error);
+      io.to(socket.id).emit('error', {
+        message: '操作执行失败',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 };
@@ -639,33 +666,62 @@ function handleAllIn(room, roomId, io, playerId) {
 
 function createSidePotsIfNeeded(room, allInPlayerId, allInAmount, contributedAmount) {
   const activePlayers = getActivePlayers(room);
-  const maxOtherBet = Math.max(
-    ...activePlayers.filter(p => p.id !== allInPlayerId).map(p => room.gameState.roundBets[p.id] || 0),
+  
+  if (activePlayers.length <= 1) {
+    return;
+  }
+  
+  const mainPot = room.gameState.pots[0];
+  
+  const playerBets = activePlayers.map(p => ({
+    id: p.id,
+    bet: room.gameState.roundBets[p.id] || 0
+  }));
+  
+  const allInPlayerBet = playerBets.find(p => p.id === allInPlayerId);
+  if (!allInPlayerBet) {
+    console.warn(`[边池] 玩家 ${allInPlayerId} 不在活跃玩家列表中`);
+    return;
+  }
+  
+  const allInPlayerTotalBet = allInPlayerBet.bet;
+  const otherPlayersMaxBet = Math.max(
+    ...playerBets.filter(p => p.id !== allInPlayerId).map(p => p.bet),
     0
   );
-
-  if (allInAmount < maxOtherBet) {
-    const sidePot = { amount: 0, eligiblePlayers: [allInPlayerId] };
-
-    activePlayers.forEach(player => {
-      if (player.id !== allInPlayerId) {
-        const excess = (room.gameState.roundBets[player.id] || 0) - allInAmount;
-        if (excess > 0) {
-          room.gameState.pots[0].amount -= excess;
-          sidePot.amount += excess;
-          sidePot.eligiblePlayers.push(player.id);
-        }
+  
+  if (allInPlayerTotalBet < otherPlayersMaxBet) {
+    const sidePotAmount = 0;
+    const sidePotEligiblePlayers = [];
+    
+    playerBets.forEach(playerBet => {
+      if (playerBet.id === allInPlayerId) {
+        return;
+      }
+      
+      const excess = playerBet.bet - allInPlayerTotalBet;
+      if (excess > 0) {
+        mainPot.amount -= excess;
+        sidePotAmount += excess;
+        sidePotEligiblePlayers.push(playerBet.id);
       }
     });
-
-    if (sidePot.amount > 0) {
+    
+    if (sidePotAmount > 0) {
+      const sidePot = {
+        amount: sidePotAmount,
+        eligiblePlayers: sidePotEligiblePlayers
+      };
+      
       room.gameState.pots.push(sidePot);
+      console.log(`[边池] 创建边池，金额: ${sidePotAmount}, 参与玩家: ${sidePotEligiblePlayers.length}人`);
     }
   }
-
-  room.gameState.pots[0].amount += contributedAmount;
-  if (!room.gameState.pots[0].eligiblePlayers.includes(allInPlayerId)) {
-    room.gameState.pots[0].eligiblePlayers.push(allInPlayerId);
+  
+  mainPot.amount += contributedAmount;
+  
+  if (!mainPot.eligiblePlayers.includes(allInPlayerId)) {
+    mainPot.eligiblePlayers.push(allInPlayerId);
   }
 }
 
