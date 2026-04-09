@@ -337,6 +337,7 @@ class GameManager {
   }
 
   sendGameAction(action, data = {}) {
+    console.log(`[游戏操作] 发送: ${action}`, data);
     socketClient.sendGameAction(action, data);
   }
 

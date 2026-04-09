@@ -203,6 +203,7 @@ class SocketClient {
 
   sendGameAction(action, data) {
     if (this.isConnected && this.socket) {
+      console.log(`[Socket] 发送游戏操作: ${action}`, data);
       this.socket.emit('gameAction', { action, data });
     } else {
       console.warn(`[Socket] 未连接，操作未发送: ${action}`);

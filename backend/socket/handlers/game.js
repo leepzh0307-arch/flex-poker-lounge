@@ -5,6 +5,7 @@ const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../uti
 module.exports = (socket, rooms, io) => {
   socket.on('gameAction', ({ action, data }) => {
     try {
+      console.log(`[后端] 收到游戏操作: ${action}`, data, `玩家: ${socket.id}`);
       if (!action) {
         console.error('[游戏] 缺少action参数');
         return;
@@ -13,22 +14,24 @@ module.exports = (socket, rooms, io) => {
       let room = null;
       let roomId = null;
       
+      console.log(`[后端] 遍历房间查找玩家: ${socket.id}`);
       for (const [id, r] of rooms.entries()) {
         if (r.players.some(p => p.id === socket.id)) {
           room = r;
           roomId = id;
+          console.log(`[后端] 找到房间: ${roomId}, 玩家: ${socket.id}`);
           break;
         }
       }
       
       if (!room) {
-        console.error('[游戏] 玩家不在任何房间中');
+        console.error('[游戏] 玩家不在任何房间中:', socket.id);
         return;
       }
 
       const player = room.players.find(p => p.id === socket.id);
       if (!player) {
-        console.error('[游戏] 玩家不存在于房间中');
+        console.error('[游戏] 玩家不存在于房间中:', socket.id, roomId);
         return;
       }
 
@@ -36,6 +39,8 @@ module.exports = (socket, rooms, io) => {
         console.warn(`[游戏] 玩家 ${player.nickname} 已弃牌，无法执行操作`);
         return;
       }
+
+      console.log(`[后端] 玩家 ${player.nickname} 执行操作: ${action}`, data);
 
       switch (action) {
         case 'startGame':
