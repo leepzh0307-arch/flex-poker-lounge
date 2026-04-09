@@ -124,8 +124,10 @@ class GameManager {
 
   bindEvents() {
     document.getElementById('voice-toggle').addEventListener('click', async () => {
-      await agoraVoice.toggleMicrophone();
-      roomUI.updateVoiceButton(agoraVoice.isMicrophoneEnabled());
+      const success = await agoraVoice.toggleMicrophone();
+      if (success) {
+        roomUI.updateVoiceButton(agoraVoice.isMicrophoneEnabled());
+      }
     });
 
     document.getElementById('exit-room').addEventListener('click', () => {

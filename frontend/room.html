@@ -63,14 +63,20 @@
     <!-- 游戏主区域 -->
     <main class="game-area">
       <!-- 阶段指示器 -->
-      <div class="phase-indicator" id="phase-indicator">
-        <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
-        <div class="phase-step" data-phase="PRE_FLOP_BLINDS"><span class="phase-dot"></span><span class="phase-label">盲注</span></div>
-        <div class="phase-step" data-phase="PRE_FLOP_BETTING"><span class="phase-dot"></span><span class="phase-label">翻前</span></div>
-        <div class="phase-step" data-phase="FLOP_BETTING"><span class="phase-dot"></span><span class="phase-label">翻牌</span></div>
-        <div class="phase-step" data-phase="TURN_BETTING"><span class="phase-dot"></span><span class="phase-label">转牌</span></div>
-        <div class="phase-step" data-phase="RIVER_BETTING"><span class="phase-dot"></span><span class="phase-label">河牌</span></div>
-        <div class="phase-step" data-phase="SHOWDOWN"><span class="phase-dot"></span><span class="phase-label">摊牌</span></div>
+      <div class="phase-indicator-wrapper">
+        <div class="phase-indicator" id="phase-indicator">
+          <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
+          <div class="phase-step" data-phase="PRE_FLOP_BLINDS"><span class="phase-dot"></span><span class="phase-label">盲注</span></div>
+          <div class="phase-step" data-phase="PRE_FLOP_BETTING"><span class="phase-dot"></span><span class="phase-label">翻前</span></div>
+          <div class="phase-step" data-phase="FLOP_BETTING"><span class="phase-dot"></span><span class="phase-label">翻牌</span></div>
+          <div class="phase-step" data-phase="TURN_BETTING"><span class="phase-dot"></span><span class="phase-label">转牌</span></div>
+          <div class="phase-step" data-phase="RIVER_BETTING"><span class="phase-dot"></span><span class="phase-label">河牌</span></div>
+          <div class="phase-step" data-phase="SHOWDOWN"><span class="phase-dot"></span><span class="phase-label">摊牌</span></div>
+        </div>
+        <div id="host-actions-inline" class="host-actions-inline" style="display: none;">
+          <button id="start-game" class="btn btn-primary btn-host-inline">开始游戏</button>
+          <button id="next-hand-btn" class="btn btn-success btn-host-inline" style="display:none;">下一局</button>
+        </div>
       </div>
 
       <!-- 玩家座位区域（完整容器：包含背景图 + 公共牌 + 底池 + 所有座位） -->
@@ -224,8 +230,6 @@
         </div>
         <div class="host-col">
           <div class="host-actions">
-            <button id="start-game" class="btn btn-primary">开始游戏</button>
-            <button id="next-hand-btn" class="btn btn-success" style="display:none;">下一局</button>
             <button id="reset-game" class="btn btn-danger">重置游戏</button>
           </div>
         </div>

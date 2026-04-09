@@ -434,6 +434,10 @@ class RoomUI {
 
   showHostPanel() {
     this.elements.hostPanel.style.display = 'block';
+    const hostActionsInline = document.getElementById('host-actions-inline');
+    if (hostActionsInline) {
+      hostActionsInline.style.display = 'flex';
+    }
   }
 
   hideHostPanel() {

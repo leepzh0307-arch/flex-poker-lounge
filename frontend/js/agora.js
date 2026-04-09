@@ -143,24 +143,32 @@ class AgoraVoice {
   
   // 切换麦克风
   async toggleMicrophone() {
-    if (!this.isJoined) return;
+    if (!this.isJoined || !this.client) {
+      console.warn('[Agora] 语音未连接，无法切换麦克风');
+      return false;
+    }
     
     try {
       const localTracks = this.client.getLocalTracks();
-      if (localTracks.length > 0) {
-        const audioTrack = localTracks[0];
-        if (this.microphoneEnabled) {
-          await audioTrack.setEnabled(false);
-          this.microphoneEnabled = false;
-          console.log('麦克风已关闭');
-        } else {
-          await audioTrack.setEnabled(true);
-          this.microphoneEnabled = true;
-          console.log('麦克风已开启');
-        }
+      if (!localTracks || localTracks.length === 0) {
+        console.warn('[Agora] 无音频轨道');
+        return false;
       }
+
+      const audioTrack = localTracks[0];
+      if (this.microphoneEnabled) {
+        await audioTrack.setEnabled(false);
+        this.microphoneEnabled = false;
+        console.log('麦克风已关闭');
+      } else {
+        await audioTrack.setEnabled(true);
+        this.microphoneEnabled = true;
+        console.log('麦克风已开启');
+      }
+      return true;
     } catch (error) {
       console.error('切换麦克风失败:', error);
+      return false;
     }
   }
   
