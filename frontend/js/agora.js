@@ -65,7 +65,7 @@ class AgoraVoice {
       let appId = config.agora.appId;
       let token = null;
       
-      const baseUrl = config.serverUrl || '';
+      const baseUrl = config.serverUrl;
       
       try {
         const response = await fetch(`${baseUrl}/api/agora/app-id`);

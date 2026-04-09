@@ -191,7 +191,7 @@ h2 {
 }
 
 .poker-card.back {
-  background-image: url('../assets/images/poker-back1.webp');
+  background-image: url('images/poker-back1.webp');
   background-size: cover;
   background-position: center;
   color: transparent;
@@ -199,7 +199,7 @@ h2 {
 }
 
 .poker-card.back.theme-2 {
-  background-image: url('../assets/images/poker-back2.webp');
+  background-image: url('images/poker-back2.webp');
 }
 
 .poker-card .card-value {

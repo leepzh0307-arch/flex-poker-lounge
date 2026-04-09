@@ -18,7 +18,7 @@ class SocketClient {
       }
 
       try {
-        const url = config.serverUrl || window.location.origin;
+        const url = config.serverUrl;
         console.log(`[Socket] 正在连接到 ${url} ...`);
 
         this.socket = io(url, {
