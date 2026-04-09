@@ -90,6 +90,9 @@ class AgoraVoice {
           })
         });
         const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok || !tokenData.success) {
+          console.error('[Agora] Token生成失败:', tokenResponse.status, tokenData.error);
+        }
         if (tokenData.success) {
           token = tokenData.token;
           console.log('Token生成成功');
@@ -98,7 +101,7 @@ class AgoraVoice {
           }
         }
       } catch (error) {
-        console.warn('Token生成失败，使用测试模式:', error);
+        console.warn('Token请求失败，使用测试模式:', error);
         token = null;
       }
       
@@ -107,7 +110,7 @@ class AgoraVoice {
         appId,
         channelName,
         token,
-        userId.toString()
+        parseInt(userId)
       );
       
       // 创建本地音频轨道
