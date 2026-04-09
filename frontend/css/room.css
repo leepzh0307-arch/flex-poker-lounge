@@ -585,13 +585,13 @@
 
 /* ====== 10个座位位置坐标（百分比定位）====== */
 .player-seat.seat-1  { left: 25%;  top: 80%; }   /* 底部偏左 */
-.player-seat.seat-2  { left: 5%;   top: 65%; }   /* 左侧偏下 */
-.player-seat.seat-3  { left: 5%;   top: 35%; }   /* 左侧偏上 */
+.player-seat.seat-2  { left: 10%;   top: 65%; }   /* 左侧偏下 */
+.player-seat.seat-3  { left: 10%;   top: 35%; }   /* 左侧偏上 */
 .player-seat.seat-4  { left: 25%;  top: 20%;  }   /* 顶部偏左 */
 .player-seat.seat-5  { left: 50%;  top: 20%;  }   /* 顶部正中 */
 .player-seat.seat-6  { left: 75%;  top: 20%;  }   /* 顶部偏右 */
-.player-seat.seat-7  { left: 95%;  top: 35%; }   /* 右侧偏上 */
-.player-seat.seat-8  { left: 95%;  top: 65%; }   /* 右侧偏下 */
+.player-seat.seat-7  { left: 90%;  top: 35%; }   /* 右侧偏上 */
+.player-seat.seat-8  { left: 90%;  top: 65%; }   /* 右侧偏下 */
 .player-seat.seat-9  { left: 75%;  top: 80%; }   /* 底部偏右 */
 .player-seat.seat-10 { left: 50%;  top: 80%; }   /* 底部正中 */
 
@@ -760,24 +760,27 @@
 
 /* ====== 房主面板 ====== */
 .host-panel {
-  position: relative;
-  width: 100%;
-  max-width: 1000px;
-  margin: var(--spacing-md) auto;
+  position: absolute;
+  top: calc(var(--header-height) + (100vh - var(--header-height)) / 2);
+  right: 0;
+  width: 200px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--border-radius-lg);
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0 0 0 10px;
   padding: 16px 20px;
   z-index: 100;
-  animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: slideInRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  max-height: calc((100vh - var(--header-height)) / 2);
+  overflow-y: auto;
 }
 
 .host-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   align-items: start;
 }
 
@@ -1195,7 +1198,7 @@
   top: var(--header-height);
   right: 0;
   width: 200px;
-  max-height: calc(100vh - var(--header-height) - 240px);
+  max-height: calc((100vh - var(--header-height)) / 2);
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);

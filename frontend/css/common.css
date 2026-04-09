@@ -206,17 +206,30 @@ h2 {
   font-size: 14px;
   font-weight: bold;
   line-height: 1;
+  text-align: center;
 }
 
-.poker-card .card-suit {
-  font-size: 20px;
-  text-align: center;
-  line-height: 1;
+.poker-card .card-value.top {
+  align-self: flex-start;
 }
 
 .poker-card .card-value.bottom {
+  align-self: flex-end;
   transform: rotate(180deg);
-  text-align: right;
+}
+
+.poker-card .card-suit {
+  font-size: 24px;
+  text-align: center;
+  line-height: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poker-card .card-suit.center {
+  font-size: 28px;
 }
 
 /* 筹码样式 */

@@ -3,18 +3,6 @@ const { generateDeck, shuffleDeck } = require('../../utils/deck');
 const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../utils/handEvaluator');
 
 module.exports = (socket, rooms, io) => {
-  function broadcastGameAction(roomId, actionType, playerId, amount) {
-    const player = rooms.get(roomId)?.players.find(p => p.id === playerId);
-    if (!player) return;
-    io.to(roomId).emit('gameAction', {
-      type: actionType,
-      playerId: playerId,
-      nickname: player.nickname,
-      amount: amount || null,
-      timestamp: Date.now(),
-    });
-  }
-
   socket.on('gameAction', ({ action, data }) => {
     try {
       console.log(`[后端] 收到游戏操作: ${action}`, data, `玩家: ${socket.id}`);
@@ -65,19 +53,19 @@ module.exports = (socket, rooms, io) => {
           resetGame(room, roomId, io);
           break;
         case 'fold':
-          handleFold(room, roomId, io, socket.id);
+          handleFold(room, roomId, io, socket.id, rooms);
           break;
         case 'check':
-          handleCheck(room, roomId, io, socket.id);
+          handleCheck(room, roomId, io, socket.id, rooms);
           break;
         case 'call':
-          handleCall(room, roomId, io, socket.id);
+          handleCall(room, roomId, io, socket.id, rooms);
           break;
         case 'raise':
-          handleRaise(room, roomId, io, socket.id, data?.amount);
+          handleRaise(room, roomId, io, socket.id, data?.amount, rooms);
           break;
         case 'all-in':
-          handleAllIn(room, roomId, io, socket.id);
+          handleAllIn(room, roomId, io, socket.id, rooms);
           break;
         default:
           console.warn(`[游戏] 未知操作: ${action}`);
@@ -122,6 +110,18 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
       roundBets: { ...room.gameState.roundBets },
       message: additionalMessage,
     });
+  });
+}
+
+function broadcastGameAction(rooms, io, roomId, actionType, playerId, amount) {
+  const player = rooms.get(roomId)?.players.find(p => p.id === playerId);
+  if (!player) return;
+  io.to(roomId).emit('gameAction', {
+    type: actionType,
+    playerId: playerId,
+    nickname: player.nickname,
+    amount: amount || null,
+    timestamp: Date.now(),
   });
 }
 
@@ -530,17 +530,17 @@ function isBettingRoundComplete(room) {
 
 // ==================== 玩家行动处理 ====================
 
-function handleFold(room, roomId, io, playerId) {
+function handleFold(room, roomId, io, playerId, rooms) {
   const player = room.players.find(p => p.id === playerId);
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
   player.isActive = false;
   player.isTurn = false;
-  broadcastGameAction(roomId, 'fold', playerId);
+  broadcastGameAction(rooms, io, roomId, 'fold', playerId);
   moveToNextPlayer(room, roomId, io);
 }
 
-function handleCheck(room, roomId, io, playerId) {
+function handleCheck(room, roomId, io, playerId, rooms) {
   const player = room.players.find(p => p.id === playerId);
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
@@ -548,18 +548,18 @@ function handleCheck(room, roomId, io, playerId) {
   if (myRoundBet < room.gameState.currentBet) return;
 
   player.isTurn = false;
-  broadcastGameAction(roomId, 'check', playerId);
+  broadcastGameAction(rooms, io, roomId, 'check', playerId);
   moveToNextPlayer(room, roomId, io);
 }
 
-function handleCall(room, roomId, io, playerId) {
+function handleCall(room, roomId, io, playerId, rooms) {
   const player = room.players.find(p => p.id === playerId);
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
   const callAmount = room.gameState.currentBet - (room.gameState.roundBets[playerId] || 0);
 
   if (player.chips <= callAmount) {
-    handleAllIn(room, roomId, io, playerId);
+    handleAllIn(room, roomId, io, playerId, rooms);
     return;
   }
 
@@ -572,7 +572,7 @@ function handleCall(room, roomId, io, playerId) {
   }
 
   player.isTurn = false;
-  broadcastGameAction(roomId, 'call', playerId, callAmount);
+  broadcastGameAction(rooms, io, roomId, 'call', playerId, callAmount);
 
   const huPreflopSBcall = (
     room.gameState.phase === 'PRE_FLOP_BETTING' &&
@@ -588,7 +588,7 @@ function handleCall(room, roomId, io, playerId) {
   }
 }
 
-function handleRaise(room, roomId, io, playerId, amount) {
+function handleRaise(room, roomId, io, playerId, amount, rooms) {
   const player = room.players.find(p => p.id === playerId);
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
@@ -600,7 +600,7 @@ function handleRaise(room, roomId, io, playerId, amount) {
   if (raiseIncrement < room.gameState.minRaise) return;
 
   if (player.chips < raiseIncrement) {
-    handleAllIn(room, roomId, io, playerId);
+    handleAllIn(room, roomId, io, playerId, rooms);
     return;
   }
 
@@ -615,7 +615,7 @@ function handleRaise(room, roomId, io, playerId, amount) {
   room.gameState.lastRaiserId = playerId;
 
   player.isTurn = false;
-  broadcastGameAction(roomId, 'raise', playerId, raiseTotal);
+  broadcastGameAction(rooms, io, roomId, 'raise', playerId, raiseTotal);
 
   room.gameState.playersActedThisRound = new Set();
   room.gameState.playersActedThisRound.add(playerId);
@@ -631,7 +631,7 @@ function activePlayersExceptCurrent(room) {
   return getActivePlayers(room).filter(p => p.id !== room.gameState.currentPlayer);
 }
 
-function handleAllIn(room, roomId, io, playerId) {
+function handleAllIn(room, roomId, io, playerId, rooms) {
   const player = room.players.find(p => p.id === playerId);
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
@@ -652,7 +652,7 @@ function handleAllIn(room, roomId, io, playerId) {
   }
 
   player.isTurn = false;
-  broadcastGameAction(roomId, 'all-in', playerId, totalBet);
+  broadcastGameAction(rooms, io, roomId, 'all-in', playerId, totalBet);
 
   const huPreflopSBallInCall = (
     room.gameState.phase === 'PRE_FLOP_BETTING' &&

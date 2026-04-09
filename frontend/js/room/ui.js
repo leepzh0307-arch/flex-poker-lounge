@@ -160,6 +160,16 @@ class RoomUI {
       });
     }
 
+    if (this.elements.voiceToggle) {
+      this.elements.voiceToggle.addEventListener('click', async () => {
+        if (window.agoraVoice) {
+          await window.agoraVoice.toggleMicrophone();
+          const isEnabled = window.agoraVoice.isMicrophoneEnabled();
+          this.updateVoiceButton(isEnabled);
+        }
+      });
+    }
+
     document.querySelectorAll('.chip-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const current = parseInt(this.elements.betAmount.value) || 0;
@@ -304,9 +314,9 @@ class RoomUI {
     const suitColor = (card.suit === 'hearts' || card.suit === 'diamonds') ? '#d32f2f' : '#212121';
 
     cardElement.innerHTML = `
-      <div class="card-value" style="color: ${suitColor};">${card.value}${suitSymbol}</div>
-      <div class="card-suit" style="color: ${suitColor};">${suitSymbol}</div>
-      <div class="card-value bottom" style="color: ${suitColor};">${card.value}${suitSymbol}</div>
+      <div class="card-value top" style="color: ${suitColor};">${card.value}<br>${suitSymbol}</div>
+      <div class="card-suit center" style="color: ${suitColor};">${suitSymbol}</div>
+      <div class="card-value bottom" style="color: ${suitColor};">${suitSymbol}<br>${card.value}</div>
     `;
     return cardElement;
   }
