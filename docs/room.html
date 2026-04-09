@@ -278,5 +278,19 @@
   <script src="js/room/game.js"></script>
   <script src="js/room/rules/texas.js"></script>
   <script src="js/room/rules/custom.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', async function() {
+      try {
+        console.log("🧩 页面加载完成，开始连接游戏服务器...");
+        // 自动连接Socket后端
+        await socketClient.connect();
+        console.log("✅ 游戏服务器连接成功！");
+        // 自动加载声网语音配置
+        await loadAgoraConfig();
+      } catch (err) {
+        console.error("❌ 服务器连接失败：", err);
+      }
+    });
+  </script>
 </body>
 </html>

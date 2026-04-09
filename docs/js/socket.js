@@ -29,7 +29,7 @@ class SocketClient {
           reconnectionDelayMax: 8000,
           timeout: 20000,
           forceNew: false,
-          withCredentials: false,
+          withCredentials: true,
         });
 
         let resolved = false;
