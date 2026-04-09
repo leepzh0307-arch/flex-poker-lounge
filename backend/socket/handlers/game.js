@@ -3,6 +3,18 @@ const { generateDeck, shuffleDeck } = require('../../utils/deck');
 const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../utils/handEvaluator');
 
 module.exports = (socket, rooms, io) => {
+  function broadcastGameAction(roomId, actionType, playerId, amount) {
+    const player = rooms.get(roomId)?.players.find(p => p.id === playerId);
+    if (!player) return;
+    io.to(roomId).emit('gameAction', {
+      type: actionType,
+      playerId: playerId,
+      nickname: player.nickname,
+      amount: amount || null,
+      timestamp: Date.now(),
+    });
+  }
+
   socket.on('gameAction', ({ action, data }) => {
     try {
       console.log(`[后端] 收到游戏操作: ${action}`, data, `玩家: ${socket.id}`);
@@ -110,18 +122,6 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
       roundBets: { ...room.gameState.roundBets },
       message: additionalMessage,
     });
-  });
-}
-
-function broadcastGameAction(roomId, actionType, playerId, amount) {
-  const player = rooms.get(roomId)?.players.find(p => p.id === playerId);
-  if (!player) return;
-  io.to(roomId).emit('gameAction', {
-    type: actionType,
-    playerId: playerId,
-    nickname: player.nickname,
-    amount: amount || null,
-    timestamp: Date.now(),
   });
 }
 
