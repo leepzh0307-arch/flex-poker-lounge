@@ -1113,10 +1113,10 @@
 .bet-control label {
   display: block;
   margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: 200;
+  font-size: 22px;
+  font-weight: bold;
   letter-spacing: 0.8px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .bet-amount {
@@ -1136,6 +1136,20 @@
 
 .bet-amount:focus {
   border-bottom-color: rgba(180, 155, 70, 0.35);
+}
+
+.my-info {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+.my-info strong {
+  font-size: 28px;
+  font-weight: bold;
+  color: rgba(230, 210, 150, 0.9);
 }
 
 .chip-buttons {
