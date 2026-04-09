@@ -19,6 +19,9 @@ const io = new Server(server, {
     origin: '*',
     methods: ['GET', 'POST'],
   },
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 const socketHandler = require('./socket/index');

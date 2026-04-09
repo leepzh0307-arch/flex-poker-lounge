@@ -74,8 +74,7 @@ function createRoom() {
   if (FallingText.isAnimating()) return;
 
   const nickname = nicknameInput.value.trim();
-  const tempRoomId = 'TEMP' + Math.random().toString(36).substr(2, 6).toUpperCase();
-  const targetUrl = `room.html?roomId=${tempRoomId}&nickname=${encodeURIComponent(nickname)}&isHost=true&isCreating=true`;
+  const targetUrl = `room.html?nickname=${encodeURIComponent(nickname)}&isHost=true&isCreating=true`;
 
   FallingText.trigger('.hero-title-container').then(function() {
     // 锁定按钮防止重复点击

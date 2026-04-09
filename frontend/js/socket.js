@@ -22,27 +22,27 @@ class SocketClient {
         console.log(`[Socket] 正在连接到 ${url} ...`);
 
         this.socket = io(url, {
-          transports: ['websocket', 'polling'],
+          transports: ['polling', 'websocket'],
           reconnection: true,
-          reconnectionAttempts: 15,
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 5000,
-          timeout: 15000,
+          reconnectionAttempts: 10,
+          reconnectionDelay: 2000,
+          reconnectionDelayMax: 10000,
+          timeout: 30000,
           forceNew: false,
+          upgrade: true,
         });
 
         let resolved = false;
         let connectionTimeout = null;
 
-        // 设置连接超时
         connectionTimeout = setTimeout(() => {
           if (!resolved) {
-            console.error('[Socket] 连接超时');
+            console.error('[Socket] 连接超时(30s)');
             this.isConnected = false;
             resolved = true;
-            resolve(); // 即使超时也resolve，允许使用本地模式
+            reject(new Error('连接服务器超时，请检查网络后刷新页面重试'));
           }
-        }, 20000); // 20秒超时
+        }, 35000);
 
         this.socket.on('connect', () => {
           if (connectionTimeout) {
@@ -50,37 +50,24 @@ class SocketClient {
             connectionTimeout = null;
           }
           
-          console.log(`[Socket] ✅ 连接成功! id=${this.socket.id}`);
+          console.log(`[Socket] 连接成功! id=${this.socket.id}`);
           this.isConnected = true;
           this.flushPendingEvents();
           if (!resolved) { resolved = true; resolve(); }
         });
 
         this.socket.on('connect_error', (error) => {
-          console.error(`[Socket] ❌ 连接失败: ${error.message}`);
+          console.error(`[Socket] 连接失败: ${error.message}`);
           this.isConnected = false;
-          
-          if (connectionTimeout) {
-            clearTimeout(connectionTimeout);
-            connectionTimeout = null;
-          }
-          
-          if (!resolved) { 
-            resolved = true; 
-            resolve(); // 即使连接失败也resolve，允许使用本地模式
-          }
         });
 
         this.socket.on('disconnect', (reason) => {
           console.log(`[Socket] 断开连接: ${reason}`);
           this.isConnected = false;
           
-          // 根据断开原因决定是否重连
           if (reason === 'io server disconnect') {
-            // 服务器主动断开，不自动重连
             console.log('[Socket] 服务器主动断开连接');
           } else {
-            // 其他原因，允许自动重连
             console.log('[Socket] 网络中断，将尝试重连');
           }
         });
@@ -88,6 +75,7 @@ class SocketClient {
         this.socket.on('reconnect', (attemptNum) => {
           console.log(`[Socket] 重连成功 (第${attemptNum}次尝试)`);
           this.isConnected = true;
+          this.flushPendingEvents();
         });
 
         this.socket.on('reconnect_attempt', (attemptNum) => {
@@ -99,12 +87,9 @@ class SocketClient {
           this.isConnected = false;
         });
 
-        this.socket.on('message', (data) => this.handleEvent('message', data));
-        this.socket.on('error', (data) => this.handleEvent('error', data));
-
       } catch (error) {
         console.error('[Socket] 创建连接异常:', error.message);
-        if (!resolved) { resolved = true; resolve(); }
+        if (!resolved) { resolved = true; reject(error); }
       }
     });
 
@@ -171,15 +156,21 @@ class SocketClient {
   createRoom(nickname) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
-        console.warn('[Socket] 未连接，创建房间使用临时ID');
-        resolve({ 
-          roomId: 'TEMP' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-          playerId: 'player_' + Date.now()
-        });
+        reject(new Error('未连接到服务器'));
         return;
       }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('创建房间超时，服务器未响应'));
+      }, 15000);
+
       this.socket.emit('createRoom', { nickname }, (response) => {
-        response.success ? resolve({ roomId: response.roomId, playerId: response.playerId }) : reject(response.error);
+        clearTimeout(timeout);
+        if (response && response.success) {
+          resolve({ roomId: response.roomId, playerId: response.playerId });
+        } else {
+          reject(new Error((response && response.error) || '创建房间失败'));
+        }
       });
     });
   }
@@ -187,20 +178,21 @@ class SocketClient {
   joinRoom(roomId, nickname, playerId = null) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
-        console.warn('[Socket] 未连接，加入房间使用本地模式');
-        resolve({
-          success: true,
-          playerId: 'player_' + Date.now(),
-          gameState: {
-            roomId, players: [{ id: 'local', playerId: 'player_' + Date.now(), nickname, chips: 1000, seat: 1, isActive: true, isTurn: false }],
-            communityCards: [], pots: [{ amount: 0, eligiblePlayers: [] }],
-            currentBet: 0, minBet: 0, maxBet: 0, gamePhase: 'WAITING', currentPlayer: null,
-          }
-        });
+        reject(new Error('未连接到服务器'));
         return;
       }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('加入房间超时，服务器未响应'));
+      }, 15000);
+
       this.socket.emit('joinRoom', { roomId, nickname, playerId }, (response) => {
-        response.success ? resolve(response) : reject(response.error);
+        clearTimeout(timeout);
+        if (response && response.success) {
+          resolve(response);
+        } else {
+          reject(new Error((response && response.error) || '加入房间失败'));
+        }
       });
     });
   }
@@ -210,7 +202,6 @@ class SocketClient {
   }
 
   sendGameAction(action, data) {
-    console.log(`[Socket] 发送操作: ${action}`, data);
     if (this.isConnected && this.socket) {
       this.socket.emit('gameAction', { action, data });
     } else {

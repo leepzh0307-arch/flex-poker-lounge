@@ -27,7 +27,6 @@ class GameManager {
     const nickname = params.get('nickname');
     this.gameState.isHost = params.get('isHost') === 'true';
     
-    // 从localStorage获取playerId，用于重连
     const savedPlayerId = localStorage.getItem('playerId');
     if (savedPlayerId) {
       this.gameState.playerId = savedPlayerId;
@@ -41,114 +40,75 @@ class GameManager {
       roomUI.hideHostPanel();
     }
 
-    roomUI.showGameStatus('正在加入', '正在连接到房间...');
+    roomUI.showGameStatus('正在连接', '正在连接到服务器...');
     this.bindEvents();
 
-    const socketPromise = this.initSocket().catch(error => {
-      console.error('Socket初始化失败:', error);
-      roomUI.showGameStatus('连接失败', '无法连接到服务器，使用本地模式');
-    });
-
-    const voicePromise = this.initVoice().catch(error => {
-      console.error('语音初始化失败（不影响游戏）:', error);
-    });
-
-    await Promise.all([socketPromise, voicePromise]);
-    roomUI.hideGameStatus();
-  }
-
-  async initSocket() {
     try {
       await socketClient.connect();
-      roomUI.updateConnectionStatus(socketClient.isConnected);
-      this.gameState.myPlayerId = socketClient.getSocketId();
-      roomUI.setMyPlayerId(this.gameState.myPlayerId);
-
-      const params = new URLSearchParams(window.location.search);
-      const nickname = params.get('nickname');
-      const isCreating = params.get('isCreating') === 'true';
-
-      if (isCreating) {
-        try {
-          const result = await socketClient.createRoom(nickname);
-          this.gameState.roomId = result.roomId;
-          this.gameState.playerId = result.playerId;
-          
-          // 保存playerId到localStorage用于重连
-          localStorage.setItem('playerId', result.playerId);
-          
-          roomUI.updateRoomId(result.roomId);
-
-          const response = await socketClient.joinRoom(result.roomId, nickname, result.playerId);
-          this.updateGameState(response.gameState);
-        } catch (createError) {
-          console.error('创建房间失败:', createError);
-          this.initLocalMode(nickname);
-        }
-      } else {
-        try {
-          const playerId = this.gameState.playerId || null;
-          const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
-          
-          // 如果是重连成功，更新playerId
-          if (response.playerId) {
-            this.gameState.playerId = response.playerId;
-            localStorage.setItem('playerId', response.playerId);
-          }
-          
-          this.updateGameState(response.gameState);
-        } catch (joinError) {
-          console.error('加入房间失败:', joinError);
-          // 如果是重连失败，清除保存的playerId
-          if (this.gameState.playerId) {
-            localStorage.removeItem('playerId');
-            this.gameState.playerId = null;
-          }
-          this.initLocalMode(nickname);
-        }
-      }
-
-      socketClient.on('gameUpdate', (gameState) => {
-        this.updateGameState(gameState);
+      roomUI.updateConnectionStatus(true);
+      roomUI.showGameStatus('正在加入', '正在加入房间...');
+      await this.initSocket();
+      this.initVoice().catch(error => {
+        console.error('语音初始化失败（不影响游戏）:', error);
       });
-
-      socketClient.on('playerJoined', (player) => {
-        this.handlePlayerJoined(player);
-      });
-
-      socketClient.on('playerLeft', (playerId) => {
-        this.handlePlayerLeft(playerId);
-      });
-
-      socketClient.on('gameAction', (action) => {
-        this.handleGameAction(action);
-      });
+      roomUI.hideGameStatus();
     } catch (error) {
-      console.error('初始化Socket.io失败:', error);
-      this.initLocalMode(new URLSearchParams(window.location.search).get('nickname'));
+      console.error('连接失败:', error);
+      roomUI.updateConnectionStatus(false);
+      roomUI.showGameStatus('连接失败', error.message || '无法连接到服务器，请刷新页面重试');
     }
   }
 
-  initLocalMode(nickname) {
-    this.gameState.myPlayerId = 'local';
+  async initSocket() {
+    this.gameState.myPlayerId = socketClient.getSocketId();
     roomUI.setMyPlayerId(this.gameState.myPlayerId);
-    this.updateGameState({
-      roomId: this.gameState.roomId,
-      players: [{
-        id: 'local',
-        nickname: nickname,
-        chips: 1000,
-        seat: 1,
-        isActive: true,
-        isTurn: false,
-      }],
-      communityCards: [],
-      pots: [{ amount: 0, eligiblePlayers: [] }],
-      currentBet: 0,
-      minBet: 0,
-      maxBet: 0,
-      gamePhase: 'WAITING',
-      currentPlayer: null,
+
+    const params = new URLSearchParams(window.location.search);
+    const nickname = params.get('nickname');
+    const isCreating = params.get('isCreating') === 'true';
+
+    if (isCreating) {
+      const result = await socketClient.createRoom(nickname);
+      this.gameState.roomId = result.roomId;
+      this.gameState.playerId = result.playerId;
+      
+      localStorage.setItem('playerId', result.playerId);
+      roomUI.updateRoomId(result.roomId);
+
+      const url = new URL(window.location);
+      url.searchParams.set('roomId', result.roomId);
+      url.searchParams.set('isCreating', 'false');
+      url.searchParams.set('isHost', 'true');
+      window.history.replaceState({}, '', url);
+
+      const response = await socketClient.joinRoom(result.roomId, nickname, result.playerId);
+      this.updateGameState(response.gameState);
+    } else {
+      const playerId = this.gameState.playerId || null;
+      const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
+      
+      if (response.playerId) {
+        this.gameState.playerId = response.playerId;
+        localStorage.setItem('playerId', response.playerId);
+      }
+      
+      this.updateGameState(response.gameState);
+    }
+
+    socketClient.on('gameUpdate', (gameState) => {
+      this.updateGameState(gameState);
+    });
+
+    socketClient.on('playerJoined', (player) => {
+      this.handlePlayerJoined(player);
+    });
+
+    socketClient.on('playerLeft', (playerId) => {
+      this.handlePlayerLeft(playerId);
+    });
+
+    socketClient.on('gameAction', (action) => {
+      this.handleGameAction(action);
     });
   }
 
