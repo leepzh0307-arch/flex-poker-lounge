@@ -355,12 +355,12 @@
 .phase-indicator {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 20px;
+  gap: 12px;
+  padding: 16px 32px;
   background: rgba(10, 12, 14, 0.35);
   backdrop-filter: blur(20px) saturate(1.3);
   -webkit-backdrop-filter: blur(20px) saturate(1.3);
-  border-radius: 20px;
+  border-radius: 24px;
   margin-bottom: 16px;
   border: 1px solid rgba(255, 255, 255, 0.04);
   z-index: 20;
@@ -413,15 +413,15 @@
 }
 
 .phase-label {
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.25);
+  font-size: 18px;
+  color: #fff;
   white-space: nowrap;
-  font-weight: 300;
+  font-weight: bold;
   letter-spacing: 0.5px;
 }
 
-.phase-step.current .phase-label { color: rgba(200, 230, 215, 0.85); }
-.phase-step.completed .phase-label { color: rgba(160, 210, 190, 0.55); }
+.phase-step.current .phase-label { color: #fff; }
+.phase-step.completed .phase-label { color: rgba(255, 255, 255, 0.6); }
 
 /* ====== 牌桌主体 (Poker Table) ====== */
 .players-area {
@@ -654,7 +654,7 @@
 }
 
 .player-chips {
-  font-size: 11px;
+  font-size: 22px;
   color: var(--chip-color);
   font-weight: bold;
 }
@@ -1123,8 +1123,8 @@
   width: 100%;
   padding: 10px 0;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 300;
+  font-size: 28px;
+  font-weight: bold;
   text-align: center;
   background: transparent;
   border: none;
