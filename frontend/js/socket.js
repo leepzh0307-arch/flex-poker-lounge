@@ -18,7 +18,7 @@ class SocketClient {
       }
 
       try {
-        const url = config.serverUrl || 'http://localhost:3000';
+        const url = config.serverUrl || window.location.origin;
         console.log(`[Socket] 正在连接到 ${url} ...`);
 
         this.socket = io(url, {

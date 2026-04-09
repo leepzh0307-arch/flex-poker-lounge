@@ -2,12 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
-// 从环境变量获取配置
-const APP_ID = process.env.AGORA_APP_ID || 'ee244346e9ed4d49b277213d9a7783c6';
+const APP_ID = process.env.AGORA_APP_ID || '';
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE || '';
 
-// Token过期时间（秒）
-const TOKEN_EXPIRATION_TIME = 3600; // 1小时
+if (!APP_ID) {
+  console.warn('[Agora] ⚠️  AGORA_APP_ID 环境变量未配置，语音功能将不可用');
+}
+if (!APP_CERTIFICATE) {
+  console.warn('[Agora] ⚠️  AGORA_APP_CERTIFICATE 环境变量未配置，将使用测试模式（不安全）');
+}
+
+const TOKEN_EXPIRATION_TIME = 3600;
 
 // 生成Token的路由
 router.post('/generate-token', (req, res) => {
@@ -18,6 +23,13 @@ router.post('/generate-token', (req, res) => {
       return res.status(400).json({ 
         success: false, 
         error: '缺少必要参数: channelName 或 uid' 
+      });
+    }
+
+    if (!APP_ID) {
+      return res.status(500).json({
+        success: false,
+        error: 'App ID未配置，请在Render环境变量中设置AGORA_APP_ID'
       });
     }
 

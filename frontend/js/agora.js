@@ -65,8 +65,10 @@ class AgoraVoice {
       let appId = config.agora.appId;
       let token = null;
       
+      const baseUrl = config.serverUrl || '';
+      
       try {
-        const response = await fetch(`${config.serverUrl}/api/agora/app-id`);
+        const response = await fetch(`${baseUrl}/api/agora/app-id`);
         const appIdData = await response.json();
         if (appIdData.success) {
           appId = appIdData.appId;
@@ -77,7 +79,7 @@ class AgoraVoice {
       }
       
       try {
-        const tokenResponse = await fetch(`${config.serverUrl}/api/agora/generate-token`, {
+        const tokenResponse = await fetch(`${baseUrl}/api/agora/generate-token`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const https = require('https');
 const path = require('path');
 const { Server } = require('socket.io');
 
@@ -45,4 +46,15 @@ server.listen(PORT, () => {
   console.log(`服务器运行在 http://localhost:${PORT}`);
   console.log(`前端页面: http://localhost:${PORT}/`);
   console.log(`房间页面: http://localhost:${PORT}/room.html`);
+
+  if (process.env.NODE_ENV === 'production') {
+    const keepAlive = setInterval(() => {
+      https.get(`https://flex-poker-backend.onrender.com/health`, (res) => {
+        console.log('[保活] ping 成功, status:', res.statusCode);
+      }).on('error', (err) => {
+        console.error('[保活] ping 失败:', err.message);
+      });
+    }, 10 * 60 * 1000);
+    console.log('[保活] 已启用，每 10 分钟自动 ping');
+  }
 });

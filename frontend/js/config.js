@@ -1,8 +1,12 @@
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
 const config = {
-  serverUrl: 'https://flex-poker-backend.onrender.com',
+  serverUrl: isLocalhost
+    ? 'https://flex-poker-backend.onrender.com'
+    : '',
 
   agora: {
-    appId: '', // 将从后端API获取
+    appId: '',
     channelPrefix: 'flex-poker-',
   },
 
