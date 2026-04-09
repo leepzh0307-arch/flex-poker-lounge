@@ -1,7 +1,11 @@
 const config = {
-  serverUrl: (typeof window !== 'undefined' && window.location.origin)
-    ? window.location.origin
-    : 'http://localhost:3000',
+  serverUrl: (function() {
+    const host = (typeof window !== 'undefined' && window.location.host) || '';
+    if (host.includes('flex-poker-lounge')) {
+      return 'https://api.' + host;
+    }
+    return 'https://flex-poker-backend.onrender.com';
+  })(),
 
   agora: {
     appId: 'a1b2c3d4e5f6g7h8i9j0',

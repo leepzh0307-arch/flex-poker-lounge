@@ -2,7 +2,13 @@
 // 声网配置从后端动态获取，确保安全性
 
 const config = {
-  serverUrl: 'https://flex-poker-backend.onrender.com',
+  serverUrl: (function() {
+    const host = window.location.host;
+    if (host.includes('flex-poker-lounge')) {
+      return 'https://api.' + host;
+    }
+    return 'https://flex-poker-backend.onrender.com';
+  })(),
 
   agora: {
     appId: '', // 将从后端动态获取
