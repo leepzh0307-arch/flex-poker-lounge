@@ -86,7 +86,7 @@ class AgoraVoice {
           },
           body: JSON.stringify({
             channelName: channelName,
-            uid: userId.toString()
+            uid: parseInt(userId)
           })
         });
         const tokenData = await tokenResponse.json();

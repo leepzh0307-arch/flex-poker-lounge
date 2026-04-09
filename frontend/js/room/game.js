@@ -115,7 +115,7 @@ class GameManager {
   async initVoice() {
     try {
       await agoraVoice.initialize();
-      await agoraVoice.joinChannel(this.gameState.roomId, Math.random().toString(36).substr(2, 9));
+      await agoraVoice.joinChannel(this.gameState.roomId, Math.floor(Math.random() * 1000000));
       roomUI.updateVoiceButton(true);
     } catch (error) {
       console.error('初始化语音失败:', error);
