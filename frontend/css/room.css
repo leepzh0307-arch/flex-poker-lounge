@@ -83,7 +83,7 @@
   position: relative;
   overflow: hidden;
   transition: all 0.5s ease, top 0s, left 0s;
-  background: rgba(0, 0, 0, 0.8);
+  background: #2a2a2a;
   border: none;
   color: #ffffff;
   cursor: pointer;
@@ -131,7 +131,7 @@
 /* 按钮内层遮罩 - 保持原有背景可见性 */
 .btn::after, .action-btn::after, .chip-btn::after {
   content: '';
-  background: rgba(30, 30, 35, 0.7);
+  background: #1f1f1f;
   position: absolute;
   inset: 2px;
   border-radius: inherit;
@@ -141,7 +141,7 @@
 }
 
 .btn:hover::after, .action-btn:hover::after, .chip-btn:hover::after {
-  background: rgba(40, 40, 45, 0.6);
+  background: #252525;
 }
 
 /* ====== 顶部信息栏 ====== */
@@ -195,9 +195,9 @@
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 0.8px;
-  background: rgba(45, 45, 45, 0.8);
+  background: #2a2a2a;
   border-radius: 16px;
-  color: #aaa;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
 }
@@ -229,9 +229,9 @@
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 0.5px;
-  background: rgba(45, 45, 45, 0.8);
+  background: #2a2a2a;
   border-radius: 16px;
-  color: #aaa;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
 }
@@ -254,9 +254,9 @@
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 0.5px;
-  background: rgba(45, 45, 45, 0.8);
+  background: #2a2a2a;
   border-radius: 16px;
-  color: #aaa;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
 }
@@ -278,9 +278,9 @@
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 0.5px;
-  background: rgba(45, 45, 45, 0.8);
+  background: #2a2a2a;
   border-radius: 16px;
-  color: #aaa;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
 }
@@ -302,9 +302,9 @@
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 0.5px;
-  background: rgba(45, 45, 45, 0.8);
+  background: #2a2a2a;
   border-radius: 16px;
-  color: #aaa;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
 }
@@ -318,11 +318,6 @@
 
 .switch-bg-btn:active {
   transform: translateY(2px) scale(0.95);
-}
-
-.switch-bg-btn:active:after {
-  height: 80%;
-  background: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
 }
 
 .connection-status {
@@ -380,11 +375,64 @@
 }
 
 .phase-indicator-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
   margin-bottom: 16px;
+}
+
+/* 牌力规则按钮 */
+.poker-power-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 20px;
+  background: #2a2a2a;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.poker-power-btn:hover {
+  background: #3a3a3a;
+  transform: translateY(-50%) scale(1.05);
+}
+
+/* 牌力规则图片弹出层 */
+.poker-power-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.poker-power-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  z-index: 1001;
+}
+
+.poker-power-image {
+  max-width: 100%;
+  max-height: 100vh;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
 }
 
 .host-actions-inline {
@@ -937,7 +985,7 @@
   font-weight: 300;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #82b9a5;
+  color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
@@ -962,7 +1010,7 @@
   font-weight: 300;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #64b48c;
+  color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
@@ -987,7 +1035,7 @@
   font-weight: 300;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #e67878;
+  color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
@@ -1056,7 +1104,7 @@
 }
 
 .fold-btn {
-  color: #888;
+  color: #ffffff;
 }
 .fold-btn:hover:not(:disabled) {
   color: #ccc;
@@ -1069,7 +1117,7 @@
 }
 
 .check-btn {
-  color: #82c8dc;
+  color: #ffffff;
 }
 .check-btn:hover:not(:disabled) {
   color: #a0dce6;
@@ -1082,7 +1130,7 @@
 }
 
 .call-btn {
-  color: #82dcbe;
+  color: #ffffff;
 }
 .call-btn:hover:not(:disabled) {
   color: #a0dcca;
@@ -1095,7 +1143,7 @@
 }
 
 .raise-btn {
-  color: #ffc8aa;
+  color: #ffffff;
 }
 .raise-btn:hover:not(:disabled) {
   color: #ffd4b8;
@@ -1108,7 +1156,7 @@
 }
 
 .all-in-btn {
-  color: #e6d296;
+  color: #ffffff;
   font-weight: 400;
 }
 .all-in-btn:hover:not(:disabled) {

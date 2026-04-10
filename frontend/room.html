@@ -64,6 +64,9 @@
     <main class="game-area">
       <!-- 阶段指示器 -->
       <div class="phase-indicator-wrapper">
+        <!-- 查看牌力规则按钮 -->
+        <button id="poker-power-btn" class="btn poker-power-btn">查看牌力规则</button>
+        
         <div class="phase-indicator" id="phase-indicator">
           <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
           <div class="phase-step" data-phase="PRE_FLOP_BLINDS"><span class="phase-dot"></span><span class="phase-label">盲注</span></div>
@@ -77,6 +80,13 @@
           <button id="start-game" class="btn btn-primary btn-host-inline">开始游戏</button>
           <button id="next-hand-btn" class="btn btn-success btn-host-inline" style="display:none;">下一局</button>
           <button id="reset-game" class="btn btn-danger btn-host-inline">重置游戏</button>
+        </div>
+      </div>
+
+      <!-- 牌力规则图片弹出层 -->
+      <div id="poker-power-modal" class="poker-power-modal" style="display: none;">
+        <div class="poker-power-content">
+          <img src="css/images/poker-power.jpg" alt="牌力规则" class="poker-power-image">
         </div>
       </div>
 
@@ -295,6 +305,32 @@
           this.style.setProperty('--y', '50%');
         });
       });
+    });
+  </script>
+
+  <!-- 牌力规则按钮功能 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const pokerPowerBtn = document.getElementById('poker-power-btn');
+      const pokerPowerModal = document.getElementById('poker-power-modal');
+      
+      if (pokerPowerBtn && pokerPowerModal) {
+        // 点击按钮切换图片显示/隐藏
+        pokerPowerBtn.addEventListener('click', function() {
+          if (pokerPowerModal.style.display === 'none' || pokerPowerModal.style.display === '') {
+            pokerPowerModal.style.display = 'flex';
+          } else {
+            pokerPowerModal.style.display = 'none';
+          }
+        });
+        
+        // 点击弹出层背景关闭图片
+        pokerPowerModal.addEventListener('click', function(e) {
+          if (e.target === pokerPowerModal) {
+            pokerPowerModal.style.display = 'none';
+          }
+        });
+      }
     });
   </script>
 </body>

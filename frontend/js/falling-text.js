@@ -293,7 +293,7 @@ var FallingText = (function() {
     var viewportWidth = window.innerWidth;
     var viewportHeight = window.innerHeight;
     // 计算左侧区域宽度（非登录框区域）
-    var leftAreaWidth = viewportWidth * 0.65; // 左侧占65%
+    var leftAreaWidth = viewportWidth * 0.55; // 左侧占55%（向左缩短10%）
     var dpr = window.devicePixelRatio || 1;
 
     var canvasEl = document.createElement('canvas');
@@ -493,7 +493,7 @@ var FallingText = (function() {
       var viewportWidth = window.innerWidth;
       var viewportHeight = window.innerHeight;
       // 计算左侧区域宽度（非登录框区域）
-      var leftAreaWidth = viewportWidth * 0.65; // 左侧占65%
+      var leftAreaWidth = viewportWidth * 0.55; // 左侧占55%（向左缩短10%）
       savedContainerRect = {
         width: leftAreaWidth,
         height: viewportHeight
