@@ -288,26 +288,28 @@ var FallingText = (function() {
     canvasEl.style.touchAction = 'none';
   }
 
-  // ✅ 修复5：canvas强制覆盖整个视口，避免坐标系错位
+  // ✅ 修复5：canvas只覆盖左侧非登录框区域
   function createCanvasOverlay() {
     var viewportWidth = window.innerWidth;
     var viewportHeight = window.innerHeight;
+    // 计算左侧区域宽度（非登录框区域）
+    var leftAreaWidth = viewportWidth * 0.65; // 左侧占65%
     var dpr = window.devicePixelRatio || 1;
 
     var canvasEl = document.createElement('canvas');
     canvasEl.className = 'falling-text-canvas';
     // 画布尺寸适配高清屏
-    canvasEl.width = viewportWidth * dpr;
+    canvasEl.width = leftAreaWidth * dpr;
     canvasEl.height = viewportHeight * dpr;
-    // 样式尺寸和视口完全一致
-    canvasEl.style.width = viewportWidth + 'px';
+    // 样式尺寸和左侧区域完全一致
+    canvasEl.style.width = leftAreaWidth + 'px';
     canvasEl.style.height = viewportHeight + 'px';
     canvasEl.style.position = 'fixed';
     canvasEl.style.top = '0';
     canvasEl.style.left = '0';
     canvasEl.style.zIndex = '9999';
     canvasEl.style.pointerEvents = 'auto';
-    canvasEl.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    canvasEl.style.backgroundColor = 'rgba(0, 0, 0, 0)';
 
     document.body.appendChild(canvasEl);
     return canvasEl;
@@ -490,8 +492,10 @@ var FallingText = (function() {
       
       var viewportWidth = window.innerWidth;
       var viewportHeight = window.innerHeight;
+      // 计算左侧区域宽度（非登录框区域）
+      var leftAreaWidth = viewportWidth * 0.65; // 左侧占65%
       savedContainerRect = {
-        width: viewportWidth,
+        width: leftAreaWidth,
         height: viewportHeight
       };
 
