@@ -927,20 +927,20 @@ class RoomUI {
     }
 
     // 更新房间号标签
-    const roomInfoText = document.querySelector('.room-info div');
-    if (roomInfoText) {
-      roomInfoText.innerHTML = `${t['room-number']}: <span id="room-id" class="room-id">${this.elements.roomId?.textContent || '--'}</span>
+    const roomInfo = document.querySelector('.room-info');
+    if (roomInfo) {
+      roomInfo.innerHTML = `${t['room-number']}: <span id="room-id" class="room-id">${this.elements.roomId?.textContent || '--'}</span>
         <button id="copy-room-id" class="btn copy-btn header-btn">${t['copy']}</button>`;
       this.elements.roomId = document.getElementById('room-id');
       // 为英文文本添加特殊字体
       if (this.currentLanguage === 'en') {
-        roomInfoText.classList.add('english-text');
+        roomInfo.classList.add('english-text');
         const newCopyBtn = document.getElementById('copy-room-id');
         if (newCopyBtn) {
           newCopyBtn.classList.add('english-text');
         }
       } else {
-        roomInfoText.classList.remove('english-text');
+        roomInfo.classList.remove('english-text');
         const newCopyBtn = document.getElementById('copy-room-id');
         if (newCopyBtn) {
           newCopyBtn.classList.remove('english-text');

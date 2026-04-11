@@ -19,6 +19,7 @@ class GameManager {
     };
 
     this.previousChips = 1000; // 初始积分
+    this.handStartChips = undefined;
 
     this.init();
   }
@@ -220,7 +221,7 @@ class GameManager {
     }
     
     // 游戏结束时记录积分变化
-    if (prevPhase !== 'HAND_END' && phase === 'HAND_END' && myPlayer && this.handStartChips !== undefined) {
+    if (((prevPhase !== 'HAND_END' && phase === 'HAND_END') || (prevPhase === 'HAND_END' && phase === 'CONFIRM_CONTINUE')) && myPlayer && this.handStartChips !== undefined) {
       const chipsChange = myPlayer.chips - this.handStartChips;
       if (chipsChange !== 0) {
         const isWin = chipsChange > 0;

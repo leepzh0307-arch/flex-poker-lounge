@@ -6,6 +6,7 @@ class AgoraVoice {
     this.isJoined = false;
     this.microphoneEnabled = true;
     this.speakerEnabled = true;
+    this.localAudioTrack = null;
   }
   
   // 初始化Agora
@@ -114,10 +115,10 @@ class AgoraVoice {
       );
       
       // 创建本地音频轨道
-      const localTracks = await AgoraRTC.createMicrophoneAudioTrack();
+      this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
       
       // 发布本地轨道
-      await this.client.publish(localTracks);
+      await this.client.publish(this.localAudioTrack);
       
       this.isJoined = true;
       console.log('加入语音频道成功');
@@ -147,20 +148,13 @@ class AgoraVoice {
     this.microphoneEnabled = !this.microphoneEnabled;
     console.log(`麦克风已${this.microphoneEnabled ? '开启' : '关闭'}`);
     
-    if (!this.isJoined || !this.client) {
-      console.warn('[Agora] 语音未连接，仅更新本地状态');
+    if (!this.isJoined || !this.client || !this.localAudioTrack) {
+      console.warn('[Agora] 语音未连接或无音频轨道，仅更新本地状态');
       return true;
     }
     
     try {
-      const localTracks = this.client.getLocalTracks();
-      if (!localTracks || localTracks.length === 0) {
-        console.warn('[Agora] 无音频轨道');
-        return true;
-      }
-
-      const audioTrack = localTracks[0];
-      await audioTrack.setEnabled(this.microphoneEnabled);
+      await this.localAudioTrack.setEnabled(this.microphoneEnabled);
       console.log('麦克风状态已更新');
       return true;
     } catch (error) {

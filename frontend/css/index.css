@@ -262,24 +262,66 @@ body {
   border-radius: 6px;
   background: rgba(130, 185, 165, 0.32);
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.15s ease;
+  transition: all 0.5s ease, top 0s, left 0s;
   overflow: hidden;
+  z-index: 1;
 }
 
 .action-btn span {
   position: relative;
-  z-index: 2;
+  z-index: 100 !important;
+  letter-spacing: 0.15em;
+  color: #ffffff !important;
+}
+
+/* 光斑层 */
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(#fff, transparent, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease, top 0s, left 0s;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.action-btn:hover::before {
+  opacity: 1;
+}
+
+/* 深灰色遮罩层 */
+.action-btn::after {
+  content: '';
+  background: rgba(45, 45, 45, 0.85);
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.action-btn:hover::after {
+  background: rgba(35, 35, 35, 0.9);
 }
 
 .action-btn:hover {
-  background: rgba(130, 185, 165, 0.38);
+  background: #202020 !important;
+  color: #fff !important;
+  text-shadow: 0 0 15px #fff, 0 0 48px #fff;
+  border-color: transparent;
+  z-index: 100 !important;
   animation: btnShake 0.4s ease-in-out;
   transform: translateY(-1px);
 }
 
 .action-btn:active {
-  background: rgba(130, 185, 165, 0.2);
-  transform: translateY(2px) scale(0.97);
+  transform: scale(0.98);
 }
 
 /* ---------- 分割线 ---------- */

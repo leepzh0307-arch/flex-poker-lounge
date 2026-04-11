@@ -863,7 +863,7 @@
 .player-seat {
   position: absolute;
   width: 140px; /* 调整为两张扑克牌宽度 */
-  height: 120px;
+  height: 50px;
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-xs);
   display: none;
@@ -900,14 +900,14 @@
 
 .player-seat.seat-self {
   display: flex;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.3);
   border: none;
   box-shadow: none;
 }
 
 .player-seat.active {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 16px rgba(255, 107, 53, 0.35), 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 16px rgba(228, 228, 228, 0.586), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .player-seat.turn {
@@ -922,16 +922,16 @@
 }
 
 /* ====== 10个座位位置坐标（百分比定位）====== */
-.player-seat.seat-1  { left: 25%;  top: 80%; }   /* 底部偏左 */
-.player-seat.seat-2  { left: 10%;   top: 65%; }   /* 左侧偏下 */
-.player-seat.seat-3  { left: 10%;   top: 35%; }   /* 左侧偏上 */
-.player-seat.seat-4  { left: 25%;  top: 20%;  }   /* 顶部偏左 */
-.player-seat.seat-5  { left: 50%;  top: 20%;  }   /* 顶部正中 */
-.player-seat.seat-6  { left: 75%;  top: 20%;  }   /* 顶部偏右 */
-.player-seat.seat-7  { left: 90%;  top: 35%; }   /* 右侧偏上 */
-.player-seat.seat-8  { left: 90%;  top: 65%; }   /* 右侧偏下 */
-.player-seat.seat-9  { left: 75%;  top: 80%; }   /* 底部偏右 */
-.player-seat.seat-10 { left: 50%;  top: 80%; }   /* 底部正中 */
+.player-seat.seat-1  { left: 26%;  top: 76%; }   /* 底部偏左 */
+.player-seat.seat-2  { left: 7%;   top: 60%; }   /* 左侧偏下 */
+.player-seat.seat-3  { left: 7%;   top: 20%; }   /* 左侧偏上 */
+.player-seat.seat-4  { left: 26%;  top: 6%;  }   /* 顶部偏左 */
+.player-seat.seat-5  { left: 50%;  top: 6%;  }   /* 顶部正中 */
+.player-seat.seat-6  { left: 74%;  top: 6%;  }   /* 顶部偏右 */
+.player-seat.seat-7  { left: 93%;  top: 20%; }   /* 右侧偏上 */
+.player-seat.seat-8  { left: 93%;  top: 60%; }   /* 右侧偏下 */
+.player-seat.seat-9  { left: 74%;  top: 76%; }   /* 底部偏右 */
+.player-seat.seat-10 { left: 50%;  top: 76%; }   /* 底部正中 */
 
 /* 位置标记徽章 */
 .position-badge {
@@ -977,23 +977,23 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  margin-top: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  margin-top: -10px;
+  background: rgba(0, 0, 0, 0);
   padding: 4px 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  border-radius: 0px;
+  border: 0px solid rgba(255, 255, 255, 0);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0);
   transition: all 0.3s ease;
 }
 
 .player-seat.seat-self .player-info {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  border: 0px solid rgb(74, 74, 74);
+  box-shadow: 0 0 5px rgba(114, 114, 114, 0);
 }
 
 .player-name {
   font-family: 'PingFang SC';
-  font-size: var(--font-size-small);
+  font-size: 20px;
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   max-width: 90px;
@@ -1001,7 +1001,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: -4px;
 }
 
 .player-name.english-text {
@@ -1033,7 +1033,7 @@
   font-family: 'PingFang SC';
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 215, 0, 0.8);
+  color: #E6D296;
 }
 
 .player-chips.english-text {
@@ -1490,7 +1490,8 @@
 }
 
 .action-panel h3 {
-  margin-bottom: 20px;
+  margin-top: -8px;
+  margin-bottom: 10px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -1498,12 +1499,13 @@
   text-align: center;
   text-transform: none;
   font-family: 'PingFang SC';
+  line-height: 13px;
 }
 
 .action-buttons-vertical {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   margin-bottom: 20px;
 }
 
@@ -1611,7 +1613,7 @@
 
 .bet-control label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: -4px;
   font-family: 'PingFang SC';
   font-size: 13px;
   font-weight: 600;
@@ -1645,8 +1647,8 @@
 }
 
 .my-info {
-  margin-top: 12px;
-  font-size: 15px;
+  margin-top: -8px;
+  font-size: 13px;
   font-weight: 800;
   color: #fff;
   text-align: center;
@@ -1667,10 +1669,10 @@
 
 .chips-history h4 {
   margin: 0 0 8px 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255);
   text-align: center;
   font-family: 'PingFang SC';
 }
@@ -1902,7 +1904,7 @@
 }
 
 .game-log-panel h3 {
-  margin-bottom: 12px;
+  margin-top: -8px;
   font-size: 13px;
   font-family: 'PingFang SC';
   font-weight: 600;
