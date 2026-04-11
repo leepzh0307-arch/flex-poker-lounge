@@ -242,9 +242,9 @@ class RoomUI {
       }
       labelEl.style.display = 'none';
 
-      seat.querySelector('.player-bet-total').textContent = `下注: ${currentBet || 0}`;
       seat.querySelector('.player-name').textContent = player.nickname;
       seat.querySelector('.player-chips').textContent = player.chips || 0;
+      seat.querySelector('.player-bet-total').textContent = `本局下注: ${currentBet || 0}`;
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';

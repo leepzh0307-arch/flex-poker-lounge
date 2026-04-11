@@ -991,15 +991,6 @@
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
 }
 
-.player-bet-total {
-  font-family: 'PingFang SC';
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255, 215, 0, 0.8);
-  text-align: center;
-  margin-bottom: 2px;
-}
-
 .player-name {
   font-family: 'PingFang SC';
   font-size: var(--font-size-small);
@@ -1010,10 +1001,19 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
+  margin-bottom: 4px;
 }
 
 .player-name.english-text {
   font-family: 'Playfair Display', serif;
+}
+
+.player-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
 }
 
 .player-chips {
@@ -1021,6 +1021,19 @@
   font-size: 14px;
   color: var(--chip-color);
   font-weight: bold;
+}
+
+.divider {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.player-bet-total {
+  font-family: 'PingFang SC';
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.8);
 }
 
 .player-chips.english-text {
