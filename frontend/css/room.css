@@ -1031,7 +1031,7 @@
   transform: translateX(-50%);
   background: url('images/chip-btn1.webp') no-repeat center center;
   background-size: contain;
-  color: #fff;
+  color: #000000;
   font-size: 12px;
   font-weight: bold;
   padding: 0;
@@ -1047,8 +1047,9 @@
   width: 60px;
   height: 60px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 5px;
 }
 
 .player-bet.animate {
@@ -1085,7 +1086,7 @@
 }
 
 .player-bet.gather {
-  animation: betGather 1s ease-out forwards;
+  animation: betGather 2s ease-out forwards;
 }
 
 
