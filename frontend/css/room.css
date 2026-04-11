@@ -450,20 +450,30 @@
 .phase-indicator-wrapper {
   position: fixed;
   top: calc(var(--header-height) + 20px);
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  width: 100%;
+  max-width: 1000px;
+  padding: 0;
   z-index: 20;
+}
+
+.phase-indicator {
+  flex-shrink: 0;
+  margin: 0 auto;
 }
 
 .host-buttons {
   display: flex;
-  gap: 12px;
   align-items: center;
   flex-shrink: 0;
+}
+
+.host-buttons .btn-host {
+  margin-left: 10px;
 }
 
 /* 牌力规则按钮 - 与全局按钮一致 */
@@ -571,7 +581,7 @@
 
 .btn-host {
   position: fixed;
-  top: calc(var(--header-height) + 100px - 60px);
+  top: calc(var(--header-height) + 20px);
   padding: 10px 20px;
   font-family: 'PingFang SC';
   font-size: 13px;
@@ -716,7 +726,7 @@
 /* ====== 牌桌主体 (Poker Table) ====== */
 .players-area {
   position: fixed;
-  top: calc(var(--header-height) + 100px);
+  top: calc(var(--header-height) + 120px);
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -1004,12 +1014,49 @@
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.3);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  animation: betPulse 1s ease-in-out infinite alternate;
+  transition: all 0.3s ease;
+}
+
+.player-bet.animate {
+  animation: betThrow 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, betPulse 0.5s ease-in-out infinite alternate 1s;
+}
+
+.player-bet.fade-out {
+  animation: betFadeOut 0.8s ease-out forwards;
+}
+
+@keyframes betThrow {
+  0% {
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    transform: translateX(0) translateY(-100px) rotate(180deg);
+    opacity: 1;
+    scale: 1.2;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(360deg);
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 @keyframes betPulse {
   from { box-shadow: 0 4px 12px rgba(255, 107, 53, 0.6); }
   to { box-shadow: 0 4px 16px rgba(255, 107, 53, 0.8); }
+}
+
+@keyframes betFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
 }
 
 /* 玩家状态标签 */
@@ -1785,9 +1832,13 @@
   }
 
   .poker-power-btn {
-    top: calc(var(--header-height) + 80px - 50px);
+    top: calc(var(--header-height) + 10px);
     left: 50%;
     transform: translateX(-50%);
+  }
+
+  .btn-host {
+    top: calc(var(--header-height) + 10px);
   }
 
   .host-actions-inline {
@@ -1802,7 +1853,7 @@
   .players-area {
     max-width: 100%;
     min-height: 350px;
-    top: calc(var(--header-height) + 80px);
+    top: calc(var(--header-height) + 100px);
   }
 
   .player-seat {
@@ -1866,10 +1917,10 @@
 }
 
 @media (max-width: 480px) {
-  .players-area { min-height: 300px; top: calc(var(--header-height) + 70px); }
+  .players-area { min-height: 300px; top: calc(var(--header-height) + 90px); }
 
   .poker-power-btn {
-    top: calc(var(--header-height) + 70px - 45px);
+    top: calc(var(--header-height) + 8px);
     left: 50%;
     transform: translateX(-50%);
   }
@@ -1883,6 +1934,10 @@
   .action-btn { flex: 1 1 42%; }
 
   .phase-indicator { gap: 1px; top: calc(var(--header-height) + 8px); }
+
+  .btn-host {
+    top: calc(var(--header-height) + 8px);
+  }
   .phase-step { padding: 1px 2px; }
 
   .community-cards {

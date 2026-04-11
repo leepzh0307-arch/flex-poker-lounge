@@ -268,8 +268,30 @@ class RoomUI {
         if (currentBet > 0 && player.isActive) {
           betEl.textContent = currentBet;
           betEl.style.display = 'block';
+          
+          // 触发下注动画
+          betEl.classList.remove('fade-out');
+          setTimeout(() => {
+            betEl.classList.add('animate');
+            
+            // 动画结束后移除animate类，以便下次动画可以正常触发
+            setTimeout(() => {
+              betEl.classList.remove('animate');
+            }, 1500);
+          }, 100);
         } else {
-          betEl.style.display = 'none';
+          // 触发淡出动画
+          if (betEl.style.display === 'block') {
+            betEl.classList.add('fade-out');
+            
+            // 动画结束后隐藏元素
+            setTimeout(() => {
+              betEl.style.display = 'none';
+              betEl.classList.remove('fade-out');
+            }, 800);
+          } else {
+            betEl.style.display = 'none';
+          }
         }
       }
 
