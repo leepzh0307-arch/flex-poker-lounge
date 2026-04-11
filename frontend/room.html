@@ -48,15 +48,15 @@
       <div class="room-info">
         <div>
           房间号: <span id="room-id" class="room-id">--</span>
-          <button id="copy-room-id" class="btn copy-btn">复制</button>
+          <button id="copy-room-id" class="btn copy-btn header-btn">复制</button>
         </div>
       </div>
       <div class="header-actions">
-        <span id="connection-status" class="connection-status disconnected">🔴 未连接</span>
-        <button id="language-toggle" class="btn language-btn">🌐 中文</button>
-        <button id="voice-toggle" class="btn voice-btn">🔊 语音: 开启</button>
-        <button id="exit-room" class="btn exit-btn">退出房间</button>
-        <button id="switch-table-bg" class="btn switch-bg-btn">切换牌桌背景</button>
+        <span id="connection-status" class="connection-status disconnected">未连接</span>
+        <button id="language-toggle" class="btn language-btn header-btn">中文</button>
+        <button id="voice-toggle" class="btn voice-btn header-btn">语音: 开启</button>
+        <button id="exit-room" class="btn exit-btn header-btn">退出房间</button>
+        <button id="switch-table-bg" class="btn switch-bg-btn header-btn">切换牌桌背景</button>
       </div>
     </header>
 
@@ -254,9 +254,14 @@
       </div>
       <div class="bet-control">
         <label for="bet-amount">下注积分</label>
-        <input type="number" id="bet-amount" class="bet-amount" value="10" min="1">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="number" id="bet-amount" class="bet-amount" value="10" min="1">
+          <button type="button" id="clear-bet-btn" class="btn clear-btn">清空</button>
+        </div>
       </div>
       <div class="chip-buttons">
+        <button class="chip-btn" data-amount="1">1</button>
+        <button class="chip-btn" data-amount="5">5</button>
         <button class="chip-btn" data-amount="10">10</button>
         <button class="chip-btn" data-amount="50">50</button>
         <button class="chip-btn" data-amount="100">100</button>

@@ -30,13 +30,13 @@
 /* LOGO */
 .logo-container {
   position: absolute;
-  top: 10px;
+  top: 6px;
   left: 20px;
   z-index: 100;
 }
 
 .logo {
-  width: 120px;
+  width: 96px;
   height: auto;
   border-radius: 6px;
 }
@@ -47,7 +47,7 @@
   flex-direction: column;
   min-height: 100vh;
   background: transparent;
-  font-family: 'Inter', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  font-family: 'PingFang SC';
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -78,75 +78,92 @@
   100% { transform: translateX(0) scaleX(1) scaleY(1); }
 }
 
-/* 全局按钮拟物化基础样式 - 鼠标跟随光晕效果 */
+/* 全局按钮拟物化基础样式 - 鼠标跟随光晕效果（三层结构） */
 .btn, .action-btn, .chip-btn {
   position: relative;
   overflow: hidden;
   transition: all 0.5s ease, top 0s, left 0s;
-  background: #2a2a2a;
-  border: none;
+  background: #3e3e3e;
+  border-radius: inherit;
   color: #ffffff;
+  font-family: 'PingFang SC';
+  font-size: inherit;
+  text-decoration: none;
   cursor: pointer;
   display: inline-block;
   text-align: center;
+  z-index: 10;
+}
+
+.btn.english-text, .action-btn.english-text, .chip-btn.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 .btn span, .action-btn span, .chip-btn span {
   position: relative;
-  z-index: 2;
-  letter-spacing: 0.05em;
-  transition: all 0.3s ease;
+  z-index: 100 !important;
+  letter-spacing: 0.15em;
+  color: #ffffff !important;
 }
 
-.btn:hover, .action-btn:hover, .chip-btn:hover {
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4);
+/* 强制文字显示在最顶层 */
+.btn, .action-btn, .chip-btn {
+  color: #ffffff !important;
+  position: relative;
+  z-index: 100 !important;
+}
+
+.btn:hover, .action-btn:hover {
+  background: #202020 !important;
+  color: #fff !important;
+  text-shadow: 0 0 15px #fff, 0 0 48px #fff;
   border-color: transparent;
+  z-index: 100 !important;
 }
 
-.btn:active, .action-btn:active, .chip-btn:active {
+.btn:active, .action-btn:active {
   transform: scale(0.98);
 }
 
-/* 鼠标跟随光斑 - 所有按钮通用 */
-.btn::before, .action-btn::before, .chip-btn::before {
+/* 鼠标跟随光斑 - 纯白色光晕（第2层） */
+.btn::before, .action-btn::before {
   content: '';
   position: absolute;
   top: var(--y, 50%);
   left: var(--x, 50%);
   transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(#ffffff, transparent, transparent);
   opacity: 0;
-  transition: opacity 0.4s ease, top 0s, left 0s;
+  transition: opacity 0.5s ease, top 0s, left 0s;
   pointer-events: none;
-  z-index: 1;
+  z-index: -1;
 }
 
-.btn:hover::before, .action-btn:hover::before, .chip-btn:hover::before {
+.btn:hover::before, .action-btn:hover::before {
   opacity: 1;
 }
 
-/* 按钮内层遮罩 - 保持原有背景可见性 */
-.btn::after, .action-btn::after, .chip-btn::after {
+/* 按钮内层遮罩 - 深灰色顶层（第2层） */
+.btn::after, .action-btn::after {
   content: '';
-  background: #1f1f1f;
+  background: rgba(44, 55, 45, 0.85);
   position: absolute;
   inset: 2px;
   border-radius: inherit;
-  z-index: 1;
+  z-index: -1;
   pointer-events: none;
   transition: background 0.3s ease;
 }
 
-.btn:hover::after, .action-btn:hover::after, .chip-btn:hover::after {
-  background: #252525;
+.btn:hover::after, .action-btn:hover::after {
+  background: rgb(31, 31, 31);
 }
 
 /* ====== 顶部信息栏 ====== */
 :root {
-  --header-height: 80px;
+  --header-height: 65px;
 }
 
 .room-header {
@@ -173,13 +190,26 @@
 }
 
 .room-info h2 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
   font-size: 16px;
   letter-spacing: 1.5px;
-  text-transform: uppercase;
   color: rgba(255, 255, 255, 1);
   margin: 0;
+  font-weight: bold;
+}
+
+/* Header 中文文字加粗 */
+.room-info > div {
+  font-weight: bold;
+}
+
+.copy-btn, .language-btn, .voice-btn, .exit-btn, .switch-bg-btn {
+  font-weight: bold;
+}
+
+.room-info h2.english-text {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .room-id {
@@ -189,17 +219,74 @@
   color: rgba(255, 255, 255, 1);
 }
 
-.copy-btn {
-  padding: 6px 14px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.8px;
-  background: #2a2a2a;
-  border-radius: 16px;
-  color: #ffffff;
+.header-btn {
+  padding: 10px 20px;
+  font-family: 'PingFang SC';
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: #3e3e3e;
+  border-radius: 20px;
+  color: #ffffff !important;
+  border: none;
   cursor: pointer;
-  transition: all 0.5s ease, top 0s, left 0s;
+  transition: all 0.3s ease, top 0s, left 0s, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 100 !important;
+  white-space: nowrap;
+  position: relative;
+  box-sizing: border-box;
+  text-transform: uppercase;
+}
+
+.header-btn.english-text {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+}
+
+.header-btn span {
+  position: relative;
+  z-index: 100 !important;
+  color: #ffffff !important;
+}
+
+/* 光斑层 */
+.header-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(#fff, transparent, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease, top 0s, left 0s;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.header-btn:hover::before {
+  opacity: 1;
+}
+
+/* 深灰色遮罩层 */
+.header-btn::after {
+  content: '';
+  background: rgba(45, 45, 45, 0.85);
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.header-btn:hover::after {
+  background: rgba(35, 35, 35, 0.9);
 }
 
 .copy-btn:hover {
@@ -207,6 +294,41 @@
   text-shadow: 0 0 10px rgba(130, 185, 165, 0.7), 0 0 30px rgba(130, 185, 165, 0.4);
   animation: btnShake 0.4s ease-in-out;
   transform: translateY(-1px);
+}
+
+/* 确保 room-info 容器中的按钮也有光效 */
+.room-info .header-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(#fff, transparent, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease, top 0s, left 0s;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.room-info .header-btn:hover::before {
+  opacity: 1;
+}
+
+.room-info .header-btn::after {
+  content: '';
+  background: rgba(45, 45, 45, 0.85);
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.room-info .header-btn:hover::after {
+  background: rgba(35, 35, 35, 0.9);
 }
 
 .copy-btn:active {
@@ -223,19 +345,6 @@
   transform: translateY(-50%);
 }
 
-.voice-btn {
-  padding: 6px 16px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  background: #2a2a2a;
-  border-radius: 16px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 0.5s ease, top 0s, left 0s;
-}
-
 .voice-btn:hover,
 .voice-btn.active {
   color: #82c3dc;
@@ -246,19 +355,6 @@
 
 .voice-btn:active {
   transform: translateY(2px) scale(0.95);
-}
-
-.exit-btn {
-  padding: 6px 16px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  background: #2a2a2a;
-  border-radius: 16px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 0.5s ease, top 0s, left 0s;
 }
 
 .exit-btn:hover { 
@@ -272,19 +368,6 @@
   transform: translateY(2px) scale(0.95);
 }
 
-.language-btn {
-  padding: 6px 16px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  background: #2a2a2a;
-  border-radius: 16px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 0.5s ease, top 0s, left 0s;
-}
-
 .language-btn:hover {
   color: #a0dce6;
   text-shadow: 0 0 10px rgba(160, 220, 230, 0.7), 0 0 30px rgba(160, 220, 230, 0.4);
@@ -294,19 +377,6 @@
 
 .language-btn:active {
   transform: translateY(2px) scale(0.95);
-}
-
-.switch-bg-btn {
-  padding: 6px 16px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  background: #2a2a2a;
-  border-radius: 16px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 0.5s ease, top 0s, left 0s;
 }
 
 .switch-bg-btn:hover {
@@ -371,7 +441,10 @@
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.04);
   z-index: 20;
-  position: relative;
+  position: fixed;
+  top: calc(var(--header-height) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .phase-indicator-wrapper {
@@ -383,56 +456,107 @@
   margin-bottom: 16px;
 }
 
-/* 牌力规则按钮 */
+/* 牌力规则按钮 - 与全局按钮一致 */
 .poker-power-btn {
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 500;
+  position: fixed;
+  top: calc(var(--header-height) + 100px - 60px);
+  left: calc(50% - 500px);
+  padding: 10px 20px;
+  font-family: 'PingFang SC';
+  font-size: 13px;
+  font-weight: 600;
   border-radius: 20px;
-  background: #2a2a2a;
-  color: #ffffff;
+  background: #3e3e3e;
+  color: #ffffff !important;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+  overflow: hidden;
+  z-index: 100 !important;
+  white-space: nowrap;
+}
+
+.poker-power-btn.english-text {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+}
+
+.poker-power-btn span {
+  position: relative;
+  z-index: 100 !important;
+  color: #ffffff !important;
+}
+
+/* 光斑层 */
+.poker-power-btn::before {
+  content: '';
   position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(#fff, transparent, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease, top 0s, left 0s;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.poker-power-btn:hover::before {
+  opacity: 1;
+}
+
+/* 深灰色遮罩层 */
+.poker-power-btn::after {
+  content: '';
+  background: rgba(45, 45, 45, 0.85);
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.poker-power-btn:hover::after {
+  background: rgba(35, 35, 35, 0.9);
 }
 
 .poker-power-btn:hover {
-  background: #3a3a3a;
-  transform: translateY(-50%) scale(1.05);
+  color: #fff !important;
+  text-shadow: 0 0 15px #fff, 0 0 48px #fff;
+  z-index: 100 !important;
 }
 
-/* 牌力规则图片弹出层 */
+/* 牌力规则图片弹出层 - 透明背景 */
 .poker-power-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
 }
 
 .poker-power-content {
   position: relative;
-  max-width: 90%;
-  max-height: 90%;
+  width: auto;
+  max-height: calc(100vh - 40px);
   z-index: 1001;
 }
 
 .poker-power-image {
-  max-width: 100%;
-  max-height: 100vh;
+  max-width: none;
+  height: calc(100vh - 80px);
   border-radius: 8px;
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .host-actions-inline {
@@ -519,12 +643,14 @@
 
 /* ====== 牌桌主体 (Poker Table) ====== */
 .players-area {
-  position: relative;
+  position: fixed;
+  top: calc(var(--header-height) + 100px);
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
   max-width: 1000px;
   aspect-ratio: 2 / 1;
   min-height: 500px;
-  margin: var(--spacing-md) auto;
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   box-shadow:
@@ -536,6 +662,7 @@
   background-position: center;
   background-repeat: no-repeat;
   transition: background-image 0.5s ease;
+  z-index: 10;
 }
 
 .players-area.bg-theme-2 {
@@ -575,7 +702,7 @@
   gap: 16px;
   padding: 8px 20px;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  border: 1px solid rgb(255, 255, 255);
   border-radius: 25px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -587,8 +714,8 @@
   gap: 8px;
   font-size: 20px;
   font-weight: bold;
-  color: rgba(255, 215, 0, 0.9);
-  text-shadow: 0 1px 4px rgba(255, 215, 0, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 4px rgba(99, 99, 99, 0.3);
 }
 
 .pot-main span {
@@ -598,10 +725,16 @@
 }
 
 .pot-blind-info {
+  font-family: 'PingFang SC';
   font-size: 14px;
+  font-weight: bold;
   color: rgba(255, 255, 255, 0.6);
   padding-left: 12px;
   border-left: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.pot-blind-info.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 /* 底池数字振动动效 */
@@ -750,6 +883,7 @@
 }
 
 .player-name {
+  font-family: 'PingFang SC';
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
@@ -760,10 +894,19 @@
   text-align: center;
 }
 
+.player-name.english-text {
+  font-family: 'Playfair Display', serif;
+}
+
 .player-chips {
+  font-family: 'PingFang SC';
   font-size: 12px;
   color: var(--chip-color);
   font-weight: bold;
+}
+
+.player-chips.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 /* 空座位标签 */
@@ -912,14 +1055,18 @@
 
 .host-panel h3 {
   margin: 0 0 16px 0;
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
   font-size: 13px;
+  font-family: 'PingFang SC';
   letter-spacing: 1.2px;
-  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.35);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding-bottom: 8px;
+}
+
+.host-panel h3.english-text {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .host-control {
@@ -929,10 +1076,15 @@
 .host-control label {
   display: block;
   margin-bottom: 6px;
+  font-family: 'PingFang SC';
   font-size: 11px;
   font-weight: 200;
   letter-spacing: 0.8px;
   color: rgba(255, 255, 255, 0.28);
+}
+
+.host-control label.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 .host-control select,
@@ -980,15 +1132,20 @@
 .btn-primary {
   width: 100%;
   padding: 12px 20px;
-  font-family: inherit;
+  font-family: 'PingFang SC';
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 1.2px;
-  text-transform: uppercase;
+  text-transform: none;
   color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+}
+
+.btn-primary.english-text {
+  font-family: 'Playfair Display', serif;
+  text-transform: uppercase;
 }
 
 .btn-primary:hover {
@@ -1005,15 +1162,20 @@
 .btn-success {
   width: 100%;
   padding: 12px 20px;
-  font-family: inherit;
+  font-family: 'PingFang SC';
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 1.2px;
-  text-transform: uppercase;
+  text-transform: none;
   color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+}
+
+.btn-success.english-text {
+  font-family: 'Playfair Display', serif;
+  text-transform: uppercase;
 }
 
 .btn-success:hover {
@@ -1030,15 +1192,20 @@
 .btn-danger {
   width: 100%;
   padding: 12px 20px;
-  font-family: inherit;
+  font-family: 'PingFang SC';
   font-size: 11px;
   font-weight: 300;
   letter-spacing: 1.2px;
-  text-transform: uppercase;
+  text-transform: none;
   color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+}
+
+.btn-danger.english-text {
+  font-family: 'Playfair Display', serif;
+  text-transform: uppercase;
 }
 
 .btn-danger:hover {
@@ -1076,11 +1243,13 @@
 
 .action-panel h3 {
   margin-bottom: 20px;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.5px;
   color: #fff;
   text-align: center;
+  text-transform: none;
+  font-family: 'PingFang SC';
 }
 
 .action-buttons-vertical {
@@ -1093,14 +1262,28 @@
 .action-btn {
   width: 100%;
   padding: 12px 20px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: bold;
+  font-family: 'PingFang SC';
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   border-radius: 24px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+}
+
+.action-btn.english-text {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+}
+
+.action-panel h3.english-text,
+.bet-control label.english-text,
+.game-log-panel h3.english-text {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .fold-btn {
@@ -1157,7 +1340,7 @@
 
 .all-in-btn {
   color: #ffffff;
-  font-weight: 400;
+  font-weight: 600;
 }
 .all-in-btn:hover:not(:disabled) {
   color: #f0e6aa;
@@ -1181,18 +1364,25 @@
 .bet-control label {
   display: block;
   margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: bold;
+  font-family: 'PingFang SC';
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.5px;
   color: #fff;
+  text-align: center;
+  text-transform: none;
+}
+
+.bet-control label.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 .bet-amount {
   width: 100%;
   padding: 10px 0;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
   text-align: center;
   background: transparent;
   border: none;
@@ -1208,85 +1398,171 @@
 
 .my-info {
   margin-top: 12px;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 800;
   color: #fff;
   text-align: center;
+  letter-spacing: 0.5px;
 }
 
 .my-info strong {
-  font-size: 33px;
-  font-weight: 400;
+  font-size: 20px;
+  font-weight: 800;
   color: rgba(230, 210, 150, 0.9);
 }
 
 .chip-buttons {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
   margin-bottom: 20px;
 }
 
 .chip-btn {
-  width: 42px;
-  height: 42px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
-  background-image: url('images/chip-btn1.webp');
-  background-size: cover;
-  background-position: center;
-  color: #000;
-  font-family: inherit;
+  background: #3e3e3e;
+  color: #4f4f4f !important;
+  font-family: 'PingFang SC';
   font-weight: 700;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
-  transition: all 0.5s ease, top 0s, left 0s, transform 0.15s ease;
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease, top 0s, left 0s, transform 0.15s ease;
+  text-shadow: none;
   position: relative;
   overflow: hidden;
+  border: none;
+  z-index: 100 !important;
+}
+
+.chip-btn.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 .chip-btn:hover {
-  transform: scale(1.12);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5), 0 0 30px rgba(255, 215, 0, 0.3);
+  transform: scale(1.05);
+  box-shadow: none;
+  background: #383838;
+  z-index: 100 !important;
+  color: #fff !important;
+  text-shadow: 0 0 15px #fff, 0 0 48px #fff;
 }
 
 .chip-btn:active {
   transform: scale(0.95) translateY(2px);
 }
 
-/* 筹码按钮鼠标跟随光斑 */
+/* 鼠标跟随光斑 - 纯白色光晕（与其他按钮一致） */
 .chip-btn::before {
   content: '';
   position: absolute;
   top: var(--y, 50%);
   left: var(--x, 50%);
   transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.8) 0%, transparent 70%);
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(#fff, transparent, transparent);
   opacity: 0;
-  transition: opacity 0.4s ease, top 0s, left 0s;
+  transition: opacity 0.5s ease, top 0s, left 0s;
   pointer-events: none;
-  z-index: 1;
+  z-index: -1;
 }
 
 .chip-btn:hover::before {
   opacity: 1;
 }
 
-.my-info {
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 12px;
-  font-weight: 200;
-  color: rgba(255, 255, 255, 0.25);
-  white-space: nowrap;
-  letter-spacing: 0.5px;
+.chip-btn::after {
+  content: '';
+  background: rgba(45, 45, 45, 0.85);
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
 }
 
-.my-info strong {
-  color: rgba(230, 210, 150, 0.7);
-  font-weight: 300;
+.chip-btn:hover::after {
+  background: rgba(35, 35, 35, 0.9);
+}
+
+/* 清空按钮样式 */
+.clear-btn {
+  padding: 4px 16px;
+  font-size: 10px;
+  border-radius: 12px;
+  background: #3e3e3e;
+  color: #4f4f4f !important;
+  font-family: 'PingFang SC';
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease, top 0s, left 0s, transform 0.15s ease;
+  text-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: none;
+  z-index: 100 !important;
+  position: relative;
+  min-width: 60px;
+  text-transform: uppercase;
+  box-sizing: border-box;
+}
+
+.clear-btn.english-text {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+}
+
+.clear-btn:hover {
+  transform: scale(1.05);
+  box-shadow: none;
+  background: #383838;
+  z-index: 100 !important;
+  color: #fff !important;
+  text-shadow: 0 0 15px #fff, 0 0 48px #fff;
+}
+
+.clear-btn:active {
+  transform: scale(0.95) translateY(2px);
+}
+
+.clear-btn::before {
+  content: '';
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(#fff, transparent, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease, top 0s, left 0s;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.clear-btn:hover::before {
+  opacity: 1;
+}
+
+.clear-btn::after {
+  content: '';
+  background: rgba(45, 45, 45, 0.85);
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.clear-btn:hover::after {
+  background: rgba(35, 35, 35, 0.9);
 }
 
 /* ====== 游戏进程复述面板 ====== */
@@ -1310,15 +1586,18 @@
 
 .game-log-panel h3 {
   margin-bottom: 12px;
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
   font-size: 13px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  font-family: 'PingFang SC';
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-align: center;
+  text-transform: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding-bottom: 8px;
 }
+
+
 
 .game-log-list {
   display: flex;
@@ -1352,6 +1631,7 @@
 }
 
 .log-entry {
+  font-family: 'PingFang SC';
   font-size: 11px;
   font-weight: 200;
   letter-spacing: 0.3px;
@@ -1362,6 +1642,10 @@
   background: rgba(255, 255, 255, 0.03);
   animation: logSlideIn 0.3s ease both;
   word-break: break-word;
+}
+
+.log-entry.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 @keyframes logSlideIn {
@@ -1410,6 +1694,7 @@
     justify-content: center;
     gap: 2px;
     padding: 6px 12px;
+    top: calc(var(--header-height) + 10px);
   }
 
   .phase-step { padding: 1px 4px; }
@@ -1419,6 +1704,12 @@
   .phase-indicator-wrapper {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .poker-power-btn {
+    top: calc(var(--header-height) + 80px - 50px);
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .host-actions-inline {
@@ -1433,6 +1724,7 @@
   .players-area {
     max-width: 100%;
     min-height: 350px;
+    top: calc(var(--header-height) + 80px);
   }
 
   .player-seat {
@@ -1496,7 +1788,13 @@
 }
 
 @media (max-width: 480px) {
-  .players-area { min-height: 300px; }
+  .players-area { min-height: 300px; top: calc(var(--header-height) + 70px); }
+
+  .poker-power-btn {
+    top: calc(var(--header-height) + 70px - 45px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
 
   .player-seat {
     width: 58px;
@@ -1506,7 +1804,7 @@
   .action-buttons-vertical { flex-wrap: wrap; }
   .action-btn { flex: 1 1 42%; }
 
-  .phase-indicator { gap: 1px; }
+  .phase-indicator { gap: 1px; top: calc(var(--header-height) + 8px); }
   .phase-step { padding: 1px 2px; }
 
   .community-cards {

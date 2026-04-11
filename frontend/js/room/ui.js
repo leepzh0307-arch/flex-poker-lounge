@@ -71,7 +71,10 @@ class RoomUI {
         'disconnected': '🔴 未连接',
         'copy-success': '复制成功',
         'copy-message': '房间号已复制到剪贴板',
-        'confirm-exit': '确定要退出房间吗？'
+        'confirm-exit': '确定要退出房间吗？',
+        'poker-power-btn': '查看牌力规则',
+        'clear-btn': '清空',
+        'game-log-title': '游戏进程'
       },
       en: {
         'language-button': '🌐 English',
@@ -94,7 +97,7 @@ class RoomUI {
         'big-blind': 'Big Blind (BB)',
         'deal-order': 'Deal Order',
         'clockwise': 'Clockwise',
-        'counter-clockwise': 'Counter-Clockwise',
+        'counter-clockwise': 'Counter-clockwise',
         'start-game': 'Start Game',
         'next-hand': 'Next Hand',
         'reset-game': 'Reset Game',
@@ -105,13 +108,16 @@ class RoomUI {
         'voice-disabled': '🔇 Voice: Off',
         'exit-room': 'Exit Room',
         'switch-bg': 'Switch Theme',
-        'room-number': 'Room ID',
+        'room-number': 'Room Number',
         'copy': 'Copy',
         'connected': '🟢 Connected',
         'disconnected': '🔴 Disconnected',
         'copy-success': 'Copied',
-        'copy-message': 'Room ID copied to clipboard',
-        'confirm-exit': 'Are you sure you want to exit the room?'
+        'copy-message': 'Room number copied to clipboard',
+        'confirm-exit': 'Are you sure you want to exit the room?',
+        'poker-power-btn': 'Poker Rules',
+        'clear-btn': 'Clear',
+        'game-log-title': 'Game Log'
       }
     };
 
@@ -177,6 +183,13 @@ class RoomUI {
         this.elements.betAmount.value = current + add;
       });
     });
+
+    const clearBetBtn = document.getElementById('clear-bet-btn');
+    if (clearBetBtn) {
+      clearBetBtn.addEventListener('click', () => {
+        this.elements.betAmount.value = '';
+      });
+    }
   }
 
   updateRoomId(roomId) {
@@ -548,6 +561,12 @@ class RoomUI {
     // 更新语言按钮
     if (this.elements.languageToggle) {
       this.elements.languageToggle.textContent = t['language-button'];
+      // 为英文文本添加特殊字体
+      if (this.currentLanguage === 'en') {
+        this.elements.languageToggle.classList.add('english-text');
+      } else {
+        this.elements.languageToggle.classList.remove('english-text');
+      }
     }
 
     // 更新阶段指示器
@@ -636,7 +655,7 @@ class RoomUI {
     }
     if (this.elements.callBtn) {
       const callAmount = this.elements.callAmount?.textContent || '';
-      this.elements.callBtn.textContent = `${t['call-btn']} ${callAmount}`;
+      this.elements.callBtn.textContent = callAmount ? `${t['call-btn']} ${callAmount}` : t['call-btn'];
       // 为英文文本添加特殊字体
       if (this.currentLanguage === 'en') {
         this.elements.callBtn.classList.add('english-text');
@@ -819,13 +838,21 @@ class RoomUI {
     const roomInfoText = document.querySelector('.room-info div');
     if (roomInfoText) {
       roomInfoText.innerHTML = `${t['room-number']}: <span id="room-id" class="room-id">${this.elements.roomId?.textContent || '--'}</span>
-        <button id="copy-room-id" class="btn copy-btn">${t['copy']}</button>`;
+        <button id="copy-room-id" class="btn copy-btn header-btn">${t['copy']}</button>`;
       this.elements.roomId = document.getElementById('room-id');
       // 为英文文本添加特殊字体
       if (this.currentLanguage === 'en') {
         roomInfoText.classList.add('english-text');
+        const newCopyBtn = document.getElementById('copy-room-id');
+        if (newCopyBtn) {
+          newCopyBtn.classList.add('english-text');
+        }
       } else {
         roomInfoText.classList.remove('english-text');
+        const newCopyBtn = document.getElementById('copy-room-id');
+        if (newCopyBtn) {
+          newCopyBtn.classList.remove('english-text');
+        }
       }
     }
 
@@ -840,6 +867,79 @@ class RoomUI {
         actionPanelTitle.classList.remove('english-text');
       }
     }
+
+    // 更新查看牌力规则按钮
+    const pokerPowerBtn = document.getElementById('poker-power-btn');
+    if (pokerPowerBtn) {
+      pokerPowerBtn.textContent = t['poker-power-btn'];
+      // 为英文文本添加特殊字体
+      if (this.currentLanguage === 'en') {
+        pokerPowerBtn.classList.add('english-text');
+      } else {
+        pokerPowerBtn.classList.remove('english-text');
+      }
+    }
+
+    // 更新清空按钮
+    const clearBetBtn = document.getElementById('clear-bet-btn');
+    if (clearBetBtn) {
+      clearBetBtn.textContent = t['clear-btn'];
+      // 为英文文本添加特殊字体
+      if (this.currentLanguage === 'en') {
+        clearBetBtn.classList.add('english-text');
+      } else {
+        clearBetBtn.classList.remove('english-text');
+      }
+    }
+
+    // 更新游戏进程标题
+    const gameLogTitle = document.querySelector('.game-log-panel h3');
+    if (gameLogTitle) {
+      gameLogTitle.textContent = t['game-log-title'];
+      // 为英文文本添加特殊字体
+      if (this.currentLanguage === 'en') {
+        gameLogTitle.classList.add('english-text');
+      } else {
+        gameLogTitle.classList.remove('english-text');
+      }
+    }
+
+    // 更新玩家姓名
+    document.querySelectorAll('.player-name').forEach(name => {
+      if (this.currentLanguage === 'en') {
+        name.classList.add('english-text');
+      } else {
+        name.classList.remove('english-text');
+      }
+    });
+
+    // 更新玩家积分
+    document.querySelectorAll('.player-chips').forEach(chips => {
+      if (this.currentLanguage === 'en') {
+        chips.classList.add('english-text');
+      } else {
+        chips.classList.remove('english-text');
+      }
+    });
+
+    // 更新底池信息
+    const potBlindInfo = document.querySelector('.pot-blind-info');
+    if (potBlindInfo) {
+      if (this.currentLanguage === 'en') {
+        potBlindInfo.classList.add('english-text');
+      } else {
+        potBlindInfo.classList.remove('english-text');
+      }
+    }
+
+    // 更新游戏日志条目
+    document.querySelectorAll('.log-entry').forEach(entry => {
+      if (this.currentLanguage === 'en') {
+        entry.classList.add('english-text');
+      } else {
+        entry.classList.remove('english-text');
+      }
+    });
 
     // 重新绑定复制按钮事件
     setTimeout(() => {
