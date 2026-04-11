@@ -936,7 +936,7 @@
   background: rgba(255, 255, 255, 0.2);
   padding: 4px 8px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
 }
@@ -964,7 +964,7 @@
 
 .player-chips {
   font-family: 'PingFang SC';
-  font-size: 12px;
+  font-size: 14px;
   color: var(--chip-color);
   font-weight: bold;
 }
@@ -1797,8 +1797,8 @@
     padding: 2px;
   }
 
-  .player-name { font-size: 8px; }
-  .player-chips { font-size: 8px; }
+  .player-name { font-size: 10px; }
+  .player-chips { font-size: 10px; }
   .position-badge { font-size: 7px; min-width: 24px; height: 16px; top: -7px; }
 
   .community-cards {
