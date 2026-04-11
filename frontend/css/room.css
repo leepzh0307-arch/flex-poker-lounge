@@ -1047,9 +1047,9 @@
   width: 60px;
   height: 60px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding-bottom: 5px;
+  padding-bottom: 0;
 }
 
 .player-bet.animate {
