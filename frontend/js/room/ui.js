@@ -190,6 +190,16 @@ class RoomUI {
         this.elements.betAmount.value = '';
       });
     }
+
+    // 继续游戏按钮点击事件
+    const continueGameBtn = document.getElementById('continue-game-btn');
+    if (continueGameBtn) {
+      continueGameBtn.addEventListener('click', () => {
+        if (window.gameManager) {
+          window.gameManager.sendGameAction('confirmContinue');
+        }
+      });
+    }
   }
 
   updateRoomId(roomId) {
@@ -232,8 +242,9 @@ class RoomUI {
       }
       labelEl.style.display = 'none';
 
+      seat.querySelector('.player-bet-total').textContent = `下注: ${currentBet || 0}`;
       seat.querySelector('.player-name').textContent = player.nickname;
-      seat.querySelector('.player-chips').textContent = player.chips;
+      seat.querySelector('.player-chips').textContent = player.chips || 0;
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
@@ -320,6 +331,7 @@ class RoomUI {
       labelEl.textContent = `座位 ${seatIndex}`;
       labelEl.style.display = 'block';
 
+      seat.querySelector('.player-bet-total').textContent = '下注: 0';
       seat.querySelector('.player-name').textContent = '--';
       seat.querySelector('.player-chips').textContent = '0';
 
@@ -363,6 +375,32 @@ class RoomUI {
 
   updateMyChips(chips) {
     this.elements.myChips.textContent = chips;
+  }
+
+  addChipsHistoryEntry(amount, isWin) {
+    const historyList = document.getElementById('chips-history-list');
+    if (!historyList) return;
+    
+    const entry = document.createElement('div');
+    entry.className = `history-entry ${isWin ? 'win' : 'lose'}`;
+    
+    const isEnglish = this.currentLanguage === 'en';
+    entry.textContent = isEnglish ? 
+      `${isWin ? 'Won' : 'Lost'} ${Math.abs(amount)} chips` : 
+      `${isWin ? '赢了' : '输了'} ${Math.abs(amount)} 积分`;
+    
+    // 为英文文本添加特殊字体
+    if (isEnglish) {
+      entry.classList.add('english-text');
+    }
+    
+    historyList.appendChild(entry);
+    historyList.scrollTop = historyList.scrollHeight;
+    
+    // 限制历史记录数量
+    while (historyList.children.length > 10) {
+      historyList.removeChild(historyList.firstChild);
+    }
   }
 
   updatePot(amount) {
@@ -477,6 +515,13 @@ class RoomUI {
     }
     if (this.elements.nextHandBtn) {
       this.elements.nextHandBtn.style.display = 'none';
+    }
+  }
+
+  showContinueGameButton(show) {
+    const container = document.getElementById('continue-game-container');
+    if (container) {
+      container.style.display = show ? 'block' : 'none';
     }
   }
 
@@ -915,6 +960,18 @@ class RoomUI {
       }
     }
 
+    // 更新积分历史标题
+    const chipsHistoryTitle = document.querySelector('.chips-history h4');
+    if (chipsHistoryTitle) {
+      chipsHistoryTitle.textContent = this.currentLanguage === 'zh' ? '积分历史' : 'Chips History';
+      // 为英文文本添加特殊字体
+      if (this.currentLanguage === 'en') {
+        chipsHistoryTitle.classList.add('english-text');
+      } else {
+        chipsHistoryTitle.classList.remove('english-text');
+      }
+    }
+
     // 更新查看牌力规则按钮
     const pokerPowerBtn = document.getElementById('poker-power-btn');
     if (pokerPowerBtn) {
@@ -936,6 +993,18 @@ class RoomUI {
         clearBetBtn.classList.add('english-text');
       } else {
         clearBetBtn.classList.remove('english-text');
+      }
+    }
+
+    // 更新继续游戏按钮
+    const continueGameBtn = document.getElementById('continue-game-btn');
+    if (continueGameBtn) {
+      continueGameBtn.textContent = this.currentLanguage === 'zh' ? '继续游戏' : 'Continue Game';
+      // 为英文文本添加特殊字体
+      if (this.currentLanguage === 'en') {
+        continueGameBtn.classList.add('english-text');
+      } else {
+        continueGameBtn.classList.remove('english-text');
       }
     }
 

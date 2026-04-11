@@ -18,6 +18,8 @@ class GameManager {
       bigBlindAmount: 20,
     };
 
+    this.previousChips = 1000; // 初始积分
+
     this.init();
   }
 
@@ -209,6 +211,14 @@ class GameManager {
 
     const myPlayer = gameState.players.find(p => p.id === this.gameState.myPlayerId);
     if (myPlayer && (updates.players || updates.chips)) {
+      // 检测积分变化
+      const currentChips = myPlayer.chips;
+      if (this.previousChips !== currentChips) {
+        const chipsChange = currentChips - this.previousChips;
+        const isWin = chipsChange > 0;
+        roomUI.addChipsHistoryEntry(Math.abs(chipsChange), isWin);
+        this.previousChips = currentChips;
+      }
       roomUI.updateMyChips(myPlayer.chips);
     }
 
@@ -239,6 +249,13 @@ class GameManager {
       } else {
         roomUI.hideHostButtons();
       }
+    }
+
+    // 检查是否需要显示继续游戏按钮
+    if (phase === 'CONFIRM_CONTINUE') {
+      roomUI.showContinueGameButton(true);
+    } else {
+      roomUI.showContinueGameButton(false);
     }
 
     if (gameState.message && updates.message) {
@@ -327,6 +344,16 @@ class GameManager {
         break;
       case 'nextHand':
         this.addGameLog(`<span class="log-action">新一局开始</span>`, 'system');
+        break;
+      case 'winner':
+        let winnerMessage = `<span class="log-player">${name}</span> <span class="log-action">胜出</span>，赢得 <span class="log-amount">${action.amount || 0}</span> 积分`;
+        if (action.hand) {
+          winnerMessage += `（${action.hand}）`;
+        }
+        if (action.isTie) {
+          winnerMessage += ' [平局]';
+        }
+        this.addGameLog(winnerMessage, 'winner');
         break;
       default:
         this.addGameLog(`<span class="log-player">${name}</span> <span class="log-action">${action.type || '行动'}</span>`, 'system');

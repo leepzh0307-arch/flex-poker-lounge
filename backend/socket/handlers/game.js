@@ -67,6 +67,9 @@ module.exports = (socket, rooms, io) => {
         case 'all-in':
           handleAllIn(room, roomId, io, socket.id, rooms);
           break;
+        case 'confirmContinue':
+          handleConfirmContinue(room, roomId, io, socket.id);
+          break;
         default:
           console.warn(`[游戏] 未知操作: ${action}`);
       }
@@ -135,6 +138,10 @@ function getActivePlayersSorted(room) {
 
 function isHeadsUp(room) {
   return getActivePlayers(room).length === 2;
+}
+
+function isThreePlayer(room) {
+  return getActivePlayers(room).length === 3;
 }
 
 function getPlayerBySeatIndex(room, seatIndex) {
@@ -580,8 +587,18 @@ function handleCall(room, roomId, io, playerId, rooms) {
     player.isSmallBlind === true
   );
 
-  if (huPreflopSBcall) {
-    console.log(`[两人局翻前] ${player.nickname}(SB)跟注→跳过BB，直接进入FLOP`);
+  const threePlayerPreflopSBcall = (
+    room.gameState.phase === 'PRE_FLOP_BETTING' &&
+    isThreePlayer(room) &&
+    player.isSmallBlind === true
+  );
+
+  if (huPreflopSBcall || threePlayerPreflopSBcall) {
+    if (threePlayerPreflopSBcall) {
+      console.log(`[三人局翻前] ${player.nickname}(SB)跟注→跳过BB，直接进入FLOP`);
+    } else {
+      console.log(`[两人局翻前] ${player.nickname}(SB)跟注→跳过BB，直接进入FLOP`);
+    }
     endBettingRound(room, roomId, io);
   } else {
     moveToNextPlayer(room, roomId, io);
@@ -795,6 +812,15 @@ function earlyEndGame(room, roomId, io) {
   room.gameState.phase = 'HAND_END';
   sendGameUpdateWithCards(room, roomId, io, `${winner.nickname} 获胜（其余玩家弃牌），赢得 ${totalPot} 筹码！`);
 
+  // 发送获胜者事件到前端
+  io.to(roomId).emit('gameAction', {
+    type: 'winner',
+    playerId: winner.id,
+    nickname: winner.nickname,
+    amount: totalPot,
+    timestamp: Date.now(),
+  });
+
   setTimeout(() => {
     finishHandEndTransition(room, roomId, io);
   }, 3000);
@@ -864,6 +890,19 @@ function doShowdown(room, roomId, io) {
 
   sendGameUpdateWithCards(room, roomId, io, `摊牌结束！${resultMsg}。总底池：${totalWon}`);
 
+  // 发送获胜者事件到前端
+  results.forEach(result => {
+    io.to(roomId).emit('gameAction', {
+      type: 'winner',
+      playerId: room.players.find(p => p.nickname === result.winner)?.id || '',
+      nickname: result.winner,
+      amount: result.amount,
+      hand: result.hand || '',
+      isTie: result.isTie || false,
+      timestamp: Date.now(),
+    });
+  });
+
   setTimeout(() => {
     transitionTo(room, roomId, io, 'HAND_END');
   }, 4000);
@@ -872,8 +911,10 @@ function doShowdown(room, roomId, io) {
 // ==================== HAND_END 本局结束 ====================
 
 function doHandEnd(room, roomId, io) {
-  room.dealerButton = (room.dealerButton + 1) % room.players.length;
-
+  // 只处理在线玩家
+  room.players = room.players.filter(player => player.isOnline !== false);
+  
+  // 重置在线玩家的状态
   room.players.forEach(player => {
     player.isActive = true;
     player.isTurn = false;
@@ -884,28 +925,41 @@ function doHandEnd(room, roomId, io) {
     player.hasActed = false;
   });
 
-  room.players[room.dealerButton].isButton = true;
+  // 重新计算 dealerButton
+  if (room.players.length > 0) {
+    if (room.dealerButton === undefined) {
+      room.dealerButton = 0;
+    } else {
+      room.dealerButton = (room.dealerButton + 1) % room.players.length;
+    }
+    room.players[room.dealerButton].isButton = true;
+  }
+
+  // 保存当前的公共牌和手牌状态
+  const currentCommunityCards = [...room.gameState.communityCards];
+  const currentPlayerCards = { ...room.gameState.playerCards };
 
   room.gameState = {
-    phase: 'WAITING',
-    communityCards: [],
+    phase: 'CONFIRM_CONTINUE',
+    communityCards: currentCommunityCards, // 保持公共牌翻开
+    playerCards: currentPlayerCards, // 保持手牌状态
     pots: [{ amount: 0, eligiblePlayers: [] }],
     currentBet: 0,
     minRaise: room.bigBlindAmount || 20,
     currentPlayer: null,
     deck: [],
-    playerCards: {},
     bets: {},
     roundBets: {},
     playersActedThisRound: new Set(),
     lastRaiserId: null,
+    playersConfirmedContinue: new Set(), // 记录已确认继续的玩家
   };
 
-  sendGameUpdateWithCards(room, roomId, io, '本局结束，等待房主开始下一局');
+  sendGameUpdateWithCards(room, roomId, io, '本局结束，请确认是否继续游戏');
 }
 
 function nextHand(room, roomId, io) {
-  if (room.gameState.phase !== 'WAITING') return;
+  if (room.gameState.phase !== 'WAITING' && room.gameState.phase !== 'CONFIRM_CONTINUE') return;
   io.to(roomId).emit('gameAction', { type: 'nextHand', timestamp: Date.now() });
   startGame(room, roomId, io, room.config);
 }
@@ -945,6 +999,28 @@ function resetGame(room, roomId, io) {
   };
 
   sendGameUpdateWithCards(room, roomId, io, '游戏已重置');
+}
+
+function handleConfirmContinue(room, roomId, io, playerId) {
+  if (room.gameState.phase !== 'CONFIRM_CONTINUE') return;
+  
+  const player = room.players.find(p => p.id === playerId);
+  if (!player) return;
+  
+  // 将玩家添加到已确认继续的列表中
+  room.gameState.playersConfirmedContinue.add(playerId);
+  console.log(`[游戏] 玩家 ${player.nickname} 已确认继续游戏`);
+  
+  // 检查是否所有在线玩家都已确认继续
+  const allPlayersConfirmed = room.players.every(p => room.gameState.playersConfirmedContinue.has(p.id));
+  if (allPlayersConfirmed) {
+    console.log(`[游戏] 所有玩家都已确认继续，开始下一局`);
+    nextHand(room, roomId, io);
+  } else {
+    // 通知其他玩家还有哪些玩家未确认
+    const remainingPlayers = room.players.filter(p => !room.gameState.playersConfirmedContinue.has(p.id)).map(p => p.nickname);
+    sendGameUpdateWithCards(room, roomId, io, `等待 ${remainingPlayers.join('、')} 确认继续游戏`);
+  }
 }
 
 
