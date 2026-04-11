@@ -441,10 +441,7 @@
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.04);
   z-index: 20;
-  position: fixed;
-  top: calc(var(--header-height) + 20px);
-  left: 50%;
-  transform: translateX(-50%);
+  flex-shrink: 0;
 }
 
 .phase-indicator-wrapper {
@@ -580,8 +577,6 @@
 
 
 .btn-host {
-  position: fixed;
-  top: calc(var(--header-height) + 20px);
   padding: 10px 20px;
   font-family: 'PingFang SC';
   font-size: 13px;
@@ -1006,7 +1001,7 @@
   color: #fff;
   font-size: 12px;
   font-weight: bold;
-  padding: 4px 12px;
+  padding: 4px 12px 20px;
   border-radius: 16px;
   white-space: nowrap;
   z-index: 15;
@@ -1015,6 +1010,23 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
+  text-align: center;
+  min-width: 60px;
+}
+
+.player-bet::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  background-image: url('images/chip-btn1.webp');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
 }
 
 .player-bet.animate {
@@ -1031,16 +1043,39 @@
     opacity: 1;
     scale: 1;
   }
-  50% {
-    transform: translateX(0) translateY(-100px) rotate(180deg);
-    opacity: 1;
-    scale: 1.2;
-  }
   100% {
-    transform: translateX(0) translateY(0) rotate(360deg);
+    transform: translateX(50px) translateY(-50px) rotate(360deg);
     opacity: 1;
     scale: 1;
   }
+}
+
+@keyframes betGather {
+  0% {
+    transform: translateX(50px) translateY(-50px) rotate(360deg);
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    transform: translateX(100px) translateY(-150px) scale(0);
+    opacity: 0;
+  }
+}
+
+.player-bet.gather {
+  animation: betGather 1s ease-out forwards;
+}
+
+.player-bet.gather::after {
+  animation: betGather 1s ease-out forwards;
+}
+
+.player-bet.animate::after {
+  animation: betThrow 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.player-bet.fade-out::after {
+  animation: betFadeOut 0.8s ease-out forwards;
 }
 
 @keyframes betPulse {
@@ -1819,7 +1854,6 @@
     justify-content: center;
     gap: 2px;
     padding: 6px 12px;
-    top: calc(var(--header-height) + 10px);
   }
 
   .phase-step { padding: 1px 4px; }
@@ -1832,13 +1866,11 @@
   }
 
   .poker-power-btn {
-    top: calc(var(--header-height) + 10px);
-    left: 50%;
-    transform: translateX(-50%);
+    margin-right: 0;
   }
 
-  .btn-host {
-    top: calc(var(--header-height) + 10px);
+  .host-buttons {
+    margin-left: 0;
   }
 
   .host-actions-inline {
@@ -1919,12 +1951,6 @@
 @media (max-width: 480px) {
   .players-area { min-height: 300px; top: calc(var(--header-height) + 90px); }
 
-  .poker-power-btn {
-    top: calc(var(--header-height) + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
   .player-seat {
     width: 58px;
     height: 58px;
@@ -1933,10 +1959,14 @@
   .action-buttons-vertical { flex-wrap: wrap; }
   .action-btn { flex: 1 1 42%; }
 
-  .phase-indicator { gap: 1px; top: calc(var(--header-height) + 8px); }
+  .phase-indicator { gap: 1px; }
 
-  .btn-host {
-    top: calc(var(--header-height) + 8px);
+  .poker-power-btn {
+    margin-right: 0;
+  }
+
+  .host-buttons {
+    margin-left: 0;
   }
   .phase-step { padding: 1px 2px; }
 

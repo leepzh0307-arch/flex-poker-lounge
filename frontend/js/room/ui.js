@@ -418,9 +418,33 @@ class RoomUI {
       }
     });
 
+    // 当下注阶段结束时，触发筹码汇聚动画
+    if (phase === 'FLOP_DEAL' || phase === 'TURN_DEAL' || phase === 'RIVER_DEAL' || phase === 'SHOWDOWN' || phase === 'HAND_END') {
+      this.triggerBetGatherAnimation();
+    }
+
     if (phase === 'HAND_END' || phase === 'WAITING') {
       steps.forEach(s => s.classList.remove('current'));
     }
+  }
+
+  // 触发筹码汇聚动画
+  triggerBetGatherAnimation() {
+    this.elements.playerBets.forEach(betEl => {
+      if (betEl && betEl.style.display === 'block') {
+        // 移除之前的动画类
+        betEl.classList.remove('animate', 'fade-out');
+        
+        // 添加汇聚动画类
+        betEl.classList.add('gather');
+        
+        // 动画结束后隐藏元素
+        setTimeout(() => {
+          betEl.style.display = 'none';
+          betEl.classList.remove('gather');
+        }, 1000);
+      }
+    });
   }
 
   updateBlindInfo(sb, bb) {
