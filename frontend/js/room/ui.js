@@ -447,14 +447,15 @@ class RoomUI {
 
   showHostPanel() {
     this.elements.hostPanel.style.display = 'block';
-    const hostActionsInline = document.getElementById('host-actions-inline');
-    if (hostActionsInline) {
-      hostActionsInline.style.display = 'flex';
-    }
+    document.getElementById('start-game').style.display = 'block';
+    document.getElementById('reset-game').style.display = 'block';
   }
 
   hideHostPanel() {
     this.elements.hostPanel.style.display = 'none';
+    document.getElementById('start-game').style.display = 'none';
+    document.getElementById('next-hand-btn').style.display = 'none';
+    document.getElementById('reset-game').style.display = 'none';
   }
 
   updateVoiceButton(enabled) {

@@ -123,12 +123,7 @@ class GameManager {
   }
 
   bindEvents() {
-    document.getElementById('voice-toggle').addEventListener('click', async () => {
-      const success = await agoraVoice.toggleMicrophone();
-      if (success) {
-        roomUI.updateVoiceButton(agoraVoice.isMicrophoneEnabled());
-      }
-    });
+    // 语音按钮事件已在ui.js中绑定，这里不再重复绑定
 
     document.getElementById('exit-room').addEventListener('click', () => {
       if (confirm('确定要退出房间吗？')) {
