@@ -6,9 +6,10 @@ function generatePlayerId() {
   return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+// 存储socket ID到玩家ID的映射（模块级别，所有连接共享）
+const socketToPlayerMap = new Map();
+
 module.exports = (socket, rooms, io) => {
-  // 存储socket ID到玩家ID的映射
-  const socketToPlayerMap = new Map();
   
   // 创建房间
   socket.on('createRoom', ({ nickname }, callback) => {
@@ -220,7 +221,8 @@ module.exports = (socket, rooms, io) => {
     // 处理逻辑在disconnect事件中
   });
   
-  // 导出映射关系供其他模块使用
-  module.exports.getSocketToPlayerMap = () => socketToPlayerMap;
-  module.exports.getPlayerBySocketId = (socketId) => socketToPlayerMap.get(socketId);
 };
+
+// 导出映射关系供其他模块使用
+module.exports.getSocketToPlayerMap = () => socketToPlayerMap;
+module.exports.getPlayerBySocketId = (socketId) => socketToPlayerMap.get(socketId);
