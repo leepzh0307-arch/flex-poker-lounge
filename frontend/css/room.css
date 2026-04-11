@@ -448,19 +448,26 @@
 }
 
 .phase-indicator-wrapper {
-  position: relative;
+  position: fixed;
+  top: calc(var(--header-height) + 20px);
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 20;
+}
+
+.host-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* 牌力规则按钮 - 与全局按钮一致 */
 .poker-power-btn {
-  position: fixed;
-  top: calc(var(--header-height) + 100px - 60px);
-  left: calc(50% - 500px);
   padding: 10px 20px;
   font-family: 'PingFang SC';
   font-size: 13px;
@@ -476,6 +483,7 @@
   overflow: hidden;
   z-index: 100 !important;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .poker-power-btn.english-text {
@@ -1194,7 +1202,7 @@
 }
 
 .btn-primary {
-  width: 100%;
+  width: auto;
   padding: 12px 20px;
   font-family: 'PingFang SC';
   font-size: 11px;
@@ -1205,6 +1213,8 @@
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-primary.english-text {
@@ -1224,7 +1234,7 @@
 }
 
 .btn-success {
-  width: 100%;
+  width: auto;
   padding: 12px 20px;
   font-family: 'PingFang SC';
   font-size: 11px;
@@ -1235,6 +1245,8 @@
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-success.english-text {
@@ -1254,7 +1266,7 @@
 }
 
 .btn-danger {
-  width: 100%;
+  width: auto;
   padding: 12px 20px;
   font-family: 'PingFang SC';
   font-size: 11px;
@@ -1265,6 +1277,8 @@
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.5s ease, top 0s, left 0s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-danger.english-text {

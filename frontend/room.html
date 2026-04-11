@@ -64,9 +64,10 @@
     <main class="game-area">
       <!-- 阶段指示器 -->
       <div class="phase-indicator-wrapper">
-        <!-- 查看牌力规则按钮 -->
+        <!-- 左侧：游戏进程组件 -->
         <button id="poker-power-btn" class="btn poker-power-btn">查看牌力规则</button>
         
+        <!-- 中间：游戏阶段提示框 -->
         <div class="phase-indicator" id="phase-indicator">
           <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
           <div class="phase-step" data-phase="PRE_FLOP_BLINDS"><span class="phase-dot"></span><span class="phase-label">盲注</span></div>
@@ -76,9 +77,13 @@
           <div class="phase-step" data-phase="RIVER_BETTING"><span class="phase-dot"></span><span class="phase-label">河牌</span></div>
           <div class="phase-step" data-phase="SHOWDOWN"><span class="phase-dot"></span><span class="phase-label">摊牌</span></div>
         </div>
-        <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
-        <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
-        <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
+        
+        <!-- 右侧：房主专属按钮 -->
+        <div class="host-buttons">
+          <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
+          <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
+          <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
+        </div>
       </div>
 
       <!-- 牌力规则图片弹出层 -->
