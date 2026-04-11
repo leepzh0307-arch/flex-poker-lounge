@@ -862,7 +862,7 @@
 /* ====== 玩家座位区域 - 10座位布局 ====== */
 .player-seat {
   position: absolute;
-  width: 120px; /* 调整为两张扑克牌宽度 */
+  width: 140px; /* 调整为两张扑克牌宽度 */
   height: 120px;
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-xs);
@@ -1048,9 +1048,9 @@
 /* 玩家当前下注额 */
 .player-bet {
   position: absolute;
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
   background: url('images/chip-btn1.webp') no-repeat center center;
   background-size: contain;
   color: #000000;

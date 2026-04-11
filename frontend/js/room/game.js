@@ -211,15 +211,22 @@ class GameManager {
 
     const myPlayer = gameState.players.find(p => p.id === this.gameState.myPlayerId);
     if (myPlayer && (updates.players || updates.chips)) {
-      // 检测积分变化
-      const currentChips = myPlayer.chips;
-      if (this.previousChips !== currentChips) {
-        const chipsChange = currentChips - this.previousChips;
+      roomUI.updateMyChips(myPlayer.chips);
+    }
+    
+    // 游戏开始时记录初始积分
+    if (prevPhase !== 'PRE_FLOP_BLINDS' && phase === 'PRE_FLOP_BLINDS' && myPlayer) {
+      this.handStartChips = myPlayer.chips;
+    }
+    
+    // 游戏结束时记录积分变化
+    if (prevPhase !== 'HAND_END' && phase === 'HAND_END' && myPlayer && this.handStartChips !== undefined) {
+      const chipsChange = myPlayer.chips - this.handStartChips;
+      if (chipsChange !== 0) {
         const isWin = chipsChange > 0;
         roomUI.addChipsHistoryEntry(Math.abs(chipsChange), isWin);
-        this.previousChips = currentChips;
       }
-      roomUI.updateMyChips(myPlayer.chips);
+      this.handStartChips = undefined;
     }
 
     const totalPot = gameState.pots ? gameState.pots.reduce((sum, pot) => sum + pot.amount, 0) : 0;
