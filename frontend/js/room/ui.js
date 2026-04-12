@@ -138,7 +138,18 @@ class RoomUI {
   }
 
   bindEvents() {
-    document.getElementById('copy-room-id').addEventListener('click', () => {
+    // 通用事件绑定函数，同时支持点击和触摸事件
+    const bindEvent = (element, handler) => {
+      if (element) {
+        element.addEventListener('click', handler);
+        element.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          handler(e);
+        });
+      }
+    };
+
+    bindEvent(document.getElementById('copy-room-id'), () => {
       navigator.clipboard.writeText(this.elements.roomId.textContent)
         .then(() => {
           this.showGameStatus('复制成功', '房间号已复制到剪贴板');
@@ -147,37 +158,31 @@ class RoomUI {
         .catch(err => console.error('复制失败:', err));
     });
 
-    this.elements.exitRoom.addEventListener('click', () => {
+    bindEvent(this.elements.exitRoom, () => {
       if (confirm('确定要退出房间吗？')) {
         window.location.href = 'index.html';
       }
     });
 
     const switchBgBtn = document.getElementById('switch-table-bg');
-    if (switchBgBtn) {
-      switchBgBtn.addEventListener('click', () => {
-        this.switchTableBackground();
-      });
-    }
+    bindEvent(switchBgBtn, () => {
+      this.switchTableBackground();
+    });
 
-    if (this.elements.languageToggle) {
-      this.elements.languageToggle.addEventListener('click', () => {
-        this.toggleLanguage();
-      });
-    }
+    bindEvent(this.elements.languageToggle, () => {
+      this.toggleLanguage();
+    });
 
-    if (this.elements.voiceToggle) {
-      this.elements.voiceToggle.addEventListener('click', async () => {
-        if (window.agoraVoice) {
-          await window.agoraVoice.toggleMicrophone();
-          const isEnabled = window.agoraVoice.isMicrophoneEnabled();
-          this.updateVoiceButton(isEnabled);
-        }
-      });
-    }
+    bindEvent(this.elements.voiceToggle, async () => {
+      if (window.agoraVoice) {
+        await window.agoraVoice.toggleMicrophone();
+        const isEnabled = window.agoraVoice.isMicrophoneEnabled();
+        this.updateVoiceButton(isEnabled);
+      }
+    });
 
     document.querySelectorAll('.chip-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      bindEvent(btn, () => {
         const current = parseInt(this.elements.betAmount.value) || 0;
         const add = parseInt(btn.dataset.amount) || 0;
         this.elements.betAmount.value = current + add;
@@ -185,21 +190,69 @@ class RoomUI {
     });
 
     const clearBetBtn = document.getElementById('clear-bet-btn');
-    if (clearBetBtn) {
-      clearBetBtn.addEventListener('click', () => {
-        this.elements.betAmount.value = '';
-      });
-    }
+    bindEvent(clearBetBtn, () => {
+      this.elements.betAmount.value = '';
+    });
 
     // 继续游戏按钮点击事件
     const continueGameBtn = document.getElementById('continue-game-btn');
-    if (continueGameBtn) {
-      continueGameBtn.addEventListener('click', () => {
-        if (window.gameManager) {
-          window.gameManager.sendGameAction('confirmContinue');
-        }
-      });
-    }
+    bindEvent(continueGameBtn, () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('confirmContinue');
+      }
+    });
+
+    // 下注操作按钮事件绑定
+    bindEvent(this.elements.foldBtn, () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('fold');
+      }
+    });
+
+    bindEvent(this.elements.checkBtn, () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('check');
+      }
+    });
+
+    bindEvent(this.elements.callBtn, () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('call');
+      }
+    });
+
+    bindEvent(this.elements.raiseBtn, () => {
+      if (window.gameManager) {
+        const betAmount = this.getBetAmount();
+        window.gameManager.sendGameAction('raise', { amount: betAmount });
+      }
+    });
+
+    bindEvent(this.elements.allInBtn, () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('allIn');
+      }
+    });
+
+    // 房主按钮事件绑定
+    bindEvent(document.getElementById('start-game'), () => {
+      if (window.gameManager) {
+        const config = this.getHostConfig();
+        window.gameManager.sendGameAction('startGame', config);
+      }
+    });
+
+    bindEvent(document.getElementById('next-hand-btn'), () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('nextHand');
+      }
+    });
+
+    bindEvent(document.getElementById('reset-game'), () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('resetGame');
+      }
+    });
   }
 
   updateRoomId(roomId) {

@@ -133,9 +133,20 @@ function joinRoom() {
   });
 }
 
+// 通用事件绑定函数，同时支持点击和触摸事件
+const bindEvent = (element, handler) => {
+  if (element) {
+    element.addEventListener('click', handler);
+    element.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handler(e);
+    });
+  }
+};
+
 // 事件监听
-createRoomBtn.addEventListener('click', createRoom);
-joinRoomBtn.addEventListener('click', joinRoom);
+bindEvent(createRoomBtn, createRoom);
+bindEvent(joinRoomBtn, joinRoom);
 
 // 回车键提交
 nicknameInput.addEventListener('keypress', (e) => {

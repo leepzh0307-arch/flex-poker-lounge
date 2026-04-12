@@ -11,303 +11,6 @@
   transition: opacity 0.5s ease;
 }
 
-/* 媒体查询 - 横屏适配 */
-@media (orientation: landscape) {
-  /* 基础调整 */
-  :root {
-    --header-height: 50px;
-  }
-  
-  /* 游戏主区域 */
-  .game-area {
-    margin-left: 0;
-    margin-right: 0;
-    padding: 8px 4px;
-  }
-  
-  /* 阶段指示器 */
-  .phase-indicator-wrapper {
-    top: calc(var(--header-height) + 10px);
-  }
-  
-  .phase-indicator {
-    gap: 8px;
-    padding: 12px 24px;
-  }
-  
-  .phase-label {
-    font-size: 10px;
-  }
-  
-  /* 牌桌区域 */
-  .players-area {
-    top: calc(var(--header-height) + 80px);
-    max-width: 90vw;
-    aspect-ratio: 2.5 / 1;
-    min-height: 300px;
-  }
-  
-  /* 公共牌区域 */
-  .community-cards {
-    min-width: 250px;
-    height: 80px;
-    gap: 3px;
-  }
-  
-  /* 底池信息 */
-  .pot-info {
-    padding: 6px 16px;
-    gap: 12px;
-  }
-  
-  .pot-main {
-    font-size: 16px;
-  }
-  
-  .pot-main span {
-    font-size: 16px;
-  }
-  
-  .pot-blind-info {
-    font-size: 12px;
-  }
-  
-  /* 玩家座位 */
-  .player-seat {
-    width: 100px;
-    height: 40px;
-  }
-  
-  .player-name {
-    font-size: 14px;
-    max-width: 70px;
-  }
-  
-  .player-chips {
-    font-size: 12px;
-  }
-  
-  .player-bet-total {
-    font-size: 8px;
-  }
-  
-  /* 操作面板 */
-  .action-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    top: auto;
-    width: 100%;
-    height: 200px;
-    border-radius: 10px 10px 0 0;
-    border-right: none;
-    border-bottom: none;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-  }
-  
-  .action-buttons-vertical {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  
-  .action-btn {
-    width: calc(25% - 6px);
-    padding: 10px 12px;
-    font-size: 11px;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .bet-control {
-    margin-bottom: 10px;
-  }
-  
-  .bet-amount {
-    padding: 8px 0;
-    font-size: 12px;
-  }
-  
-  .chip-buttons {
-    margin-bottom: 10px;
-  }
-  
-  .chip-btn {
-    width: 35px;
-    height: 35px;
-    font-size: 10px;
-  }
-  
-  .my-info {
-    margin-top: -4px;
-    font-size: 12px;
-  }
-  
-  .my-info strong {
-    font-size: 16px;
-  }
-  
-  /* 游戏日志面板 */
-  .game-log-panel {
-    position: fixed;
-    top: var(--header-height);
-    right: 0;
-    width: 150px;
-    max-height: calc(100vh - var(--header-height) - 200px);
-    border-radius: 0 0 0 10px;
-    border-left: 1px solid rgba(255, 255, 255, 0.18);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 16px;
-  }
-  
-  .game-log-panel h3 {
-    margin-top: 0;
-    font-size: 12px;
-  }
-  
-  .game-log-list {
-    max-height: 150px;
-  }
-  
-  /* 房主面板 */
-  .host-panel {
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: auto;
-    width: 150px;
-    max-height: calc(100vh - var(--header-height) - 200px);
-    border-radius: 0 24px 24px 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.04);
-    border-left: none;
-    padding: 16px;
-  }
-  
-  .host-panel h3 {
-    margin: 0 0 12px 0;
-    font-size: 12px;
-  }
-  
-  .btn-host {
-    padding: 8px 16px;
-    font-size: 11px;
-  }
-  
-  .host-control label {
-    font-size: 10px;
-  }
-  
-  .host-control input,
-  .host-control select {
-    padding: 6px 0;
-    font-size: 12px;
-  }
-  
-  /* 顶部信息栏 */
-  .room-header {
-    padding: 0 16px;
-  }
-  
-  .logo {
-    width: 60px;
-  }
-  
-  .header-btn {
-    padding: 8px 12px;
-    font-size: 11px;
-  }
-  
-  .header-actions {
-    gap: 6px;
-    right: 16px;
-  }
-  
-  /* 玩家座位位置调整 */
-  .player-seat.seat-1  { left: 20%;  top: 80%; }
-  .player-seat.seat-2  { left: 5%;   top: 65%; }
-  .player-seat.seat-3  { left: 5%;   top: 35%; }
-  .player-seat.seat-4  { left: 20%;  top: 10%; }
-  .player-seat.seat-5  { left: 50%;  top: 10%; }
-  .player-seat.seat-6  { left: 80%;  top: 10%; }
-  .player-seat.seat-7  { left: 95%;  top: 35%; }
-  .player-seat.seat-8  { left: 95%;  top: 65%; }
-  .player-seat.seat-9  { left: 80%;  top: 80%; }
-  .player-seat.seat-10 { left: 50%;  top: 80%; }
-  
-  /* 玩家信息调整 */
-  .player-info {
-    margin-top: -5px;
-    padding: 2px 6px;
-  }
-  
-  .position-badge {
-    min-width: 28px;
-    height: 16px;
-    font-size: 8px;
-  }
-  
-  /* 玩家下注调整 */
-  .player-bet {
-    width: 40px;
-    height: 40px;
-    font-size: 10px;
-    padding-top: 12px;
-  }
-  
-  /* 玩家状态调整 */
-  .player-status {
-    font-size: 10px;
-    padding: 1px 6px;
-  }
-}
-
-/* 媒体查询 - 小屏幕横屏适配 */
-@media (orientation: landscape) and (max-width: 768px) {
-  /* 进一步调整 */
-  .players-area {
-    aspect-ratio: 3 / 1;
-  }
-  
-  .player-seat {
-    width: 80px;
-    height: 35px;
-  }
-  
-  .player-name {
-    font-size: 12px;
-    max-width: 60px;
-  }
-  
-  .action-panel {
-    height: 180px;
-  }
-  
-  .action-btn {
-    font-size: 10px;
-    padding: 6px 10px;
-  }
-  
-  .game-log-panel,
-  .host-panel {
-    width: 120px;
-  }
-  
-  .phase-indicator {
-    padding: 10px 20px;
-  }
-  
-  .phase-label {
-    font-size: 9px;
-  }
-}
-
 .bg-video.loaded {
   opacity: 0.6;
 }
@@ -393,50 +96,6 @@
   display: inline-block;
   text-align: center;
   z-index: 10;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-/* 横屏模式下的按钮触控优化 */
-@media (orientation: landscape) {
-  .btn, .action-btn, .chip-btn {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 10px 16px;
-  }
-  
-  .header-btn {
-    min-height: 36px;
-    min-width: 36px;
-  }
-  
-  .chip-btn {
-    min-height: 40px;
-    min-width: 40px;
-  }
-  
-  /* 增加按钮点击区域 */
-  .action-btn {
-    min-height: 44px;
-    min-width: 60px;
-  }
-  
-  /* 优化触控反馈 */
-  .btn:active, .action-btn:active, .chip-btn:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
-  }
-  
-  /* 确保输入框易于点击 */
-  input, select {
-    min-height: 44px;
-    padding: 8px 12px;
-  }
-  
-  /* 优化滑块和选择器的触控区域 */
-  .host-control select {
-    min-height: 44px;
-  }
 }
 
 .btn.english-text, .action-btn.english-text, .chip-btn.english-text {
@@ -771,65 +430,6 @@
   position: relative;
   overflow-y: auto;
   background: transparent;
-}
-
-/* 横屏模式下的游戏主区域调整 */
-@media (orientation: landscape) {
-  .game-area {
-    margin-left: 0;
-    margin-right: 0;
-    padding: 8px 4px;
-    overflow: hidden;
-  }
-  
-  /* 阶段指示器调整 */
-  .phase-indicator-wrapper {
-    position: relative;
-    top: 0;
-    left: 0;
-    transform: none;
-    margin-bottom: 10px;
-  }
-  
-  .phase-indicator {
-    max-width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  
-  /* 牌桌区域调整 */
-  .players-area {
-    position: relative;
-    top: 0;
-    left: 0;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-  
-  /* 确保游戏状态提示在横屏模式下正确显示 */
-  .game-status {
-    min-width: 200px;
-    padding: 20px 30px;
-  }
-  
-  .game-status h2 {
-    font-size: 15px;
-  }
-  
-  .game-status p {
-    font-size: 12px;
-  }
-  
-  /* 继续游戏按钮容器调整 */
-  .continue-game-container {
-    position: relative;
-    bottom: 0;
-    left: 0;
-    transform: none;
-    margin-top: 20px;
-  }
 }
 
 /* ====== 阶段指示器 ====== */
@@ -2306,15 +1906,240 @@
 .game-log-panel h3 {
   margin-top: -8px;
   font-size: 13px;
-  font-family: 'PingFang SC';
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #fff;
-  text-align: center;
-  text-transform: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding-bottom: 8px;
 }
+
+/* ====== 响应式布局优化 - 移动端横屏模式 ====== */
+@media screen and (orientation: landscape) and (max-width: 1024px) {
+  /* 游戏区域布局 */
+  .game-area {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 8px 2px;
+  }
+  
+  /* 玩家座位区域 */
+  .players-area {
+    max-width: 95vw;
+    aspect-ratio: 2 / 1;
+    min-height: 350px;
+  }
+  
+  /* 玩家座位大小调整 */
+  .player-seat {
+    width: 120px;
+    height: 45px;
+  }
+  
+  /* 玩家信息字体大小 */
+  .player-name {
+    font-size: 16px;
+    max-width: 80px;
+  }
+  
+  .player-chips {
+    font-size: 12px;
+  }
+  
+  .player-bet-total {
+    font-size: 8px;
+  }
+  
+  /* 公共牌区域 */
+  .community-cards {
+    min-width: 280px;
+    height: 80px;
+  }
+  
+  /* 底池信息 */
+  .pot-info {
+    padding: 6px 16px;
+  }
+  
+  .pot-main {
+    font-size: 16px;
+  }
+  
+  .pot-main span {
+    font-size: 16px;
+  }
+  
+  .pot-blind-info {
+    font-size: 12px;
+  }
+  
+  /* 控制面板调整 */
+  .action-panel {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 30vh;
+    border-radius: 10px 10px 0 0;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px;
+  }
+  
+  .action-buttons-vertical {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  
+  .action-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .bet-control {
+    margin-bottom: 12px;
+  }
+  
+  .chip-buttons {
+    margin-bottom: 12px;
+  }
+  
+  .my-info {
+    margin-top: -4px;
+  }
+  
+  /* 游戏日志面板 */
+  .game-log-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 10px);
+    right: 10px;
+    width: 180px;
+    max-height: 40vh;
+  }
+  
+  /* 房主面板 */
+  .host-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 10px);
+    left: 10px;
+    right: auto;
+    width: 180px;
+    max-height: 40vh;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  
+  /* 顶部信息栏 */
+  .room-header {
+    padding: 0 16px;
+  }
+  
+  .header-actions {
+    gap: 6px;
+    right: 16px;
+  }
+  
+  .header-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  
+  /* 阶段指示器 */
+  .phase-indicator {
+    padding: 12px 24px;
+    gap: 8px;
+  }
+  
+  .phase-label {
+    font-size: 10px;
+  }
+}
+
+/* 小屏幕设备横屏优化 */
+@media screen and (orientation: landscape) and (max-width: 768px) {
+  /* 玩家座位进一步调整 */
+  .player-seat {
+    width: 100px;
+    height: 40px;
+  }
+  
+  .player-name {
+    font-size: 14px;
+    max-width: 70px;
+  }
+  
+  .player-chips {
+    font-size: 10px;
+  }
+  
+  /* 公共牌区域 */
+  .community-cards {
+    min-width: 220px;
+    height: 60px;
+  }
+  
+  /* 控制面板 */
+  .action-panel {
+    max-height: 25vh;
+  }
+  
+  .action-btn {
+    min-width: 70px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  
+  /* 游戏日志和房主面板 */
+  .game-log-panel,
+  .host-panel {
+    width: 150px;
+    padding: 16px 12px;
+  }
+  
+  /* 顶部信息栏 */
+  .header-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  
+  .logo {
+    width: 72px;
+  }
+  
+  /* 阶段指示器 */
+  .phase-indicator {
+    padding: 10px 20px;
+    gap: 6px;
+  }
+  
+  .phase-label {
+    font-size: 9px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 增大按钮点击区域 */
+  .btn, .action-btn, .chip-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 优化触摸反馈 */
+  .btn:active, .action-btn:active, .chip-btn:active {
+    transform: scale(0.95);
+  }
+  
+  /* 移除鼠标跟随效果，因为在触摸设备上不适用 */
+  .btn::before, .action-btn::before, .chip-btn::before {
+    display: none;
+  }
+
 
 
 
@@ -2535,5 +2360,238 @@
     min-width: 180px;
     height: 55px;
     padding: 4px;
+  }
+}
+
+/* ====== 响应式布局优化 - 移动端横屏模式 ====== */
+@media screen and (orientation: landscape) and (max-width: 1024px) {
+  /* 游戏区域布局 */
+  .game-area {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 8px 2px;
+  }
+  
+  /* 玩家座位区域 */
+  .players-area {
+    max-width: 95vw;
+    aspect-ratio: 2 / 1;
+    min-height: 350px;
+  }
+  
+  /* 玩家座位大小调整 */
+  .player-seat {
+    width: 120px;
+    height: 45px;
+  }
+  
+  /* 玩家信息字体大小 */
+  .player-name {
+    font-size: 16px;
+    max-width: 80px;
+  }
+  
+  .player-chips {
+    font-size: 12px;
+  }
+  
+  .player-bet-total {
+    font-size: 8px;
+  }
+  
+  /* 公共牌区域 */
+  .community-cards {
+    min-width: 280px;
+    height: 80px;
+  }
+  
+  /* 底池信息 */
+  .pot-info {
+    padding: 6px 16px;
+  }
+  
+  .pot-main {
+    font-size: 16px;
+  }
+  
+  .pot-main span {
+    font-size: 16px;
+  }
+  
+  .pot-blind-info {
+    font-size: 12px;
+  }
+  
+  /* 控制面板调整 */
+  .action-panel {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 30vh;
+    border-radius: 10px 10px 0 0;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px;
+  }
+  
+  .action-buttons-vertical {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  
+  .action-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .bet-control {
+    margin-bottom: 12px;
+  }
+  
+  .chip-buttons {
+    margin-bottom: 12px;
+  }
+  
+  .my-info {
+    margin-top: -4px;
+  }
+  
+  /* 游戏日志面板 */
+  .game-log-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 10px);
+    right: 10px;
+    width: 180px;
+    max-height: 40vh;
+  }
+  
+  /* 房主面板 */
+  .host-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 10px);
+    left: 10px;
+    right: auto;
+    width: 180px;
+    max-height: 40vh;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  
+  /* 顶部信息栏 */
+  .room-header {
+    padding: 0 16px;
+  }
+  
+  .header-actions {
+    gap: 6px;
+    right: 16px;
+  }
+  
+  .header-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  
+  /* 阶段指示器 */
+  .phase-indicator {
+    padding: 12px 24px;
+    gap: 8px;
+  }
+  
+  .phase-label {
+    font-size: 10px;
+  }
+}
+
+/* 小屏幕设备横屏优化 */
+@media screen and (orientation: landscape) and (max-width: 768px) {
+  /* 玩家座位进一步调整 */
+  .player-seat {
+    width: 100px;
+    height: 40px;
+  }
+  
+  .player-name {
+    font-size: 14px;
+    max-width: 70px;
+  }
+  
+  .player-chips {
+    font-size: 10px;
+  }
+  
+  /* 公共牌区域 */
+  .community-cards {
+    min-width: 220px;
+    height: 60px;
+  }
+  
+  /* 控制面板 */
+  .action-panel {
+    max-height: 25vh;
+  }
+  
+  .action-btn {
+    min-width: 70px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  
+  /* 游戏日志和房主面板 */
+  .game-log-panel,
+  .host-panel {
+    width: 150px;
+    padding: 16px 12px;
+  }
+  
+  /* 顶部信息栏 */
+  .header-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  
+  .logo {
+    width: 72px;
+  }
+  
+  /* 阶段指示器 */
+  .phase-indicator {
+    padding: 10px 20px;
+    gap: 6px;
+  }
+  
+  .phase-label {
+    font-size: 9px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 增大按钮点击区域 */
+  .btn, .action-btn, .chip-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 优化触摸反馈 */
+  .btn:active, .action-btn:active, .chip-btn:active {
+    transform: scale(0.95);
+  }
+  
+  /* 移除鼠标跟随效果，因为在触摸设备上不适用 */
+  .btn::before, .action-btn::before, .chip-btn::before {
+    display: none;
   }
 }
