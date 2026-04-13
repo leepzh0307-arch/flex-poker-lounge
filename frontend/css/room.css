@@ -7,59 +7,41 @@
   height: 100%;
   object-fit: cover;
   z-index: -1;
-  opacity: 0;
-  transition: opacity 1.2s ease-out;
-  will-change: opacity, transform;
+  opacity: 0.6;
+  transition: opacity 0.5s ease;
 }
 
 .bg-video.loaded {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
-/* 豪华纹理层 */
+/* 水雾层 */
 .mist-layer {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.1));
   z-index: -1;
   pointer-events: none;
-  animation: mist-drift 25s ease-in-out infinite alternate;
-}
-
-@keyframes mist-drift {
-  0% { transform: translateX(-1%) translateY(0); opacity: 0.8; }
-  100% { transform: translateX(1%) translateY(-0.5%); opacity: 1; }
 }
 
 /* LOGO */
 .logo-container {
   position: absolute;
-  top: 12px;
-  left: 24px;
+  top: 6px;
+  left: 20px;
   z-index: 100;
   display: flex;
   align-items: center;
-  gap: 24px;
-  transition: transform 0.3s ease;
-}
-
-.logo-container:hover {
-  transform: scale(1.02);
+  gap: 20px;
 }
 
 .logo {
-  width: 100px;
+  width: 96px;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
-  transition: box-shadow 0.3s ease;
-}
-
-.logo:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
 }
 
 /* 房间页布局 */
@@ -184,52 +166,38 @@
 
 /* ====== 顶部信息栏 ====== */
 :root {
-  --header-height: 75px;
+  --header-height: 65px;
 }
 
 .room-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 32px;
   height: var(--header-height);
-  background: linear-gradient(135deg, rgba(10, 12, 14, 0.6) 0%, rgba(20, 25, 22, 0.8) 100%);
-  backdrop-filter: blur(60px) saturate(1.4);
-  -webkit-backdrop-filter: blur(60px) saturate(1.4);
-  border-bottom: 1px solid rgba(140, 195, 175, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   position: relative;
   z-index: 50;
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
-  animation: header-entrance 1s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes header-entrance {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .room-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   position: relative;
   left: 0;
   transform: none;
 }
 
 .room-info h2 {
-  font-size: 18px;
-  letter-spacing: 2px;
+  font-size: 16px;
+  letter-spacing: 1.5px;
   color: rgba(255, 255, 255, 1);
   margin: 0;
   font-weight: bold;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Header 中文文字加粗 */
@@ -248,24 +216,22 @@
 }
 
 .room-id {
-  font-weight: 400;
-  font-size: 15px;
-  letter-spacing: 2.5px;
-  color: rgba(140, 195, 175, 1);
-  font-family: 'Playfair Display', serif;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 1);
 }
 
 .header-btn {
-  padding: 12px 24px;
+  padding: 10px 20px;
   font-family: 'PingFang SC';
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.8px;
-  background: linear-gradient(135deg, rgba(130, 185, 165, 0.25) 0%, rgba(100, 155, 135, 0.15) 100%);
-  border: 1px solid rgba(140, 195, 175, 0.3);
-  border-radius: 25px;
+  letter-spacing: 0.5px;
+  background: #3e3e3e;
+  border-radius: 20px;
   color: #ffffff !important;
+  border: none;
   cursor: pointer;
   transition: all 0.3s ease, top 0s, left 0s, transform 0.15s ease;
   display: inline-flex;
@@ -277,13 +243,11 @@
   position: relative;
   box-sizing: border-box;
   text-transform: uppercase;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .header-btn.english-text {
   font-family: 'Playfair Display', serif;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
 }
 
 .header-btn span {
@@ -299,9 +263,9 @@
   top: var(--y, 50%);
   left: var(--x, 50%);
   transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(140, 195, 175, 0.4) 50%, transparent 70%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(#fff, transparent, transparent);
   opacity: 0;
   transition: opacity 0.5s ease, top 0s, left 0s;
   pointer-events: none;
@@ -1464,16 +1428,15 @@
   position: absolute;
   top: var(--header-height);
   left: 0;
-  width: 220px;
-  background: linear-gradient(135deg, rgba(10, 12, 14, 0.6) 0%, rgba(20, 25, 22, 0.8) 100%);
-  backdrop-filter: blur(60px) saturate(1.4);
-  -webkit-backdrop-filter: blur(60px) saturate(1.4);
-  border-right: 1px solid rgba(140, 195, 175, 0.2);
-  border-bottom: 1px solid rgba(140, 195, 175, 0.15);
-  border-radius: 0 0 16px 0;
-  padding: 28px 24px;
+  width: 200px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0 0 10px 0;
+  padding: 24px 20px;
   z-index: 100;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
   animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
