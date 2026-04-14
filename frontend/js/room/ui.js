@@ -145,7 +145,11 @@ class RoomUI {
         element.addEventListener('touchstart', (e) => {
           e.preventDefault();
           handler(e);
-        });
+        }, { passive: false });
+        // 增加触摸结束事件，确保在某些设备上有更好的响应
+        element.addEventListener('touchend', (e) => {
+          e.preventDefault();
+        }, { passive: false });
       }
     };
 

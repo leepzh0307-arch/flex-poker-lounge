@@ -447,11 +447,22 @@ body {
     gap: 20px;
   }
   .glass-input {
-    padding: 12px 0;
+    padding: 14px 0;
     font-size: 14px;
   }
   .action-btn {
-    padding: 12px 0;
+    padding: 14px 0;
     font-size: 13.5px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  /* 优化小屏幕上的按钮点击区域 */
+  .search-btn {
+    width: 40px;
+    height: 40px;
+  }
+  /* 确保输入框在小屏幕上有足够的高度 */
+  .glass-input {
+    min-height: 44px;
   }
 }
