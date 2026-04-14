@@ -67,9 +67,29 @@ module.exports = (socket, rooms, io) => {
       // 快速回调，减少等待时间
       callback({ success: true, roomId: roomId, playerId: playerId });
       
-      // 异步记录日志，不阻塞回调
+      // 立即发送游戏状态更新给房主
       setTimeout(() => {
         console.log(`房间 ${roomId} 创建成功，房主: ${nickname} (PlayerID: ${playerId})`);
+        
+        // 发送游戏状态更新给房主
+        io.to(socket.id).emit('gameUpdate', {
+          roomId: roomId,
+          players: room.players.map(p => ({
+            ...p,
+            cards: p.id === socket.id && room.gameState.playerCards && room.gameState.playerCards[p.id]
+              ? room.gameState.playerCards[p.id]
+              : [{ hidden: true }, { hidden: true }]
+          })),
+          communityCards: room.gameState.communityCards || [],
+          pots: room.gameState.pots || [{ amount: 0, eligiblePlayers: [] }],
+          currentBet: room.gameState.currentBet || 0,
+          minBet: room.gameState.minBet || 0,
+          maxBet: room.gameState.maxBet || 0,
+          gamePhase: room.gameState.phase || 'WAITING',
+          currentPlayer: room.gameState.currentPlayer,
+          roundBets: room.gameState.roundBets ? { ...room.gameState.roundBets } : {},
+          message: `房间 ${roomId} 创建成功，您是房主`,
+        });
       }, 0);
       
     } catch (error) {

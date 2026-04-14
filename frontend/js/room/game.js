@@ -71,43 +71,35 @@ class GameManager {
     const isCreating = params.get('isCreating') === 'true';
 
     if (isCreating) {
-      const result = await socketClient.createRoom(nickname);
-      this.gameState.roomId = result.roomId;
-      this.gameState.playerId = result.playerId;
-      
-      localStorage.setItem('playerId', result.playerId);
-      roomUI.updateRoomId(result.roomId);
+        const result = await socketClient.createRoom(nickname);
+        this.gameState.roomId = result.roomId;
+        this.gameState.playerId = result.playerId;
+        
+        localStorage.setItem('playerId', result.playerId);
+        roomUI.updateRoomId(result.roomId);
 
-      const url = new URL(window.location);
-      url.searchParams.set('roomId', result.roomId);
-      url.searchParams.set('isCreating', 'false');
-      url.searchParams.set('isHost', 'true');
-      window.history.replaceState({}, '', url);
+        const url = new URL(window.location);
+        url.searchParams.set('roomId', result.roomId);
+        url.searchParams.set('isCreating', 'false');
+        url.searchParams.set('isHost', 'true');
+        window.history.replaceState({}, '', url);
 
-      const response = await socketClient.joinRoom(result.roomId, nickname, result.playerId);
-      this.updateGameState(response.gameState);
-    } else {
-      const playerId = this.gameState.playerId || null;
-      const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
-      
-      if (response.playerId) {
-        this.gameState.playerId = response.playerId;
-        localStorage.setItem('playerId', response.playerId);
+        // 不需要再次调用joinRoom，因为createRoom已经将玩家加入房间
+        // 直接更新游戏状态，等待服务器的gameUpdate事件
+      } else {
+        const playerId = this.gameState.playerId || null;
+        const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
+        
+        if (response.playerId) {
+          this.gameState.playerId = response.playerId;
+          localStorage.setItem('playerId', response.playerId);
+        }
+        
+        this.updateGameState(response.gameState);
       }
-      
-      this.updateGameState(response.gameState);
-    }
 
     socketClient.on('gameUpdate', (gameState) => {
       this.updateGameState(gameState);
-    });
-
-    socketClient.on('playerJoined', (player) => {
-      this.handlePlayerJoined(player);
-    });
-
-    socketClient.on('playerLeft', (playerId) => {
-      this.handlePlayerLeft(playerId);
     });
 
     socketClient.on('gameAction', (action) => {
