@@ -130,6 +130,9 @@ class RoomUI {
 
     this.currentBgTheme = 1;
     this.myPlayerId = null;
+    this.previousBets = {};
+    this.handCount = 0;
+    this.totalProfit = 0;
 
     this.bindEvents();
     
@@ -274,7 +277,7 @@ class RoomUI {
     });
   }
 
-  updatePlayerSeat(seatIndex, player, currentBet = 0) {
+  updatePlayerSeat(seatIndex, player, currentBet = 0, handBet = 0) {
     const seat = this.elements.playerSeats[seatIndex - 1];
     if (!seat) return;
     const badge = this.elements.positionBadges[seatIndex - 1];
@@ -309,7 +312,7 @@ class RoomUI {
         seat.querySelector('.player-name').classList.remove('ai-player-name');
       }
       seat.querySelector('.player-chips').textContent = player.chips || 0;
-      seat.querySelector('.player-bet-total').textContent = `本局下注: ${currentBet || 0}`;
+      seat.querySelector('.player-bet-total').textContent = `本局下注: ${handBet || 0}`;
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
@@ -341,38 +344,46 @@ class RoomUI {
       }
 
       if (betEl) {
+        const prevBet = this.previousBets[player.id] || 0;
+        const betChanged = currentBet !== prevBet && currentBet > prevBet;
+        this.previousBets[player.id] = currentBet;
+
         if (currentBet > 0 && player.isActive) {
           betEl.textContent = currentBet;
           betEl.style.display = 'block';
           
-          const seatRect = seat.getBoundingClientRect();
-          const tableEl = seat.closest('main') || seat.parentElement;
-          const tableRect = tableEl.getBoundingClientRect();
-          const centerX = tableRect.left + tableRect.width / 2;
-          const centerY = tableRect.top + tableRect.height / 2;
-          const seatCenterX = seatRect.left + seatRect.width / 2;
-          const seatCenterY = seatRect.top + seatRect.height / 2;
-          const dx = centerX - seatCenterX;
-          const dy = centerY - seatCenterY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const moveDistance = Math.min(dist * 0.35, 120);
-          const nx = dist > 0 ? dx / dist : 0;
-          const ny = dist > 0 ? dy / dist : 0;
-          const tx = Math.round(nx * moveDistance);
-          const ty = Math.round(ny * moveDistance);
-          betEl.style.setProperty('--bet-tx', tx + 'px');
-          betEl.style.setProperty('--bet-ty', ty + 'px');
-          
-          betEl.classList.remove('fade-out');
-          setTimeout(() => {
-            betEl.classList.add('animate');
+          if (betChanged) {
+            const seatRect = seat.getBoundingClientRect();
+            const tableEl = seat.closest('main') || seat.parentElement;
+            const tableRect = tableEl.getBoundingClientRect();
+            const centerX = tableRect.left + tableRect.width / 2;
+            const centerY = tableRect.top + tableRect.height / 2;
+            const seatCenterX = seatRect.left + seatRect.width / 2;
+            const seatCenterY = seatRect.top + seatRect.height / 2;
+            const dx = centerX - seatCenterX;
+            const dy = centerY - seatCenterY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const moveDistance = Math.min(dist * 0.35, 120);
+            const nx = dist > 0 ? dx / dist : 0;
+            const ny = dist > 0 ? dy / dist : 0;
+            const tx = Math.round(nx * moveDistance);
+            const ty = Math.round(ny * moveDistance);
+            betEl.style.setProperty('--bet-tx', tx + 'px');
+            betEl.style.setProperty('--bet-ty', ty + 'px');
             
+            betEl.classList.remove('fade-out');
             setTimeout(() => {
-              betEl.classList.remove('animate');
-            }, 1500);
-          }, 100);
+              betEl.classList.add('animate');
+              
+              setTimeout(() => {
+                betEl.classList.remove('animate');
+              }, 1500);
+            }, 100);
+          }
         } else {
-          // 触发淡出动画
+          if (player.id) {
+            this.previousBets[player.id] = 0;
+          }
           if (betEl.style.display === 'block') {
             betEl.classList.add('fade-out');
             
@@ -462,15 +473,21 @@ class RoomUI {
     const historyList = document.getElementById('chips-history-list');
     if (!historyList) return;
     
+    this.handCount++;
+    this.totalProfit += isWin ? amount : -amount;
+
     const entry = document.createElement('div');
-    entry.className = `history-entry ${isWin ? 'win' : 'lose'}`;
+    const isEven = amount === 0;
+    entry.className = `history-entry ${isEven ? 'even' : (isWin ? 'win' : 'lose')}`;
     
     const isEnglish = this.currentLanguage === 'en';
+    const sign = isEven ? '' : (isWin ? '+' : '-');
+    const amountText = isEven ? '0' : `${sign}${amount}`;
+    const profitSign = this.totalProfit >= 0 ? '+' : '';
     entry.textContent = isEnglish ? 
-      `${isWin ? 'Won' : 'Lost'} ${Math.abs(amount)} chips` : 
-      `${isWin ? '赢了' : '输了'} ${Math.abs(amount)} 积分`;
+      `#${this.handCount} ${amountText}  (Total: ${profitSign}${this.totalProfit})` : 
+      `#${this.handCount} ${amountText}  (累计: ${profitSign}${this.totalProfit})`;
     
-    // 为英文文本添加特殊字体
     if (isEnglish) {
       entry.classList.add('english-text');
     }
@@ -478,8 +495,7 @@ class RoomUI {
     historyList.appendChild(entry);
     historyList.scrollTop = historyList.scrollHeight;
     
-    // 限制历史记录数量
-    while (historyList.children.length > 10) {
+    while (historyList.children.length > 20) {
       historyList.removeChild(historyList.firstChild);
     }
   }
@@ -694,7 +710,6 @@ class RoomUI {
       smallBlind: parseInt(document.getElementById('small-blind-input')?.value) || 10,
       bigBlind: parseInt(document.getElementById('big-blind-input')?.value) || 20,
       initialChips: parseInt(document.getElementById('initial-chips-input')?.value) || 1000,
-      dealOrder: document.getElementById('deal-order')?.value || 'clockwise',
       playerCards: 2,
       communityCards: 5,
     };
@@ -899,33 +914,14 @@ class RoomUI {
       }
     }
 
-    const dealOrderLabel = document.querySelector('label[for="deal-order"]');
-    if (dealOrderLabel) {
-      dealOrderLabel.textContent = t['deal-order'];
-      // 为英文文本添加特殊字体
-      if (this.currentLanguage === 'en') {
-        dealOrderLabel.classList.add('english-text');
-      } else {
-        dealOrderLabel.classList.remove('english-text');
-      }
-    }
-
-    // 更新初始积分标签
     const initialChipsLabel = document.querySelector('label[for="initial-chips-input"]');
     if (initialChipsLabel) {
       initialChipsLabel.textContent = this.currentLanguage === 'zh' ? '初始积分' : 'Initial Chips';
-      // 为英文文本添加特殊字体
       if (this.currentLanguage === 'en') {
         initialChipsLabel.classList.add('english-text');
       } else {
         initialChipsLabel.classList.remove('english-text');
       }
-    }
-
-    const dealOrderSelect = document.getElementById('deal-order');
-    if (dealOrderSelect) {
-      dealOrderSelect.options[0].text = t['clockwise'];
-      dealOrderSelect.options[1].text = t['counter-clockwise'];
     }
 
     if (this.elements.startGameBtn) {

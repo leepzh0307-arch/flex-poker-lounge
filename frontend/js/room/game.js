@@ -168,8 +168,9 @@ class GameManager {
     if (updates.players) {
       for (let i = 1; i <= 9; i++) {
         const player = gameState.players.find(p => p.seat === i);
-        const playerBet = (player && gameState.roundBets && gameState.roundBets[player.id]) || 0;
-        roomUI.updatePlayerSeat(i, player, playerBet);
+        const roundBet = (player && gameState.roundBets && gameState.roundBets[player.id]) || 0;
+        const handBet = (player && gameState.handBets && gameState.handBets[player.id]) || 0;
+        roomUI.updatePlayerSeat(i, player, roundBet, handBet);
       }
     }
 
@@ -179,17 +180,17 @@ class GameManager {
     }
     
     // 游戏开始时记录初始积分
-    if (prevPhase !== 'PRE_FLOP_BLINDS' && phase === 'PRE_FLOP_BLINDS' && myPlayer) {
+    if ((prevPhase === 'WAITING' || prevPhase === 'CONFIRM_CONTINUE') && 
+        (phase === 'PRE_FLOP_BLINDS' || phase === 'PRE_FLOP_DEAL' || phase === 'PRE_FLOP_BETTING') && 
+        myPlayer) {
       this.handStartChips = myPlayer.chips;
     }
     
     // 游戏结束时记录积分变化
     if (((prevPhase !== 'HAND_END' && phase === 'HAND_END') || (prevPhase === 'HAND_END' && phase === 'CONFIRM_CONTINUE')) && myPlayer && this.handStartChips !== undefined) {
       const chipsChange = myPlayer.chips - this.handStartChips;
-      if (chipsChange !== 0) {
-        const isWin = chipsChange > 0;
-        roomUI.addChipsHistoryEntry(Math.abs(chipsChange), isWin);
-      }
+      const isWin = chipsChange > 0;
+      roomUI.addChipsHistoryEntry(Math.abs(chipsChange), isWin);
       this.handStartChips = undefined;
     }
 

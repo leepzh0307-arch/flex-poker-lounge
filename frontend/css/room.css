@@ -2106,6 +2106,11 @@
   border-left: 2px solid rgba(230, 120, 120, 0.5);
 }
 
+.history-entry.even {
+  color: rgba(180, 180, 180, 0.8);
+  border-left: 2px solid rgba(180, 180, 180, 0.5);
+}
+
 .chip-buttons {
   display: flex;
   flex-wrap: wrap;

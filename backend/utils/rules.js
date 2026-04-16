@@ -4,12 +4,6 @@
 function validateRoomConfig(config) {
   const errors = [];
   
-  // 验证发牌顺序
-  if (config.dealOrder && !['clockwise', 'counter-clockwise'].includes(config.dealOrder)) {
-    errors.push('发牌顺序必须是顺时针或逆时针');
-  }
-  
-  // 验证手牌数量
   if (config.playerCards) {
     const playerCards = parseInt(config.playerCards);
     if (isNaN(playerCards) || playerCards < 1 || playerCards > 5) {

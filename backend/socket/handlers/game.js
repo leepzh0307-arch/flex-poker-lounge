@@ -113,6 +113,7 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
       smallBlindAmount: room.smallBlindAmount || 10,
       bigBlindAmount: room.bigBlindAmount || 20,
       roundBets: { ...room.gameState.roundBets },
+      handBets: { ...room.gameState.handBets },
       message: additionalMessage,
     });
   });
@@ -198,6 +199,7 @@ function startGame(room, roomId, io, config, rooms) {
     playerCards: {},
     bets: {},
     roundBets: {},
+    handBets: {},
     playersActedThisRound: new Set(),
     lastRaiserId: null,
   };
@@ -213,6 +215,7 @@ function startGame(room, roomId, io, config, rooms) {
     room.gameState.playerCards[player.id] = [];
     room.gameState.bets[player.id] = 0;
     room.gameState.roundBets[player.id] = 0;
+    room.gameState.handBets[player.id] = 0;
   });
 
   transitionTo(room, roomId, io, 'PRE_FLOP_BLINDS', rooms);
@@ -302,6 +305,7 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
     sbPlayer.chips -= sbActual;
     room.gameState.bets[sbPlayer.id] = sbActual;
     room.gameState.roundBets[sbPlayer.id] = sbActual;
+    room.gameState.handBets[sbPlayer.id] = (room.gameState.handBets[sbPlayer.id] || 0) + sbActual;
     room.gameState.pots[0].amount += sbActual;
     room.gameState.pots[0].eligiblePlayers.push(sbPlayer.id);
     sbPlayer.isSmallBlind = true;
@@ -312,6 +316,7 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
     bbPlayer.chips -= bbActual;
     room.gameState.bets[bbPlayer.id] = bbActual;
     room.gameState.roundBets[bbPlayer.id] = bbActual;
+    room.gameState.handBets[bbPlayer.id] = (room.gameState.handBets[bbPlayer.id] || 0) + bbActual;
     room.gameState.pots[0].amount += bbActual;
     if (!room.gameState.pots[0].eligiblePlayers.includes(bbPlayer.id)) {
       room.gameState.pots[0].eligiblePlayers.push(bbPlayer.id);
@@ -598,6 +603,7 @@ function handleCall(room, roomId, io, playerId, rooms) {
   player.chips -= callAmount;
   room.gameState.bets[playerId] = (room.gameState.bets[playerId] || 0) + callAmount;
   room.gameState.roundBets[playerId] = room.gameState.currentBet;
+  room.gameState.handBets[playerId] = (room.gameState.handBets[playerId] || 0) + callAmount;
   room.gameState.pots[0].amount += callAmount;
   if (!room.gameState.pots[0].eligiblePlayers.includes(playerId)) {
     room.gameState.pots[0].eligiblePlayers.push(playerId);
@@ -606,28 +612,7 @@ function handleCall(room, roomId, io, playerId, rooms) {
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'call', playerId, callAmount);
 
-  const huPreflopSBcall = (
-    room.gameState.phase === 'PRE_FLOP_BETTING' &&
-    isHeadsUp(room) &&
-    player.isSmallBlind === true
-  );
-
-  const threePlayerPreflopSBcall = (
-    room.gameState.phase === 'PRE_FLOP_BETTING' &&
-    isThreePlayer(room) &&
-    player.isSmallBlind === true
-  );
-
-  if (huPreflopSBcall || threePlayerPreflopSBcall) {
-    if (threePlayerPreflopSBcall) {
-      console.log(`[三人局翻前] ${player.nickname}(SB)跟注→跳过BB，直接进入FLOP`);
-    } else {
-      console.log(`[两人局翻前] ${player.nickname}(SB)跟注→跳过BB，直接进入FLOP`);
-    }
-    endBettingRound(room, roomId, io, rooms);
-  } else {
-    moveToNextPlayer(room, roomId, io, rooms);
-  }
+  moveToNextPlayer(room, roomId, io, rooms);
 }
 
 function handleRaise(room, roomId, io, playerId, amount, rooms) {
@@ -650,6 +635,7 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   player.chips -= raiseIncrement;
   room.gameState.bets[playerId] = (room.gameState.bets[playerId] || 0) + raiseIncrement;
   room.gameState.roundBets[playerId] = raiseTotal;
+  room.gameState.handBets[playerId] = (room.gameState.handBets[playerId] || 0) + raiseIncrement;
   room.gameState.pots[0].amount += raiseIncrement;
   if (!room.gameState.pots[0].eligiblePlayers.includes(playerId)) {
     room.gameState.pots[0].eligiblePlayers.push(playerId);
@@ -684,6 +670,7 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
   const totalBet = (room.gameState.roundBets[playerId] || 0) + allInAmount;
   room.gameState.bets[playerId] = (room.gameState.bets[playerId] || 0) + allInAmount;
   room.gameState.roundBets[playerId] = totalBet;
+  room.gameState.handBets[playerId] = (room.gameState.handBets[playerId] || 0) + allInAmount;
 
   createSidePotsIfNeeded(room, playerId, totalBet, allInAmount);
 
@@ -702,19 +689,7 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'all-in', playerId, totalBet);
 
-  const huPreflopSBallInCall = (
-    room.gameState.phase === 'PRE_FLOP_BETTING' &&
-    isHeadsUp(room) &&
-    player.isSmallBlind === true &&
-    totalBet <= room.gameState.currentBet
-  );
-
-  if (huPreflopSBallInCall) {
-    console.log(`[两人局翻前] ${player.nickname}(SB)全押(跟注额)→跳过BB，直接进入FLOP`);
-    endBettingRound(room, roomId, io, rooms);
-  } else {
-    moveToNextPlayer(room, roomId, io, rooms);
-  }
+  moveToNextPlayer(room, roomId, io, rooms);
 }
 
 function createSidePotsIfNeeded(room, allInPlayerId, allInAmount, contributedAmount) {
@@ -787,6 +762,7 @@ function endBettingRound(room, roomId, io, rooms) {
     room.gameState.roundBets[player.id] = 0;
   });
   room.gameState.currentBet = 0;
+  room.gameState.minRaise = room.bigBlindAmount;
   room.gameState.lastRaiserId = null;
 
   switch (room.gameState.phase) {
@@ -977,6 +953,7 @@ function doHandEnd(room, roomId, io, rooms) {
     deck: [],
     bets: {},
     roundBets: {},
+    handBets: {},
     playersActedThisRound: new Set(),
     lastRaiserId: null,
     playersConfirmedContinue: new Set(),
@@ -1035,6 +1012,7 @@ function resetGame(room, roomId, io) {
     playerCards: {},
     bets: {},
     roundBets: {},
+    handBets: {},
     playersActedThisRound: new Set(),
     lastRaiserId: null,
   };

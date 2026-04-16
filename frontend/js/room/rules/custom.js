@@ -2,12 +2,11 @@
 class CustomRules {
   constructor() {
     this.rules = {
-      dealOrder: 'clockwise', // 发牌顺序：clockwise(顺时针), counter-clockwise(逆时针)
-      playerCards: 2, // 每人手牌数量
-      communityCards: 5, // 公共牌数量
-      startingChips: 1000, // 初始积分
-      smallBlind: 10, // 小盲注
-      bigBlind: 20, // 大盲注
+      playerCards: 2,
+      communityCards: 5,
+      startingChips: 1000,
+      smallBlind: 10,
+      bigBlind: 20,
     };
   }
   
@@ -25,12 +24,6 @@ class CustomRules {
   validateRules(rules) {
     const errors = [];
     
-    // 验证发牌顺序
-    if (rules.dealOrder && !['clockwise', 'counter-clockwise'].includes(rules.dealOrder)) {
-      errors.push('发牌顺序必须是顺时针或逆时针');
-    }
-    
-    // 验证手牌数量
     if (rules.playerCards) {
       const playerCards = parseInt(rules.playerCards);
       if (isNaN(playerCards) || playerCards < 1 || playerCards > 5) {
@@ -78,7 +71,6 @@ class CustomRules {
   // 获取默认规则
   getDefaultRules() {
     return {
-      dealOrder: 'clockwise',
       playerCards: 2,
       communityCards: 5,
       startingChips: 1000,
