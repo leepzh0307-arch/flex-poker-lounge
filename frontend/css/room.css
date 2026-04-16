@@ -1314,8 +1314,20 @@
 }
 
 .position-badge.pos-btn {
-  background: linear-gradient(135deg, #ff6b35 0%, #ff4444 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 900;
+  min-width: 28px;
+  height: 28px;
+  border: 3px solid #1a1a1a;
+  box-shadow: 0 0 0 2px #ffffff, 0 3px 8px rgba(0, 0, 0, 0.5);
+  animation: dealer-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dealer-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #ffffff, 0 3px 8px rgba(0, 0, 0, 0.5); }
+  50% { box-shadow: 0 0 0 3px #ffd700, 0 3px 12px rgba(255, 215, 0, 0.4); }
 }
 .position-badge.pos-sb {
   background: linear-gradient(135deg, #4ecdc4 0%, #2ea89a 100%);
@@ -1365,6 +1377,11 @@
 
 .player-name.english-text {
   font-family: 'Playfair Display', serif;
+}
+
+.player-name.ai-player-name::after {
+  content: ' 🤖';
+  font-size: 0.7em;
 }
 
 .player-stats {
@@ -1443,12 +1460,12 @@
 
 @keyframes betThrow {
   0% {
-    transform: translateX(-50%) translateY(0) rotate(0deg);
+    transform: translateY(-50%) rotate(0deg);
     opacity: 1;
     scale: 1;
   }
   100% {
-    transform: translateX(50px) translateY(-50px) rotate(360deg);
+    transform: translate(var(--bet-tx, 50px), var(--bet-ty, -50px)) rotate(360deg);
     opacity: 1;
     scale: 1;
   }
@@ -1456,12 +1473,12 @@
 
 @keyframes betGather {
   0% {
-    transform: translateX(50px) translateY(-50px) rotate(360deg);
+    transform: translate(var(--bet-tx, 50px), var(--bet-ty, -50px)) rotate(360deg);
     opacity: 1;
     scale: 1;
   }
   100% {
-    transform: translateX(100px) translateY(-150px) scale(0);
+    transform: translate(calc(var(--bet-tx, 50px) * 2.5), calc(var(--bet-ty, -50px) * 2.5)) scale(0);
     opacity: 0;
   }
 }

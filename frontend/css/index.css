@@ -331,6 +331,65 @@ body {
   background: rgba(255, 255, 255, 0.06);
 }
 
+/* ---------- 人机对战区域 ---------- */
+.ai-mode-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.ai-mode-title {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(140, 195, 175, 0.7);
+}
+
+.ai-config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-config-label {
+  font-size: 13px;
+  font-weight: 200;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 48px;
+}
+
+.ai-select {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ai-select:focus {
+  border-color: rgba(140, 195, 175, 0.4);
+}
+
+.ai-select option {
+  background: #1a1e22;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ai-btn {
+  background: rgba(100, 160, 140, 0.35) !important;
+}
+
 /* ---------- 信息行 ---------- */
 .info-row {
   display: flex;

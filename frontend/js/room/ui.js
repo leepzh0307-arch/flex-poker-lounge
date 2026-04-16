@@ -138,15 +138,18 @@ class RoomUI {
   }
 
   bindEvents() {
-    // 通用事件绑定函数，同时支持点击和触摸事件
     const bindEvent = (element, handler) => {
       if (element) {
-        element.addEventListener('click', handler);
+        let handled = false;
+        element.addEventListener('click', (e) => {
+          if (handled) { handled = false; return; }
+          handler(e);
+        });
         element.addEventListener('touchstart', (e) => {
+          handled = true;
           e.preventDefault();
           handler(e);
         }, { passive: false });
-        // 增加触摸结束事件，确保在某些设备上有更好的响应
         element.addEventListener('touchend', (e) => {
           e.preventDefault();
         }, { passive: false });
@@ -234,7 +237,7 @@ class RoomUI {
 
     bindEvent(this.elements.allInBtn, () => {
       if (window.gameManager) {
-        window.gameManager.sendGameAction('allIn');
+        window.gameManager.sendGameAction('all-in');
       }
     });
 
@@ -300,6 +303,11 @@ class RoomUI {
       labelEl.style.display = 'none';
 
       seat.querySelector('.player-name').textContent = player.nickname;
+      if (player.isAI) {
+        seat.querySelector('.player-name').classList.add('ai-player-name');
+      } else {
+        seat.querySelector('.player-name').classList.remove('ai-player-name');
+      }
       seat.querySelector('.player-chips').textContent = player.chips || 0;
       seat.querySelector('.player-bet-total').textContent = `本局下注: ${currentBet || 0}`;
 
@@ -318,7 +326,7 @@ class RoomUI {
       if (badge) {
         let badgeText = '';
         let badgeClass = '';
-        if (player.isButton) { badgeText = 'BTN'; badgeClass = 'pos-btn'; }
+        if (player.isButton) { badgeText = 'D'; badgeClass = 'pos-btn'; }
         else if (player.isSmallBlind) { badgeText = 'SB'; badgeClass = 'pos-sb'; }
         else if (player.isBigBlind) { badgeText = 'BB'; badgeClass = 'pos-bb'; }
         else if (player.isUTG) { badgeText = 'UTG'; badgeClass = 'pos-utg'; }
@@ -337,12 +345,28 @@ class RoomUI {
           betEl.textContent = currentBet;
           betEl.style.display = 'block';
           
-          // 触发下注动画
+          const seatRect = seat.getBoundingClientRect();
+          const tableEl = seat.closest('main') || seat.parentElement;
+          const tableRect = tableEl.getBoundingClientRect();
+          const centerX = tableRect.left + tableRect.width / 2;
+          const centerY = tableRect.top + tableRect.height / 2;
+          const seatCenterX = seatRect.left + seatRect.width / 2;
+          const seatCenterY = seatRect.top + seatRect.height / 2;
+          const dx = centerX - seatCenterX;
+          const dy = centerY - seatCenterY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const moveDistance = Math.min(dist * 0.35, 120);
+          const nx = dist > 0 ? dx / dist : 0;
+          const ny = dist > 0 ? dy / dist : 0;
+          const tx = Math.round(nx * moveDistance);
+          const ty = Math.round(ny * moveDistance);
+          betEl.style.setProperty('--bet-tx', tx + 'px');
+          betEl.style.setProperty('--bet-ty', ty + 'px');
+          
           betEl.classList.remove('fade-out');
           setTimeout(() => {
             betEl.classList.add('animate');
             
-            // 动画结束后移除animate类，以便下次动画可以正常触发
             setTimeout(() => {
               betEl.classList.remove('animate');
             }, 1500);
@@ -474,8 +498,17 @@ class RoomUI {
   }
 
   updateCallAmount(amount) {
-    if (this.elements.callAmount) {
-      this.elements.callAmount.textContent = amount > 0 ? amount : '';
+    const span = document.getElementById('call-amount');
+    if (span) {
+      span.textContent = amount > 0 ? amount : '';
+    } else {
+      const btn = document.getElementById('call-btn');
+      if (btn) {
+        const t = this.translations?.[this.currentLanguage] || this.translations?.['zh'] || {};
+        const label = t['call-btn'] || '跟注';
+        btn.innerHTML = `${label} <span id="call-amount">${amount > 0 ? amount : ''}</span>`;
+        this.elements.callAmount = document.getElementById('call-amount');
+      }
     }
   }
 
@@ -803,9 +836,10 @@ class RoomUI {
       }
     }
     if (this.elements.callBtn) {
-      const callAmount = this.elements.callAmount?.textContent || '';
-      this.elements.callBtn.textContent = callAmount ? `${t['call-btn']} ${callAmount}` : t['call-btn'];
-      // 为英文文本添加特殊字体
+      const callAmount = this.elements.callAmount?.textContent || document.getElementById('call-amount')?.textContent || '';
+      const t_label = t['call-btn'] || '跟注';
+      this.elements.callBtn.innerHTML = `${t_label} <span id="call-amount">${callAmount}</span>`;
+      this.elements.callAmount = document.getElementById('call-amount');
       if (this.currentLanguage === 'en') {
         this.elements.callBtn.classList.add('english-text');
       } else {

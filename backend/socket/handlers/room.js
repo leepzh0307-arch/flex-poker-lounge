@@ -1,26 +1,63 @@
 // 房间处理模块
 const { generateRoomId } = require('../../utils/deck');
+const { pickAiName, AI_CONFIGS } = require('../../utils/aiEngine');
 
 // 生成唯一玩家ID
 function generatePlayerId() {
   return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+function generateAiPlayerId() {
+  return 'ai_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
 // 存储socket ID到玩家ID的映射（模块级别，所有连接共享）
 const socketToPlayerMap = new Map();
+
+function buildGameUpdateForPlayer(room, playerId) {
+  const gs = room.gameState;
+  return {
+    roomId: room.id,
+    players: room.players.map(p => {
+      const { cards, ...playerCopy } = { ...p };
+      const isSelf = p.id === playerId;
+      if (isSelf) {
+        playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }];
+      } else if (p.isActive && gs.phase === 'SHOWDOWN') {
+        playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }];
+      } else {
+        playerCopy.cards = [{ hidden: true }, { hidden: true }];
+      }
+      return playerCopy;
+    }),
+    communityCards: gs.communityCards || [],
+    pots: gs.pots || [{ amount: 0, eligiblePlayers: [] }],
+    currentBet: gs.currentBet || 0,
+    minBet: gs.minBet || 0,
+    maxBet: gs.maxBet || 0,
+    gamePhase: gs.phase || 'WAITING',
+    currentPlayer: gs.currentPlayer,
+    roundBets: gs.roundBets ? { ...gs.roundBets } : {},
+  };
+}
+
+function broadcastGameUpdate(room, io, message) {
+  room.players.forEach(playerInRoom => {
+    if (playerInRoom.isAI) return;
+    const update = buildGameUpdateForPlayer(room, playerInRoom.id);
+    if (message) update.message = message;
+    io.to(playerInRoom.id).emit('gameUpdate', update);
+  });
+}
 
 module.exports = (socket, rooms, io) => {
   
   // 创建房间
   socket.on('createRoom', ({ nickname }, callback) => {
     try {
-      // 生成房间号
       const roomId = generateRoomId();
-      
-      // 生成唯一玩家ID
       const playerId = generatePlayerId();
       
-      // 创建房间
       const room = {
         id: roomId,
         host: socket.id,
@@ -55,41 +92,17 @@ module.exports = (socket, rooms, io) => {
         createdAt: Date.now()
       };
       
-      // 存储房间
       rooms.set(roomId, room);
-      
-      // 存储映射关系
       socketToPlayerMap.set(socket.id, { roomId, playerId });
-      
-      // 加入房间
       socket.join(roomId);
       
-      // 快速回调，减少等待时间
       callback({ success: true, roomId: roomId, playerId: playerId });
       
-      // 立即发送游戏状态更新给房主
       setTimeout(() => {
         console.log(`房间 ${roomId} 创建成功，房主: ${nickname} (PlayerID: ${playerId})`);
-        
-        // 发送游戏状态更新给房主
-        io.to(socket.id).emit('gameUpdate', {
-          roomId: roomId,
-          players: room.players.map(p => ({
-            ...p,
-            cards: p.id === socket.id && room.gameState.playerCards && room.gameState.playerCards[p.id]
-              ? room.gameState.playerCards[p.id]
-              : [{ hidden: true }, { hidden: true }]
-          })),
-          communityCards: room.gameState.communityCards || [],
-          pots: room.gameState.pots || [{ amount: 0, eligiblePlayers: [] }],
-          currentBet: room.gameState.currentBet || 0,
-          minBet: room.gameState.minBet || 0,
-          maxBet: room.gameState.maxBet || 0,
-          gamePhase: room.gameState.phase || 'WAITING',
-          currentPlayer: room.gameState.currentPlayer,
-          roundBets: room.gameState.roundBets ? { ...room.gameState.roundBets } : {},
-          message: `房间 ${roomId} 创建成功，您是房主`,
-        });
+        const update = buildGameUpdateForPlayer(room, socket.id);
+        update.message = `房间 ${roomId} 创建成功，您是房主`;
+        io.to(socket.id).emit('gameUpdate', update);
       }, 0);
       
     } catch (error) {
@@ -97,17 +110,101 @@ module.exports = (socket, rooms, io) => {
       callback({ success: false, error: error.message });
     }
   });
+
+  // 创建人机对战房间
+  socket.on('createAiRoom', ({ nickname, aiCount, aiDifficulty, initialChips }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+      const chips = initialChips || 1000;
+      const difficulty = aiDifficulty || 'medium';
+      const count = Math.min(Math.max(aiCount || 3, 1), 9);
+
+      const existingNames = [nickname];
+      const aiPlayers = [];
+      for (let i = 0; i < count; i++) {
+        const aiName = pickAiName(existingNames);
+        existingNames.push(aiName);
+        const aiId = generateAiPlayerId();
+        aiPlayers.push({
+          id: aiId,
+          playerId: aiId,
+          nickname: aiName,
+          chips: chips,
+          seat: i + 2,
+          isActive: true,
+          isTurn: false,
+          isOnline: true,
+          isAI: true,
+          aiDifficulty: difficulty,
+          joinedAt: Date.now()
+        });
+      }
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        isAiRoom: true,
+        aiDifficulty: difficulty,
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            chips: chips,
+            seat: 1,
+            isActive: true,
+            isTurn: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          },
+          ...aiPlayers
+        ],
+        gameState: {
+          phase: 'WAITING',
+          communityCards: [],
+          pots: [{ amount: 0, eligiblePlayers: [] }],
+          currentBet: 0,
+          minBet: 0,
+          maxBet: 0,
+          currentPlayer: null,
+        },
+        config: {
+          dealOrder: 'clockwise',
+          playerCards: 2,
+          communityCards: 5,
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log(`[AI房间] ${roomId} 创建成功，房主: ${nickname}, AI数量: ${count}, 难度: ${difficulty}`);
+        const update = buildGameUpdateForPlayer(room, socket.id);
+        update.message = `人机对战房间已创建，${count}个AI对手（${AI_CONFIGS[difficulty].label}难度）`;
+        io.to(socket.id).emit('gameUpdate', update);
+      }, 0);
+
+    } catch (error) {
+      console.error('创建AI房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
   
   // 加入房间
   socket.on('joinRoom', ({ roomId, nickname, playerId: existingPlayerId }, callback) => {
     try {
-      // 查找房间
       const room = rooms.get(roomId);
       if (!room) {
         return callback({ success: false, error: '房间不存在' });
       }
       
-      // 检查房间是否已满
       if (room.players.length >= 10) {
         return callback({ success: false, error: '房间已满' });
       }
@@ -115,24 +212,20 @@ module.exports = (socket, rooms, io) => {
       let player;
       let isReconnect = false;
       
-      // 检查是否是重新连接（通过playerId查找已有的玩家）
       if (existingPlayerId) {
         const existingPlayer = room.players.find(p => p.playerId === existingPlayerId);
         
         if (existingPlayer) {
-          // 重新连接，更新玩家的 socket ID
           const oldSocketId = existingPlayer.id;
           existingPlayer.id = socket.id;
           existingPlayer.isOnline = true;
           existingPlayer.lastReconnectAt = Date.now();
           
-          // 清除之前的断开连接超时
           if (socket.disconnectTimeout) {
             clearTimeout(socket.disconnectTimeout);
             socket.disconnectTimeout = null;
           }
           
-          // 更新映射关系
           socketToPlayerMap.delete(oldSocketId);
           socketToPlayerMap.set(socket.id, { roomId, playerId: existingPlayerId });
           
@@ -143,22 +236,18 @@ module.exports = (socket, rooms, io) => {
       }
       
       if (!player) {
-        // 检查昵称是否已存在
         const nicknameExists = room.players.some(p => p.nickname === nickname && p.isOnline);
         if (nicknameExists) {
           return callback({ success: false, error: '该昵称已被使用' });
         }
         
-        // 分配座位
         let seat = 1;
         while (room.players.some(p => p.seat === seat)) {
           seat++;
         }
         
-        // 生成唯一玩家ID
         const newPlayerId = generatePlayerId();
         
-        // 添加新玩家
         player = {
           id: socket.id,
           playerId: newPlayerId,
@@ -172,61 +261,20 @@ module.exports = (socket, rooms, io) => {
         };
         
         room.players.push(player);
-        
-        // 存储映射关系
         socketToPlayerMap.set(socket.id, { roomId, playerId: newPlayerId });
       }
       
-      // 加入房间
       socket.join(roomId);
       
-      // 快速回调给新玩家，减少等待时间
       callback({ 
         success: true, 
         playerId: player.playerId,
         isReconnect: isReconnect,
-        gameState: {
-          roomId: roomId,
-          players: room.players.map(p => ({
-            ...p,
-            cards: p.id === socket.id && room.gameState.playerCards && room.gameState.playerCards[p.id]
-              ? room.gameState.playerCards[p.id]
-              : [{ hidden: true }, { hidden: true }]
-          })),
-          communityCards: room.gameState.communityCards || [],
-          pots: room.gameState.pots || [{ amount: 0, eligiblePlayers: [] }],
-          currentBet: room.gameState.currentBet || 0,
-          minBet: room.gameState.minBet || 0,
-          maxBet: room.gameState.maxBet || 0,
-          gamePhase: room.gameState.phase || 'WAITING',
-          currentPlayer: room.gameState.currentPlayer,
-          roundBets: room.gameState.roundBets ? { ...room.gameState.roundBets } : {},
-        }
+        gameState: buildGameUpdateForPlayer(room, socket.id),
       });
       
-      // 异步通知所有玩家，不阻塞回调
       setTimeout(() => {
-        room.players.forEach(playerInRoom => {
-          io.to(playerInRoom.id).emit('gameUpdate', {
-            roomId: roomId,
-            players: room.players.map(p => ({
-              ...p,
-              cards: p.id === playerInRoom.id && room.gameState.playerCards && room.gameState.playerCards[p.id]
-                ? room.gameState.playerCards[p.id]
-                : [{ hidden: true }, { hidden: true }]
-            })),
-            communityCards: room.gameState.communityCards || [],
-            pots: room.gameState.pots || [{ amount: 0, eligiblePlayers: [] }],
-            currentBet: room.gameState.currentBet || 0,
-            minBet: room.gameState.minBet || 0,
-            maxBet: room.gameState.maxBet || 0,
-            gamePhase: room.gameState.phase || 'WAITING',
-            currentPlayer: room.gameState.currentPlayer,
-            roundBets: room.gameState.roundBets ? { ...room.gameState.roundBets } : {},
-            message: isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`,
-          });
-        });
-        
+        broadcastGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
         console.log(`玩家 ${nickname} ${isReconnect ? '重新连接' : '加入'}房间 ${roomId}`);
       }, 0);
       
@@ -246,3 +294,5 @@ module.exports = (socket, rooms, io) => {
 // 导出映射关系供其他模块使用
 module.exports.getSocketToPlayerMap = () => socketToPlayerMap;
 module.exports.getPlayerBySocketId = (socketId) => socketToPlayerMap.get(socketId);
+module.exports.buildGameUpdateForPlayer = buildGameUpdateForPlayer;
+module.exports.broadcastGameUpdate = broadcastGameUpdate;

@@ -43,6 +43,9 @@ const nicknameInput = document.getElementById('nickname');
 const roomIdInput = document.getElementById('room-id');
 const createRoomBtn = document.getElementById('create-room');
 const joinRoomBtn = document.getElementById('join-room');
+const createAiRoomBtn = document.getElementById('create-ai-room');
+const aiDifficultySelect = document.getElementById('ai-difficulty');
+const aiCountSelect = document.getElementById('ai-count');
 const errorMessage = document.getElementById('error-message');
 
 // 显示错误信息
@@ -133,6 +136,36 @@ function joinRoom() {
   });
 }
 
+// 创建人机对战房间
+function createAiRoom() {
+  if (!validateInput()) return;
+  if (FallingText.isAnimating()) return;
+
+  const nickname = nicknameInput.value.trim();
+  const aiDifficulty = aiDifficultySelect ? aiDifficultySelect.value : 'medium';
+  const aiCount = aiCountSelect ? aiCountSelect.value : '3';
+
+  const targetUrl = `room.html?nickname=${encodeURIComponent(nickname)}&isHost=true&isCreating=true&isAiRoom=true&aiDifficulty=${aiDifficulty}&aiCount=${aiCount}`;
+
+  FallingText.trigger('.hero-title-container').then(function() {
+    createRoomBtn.disabled = true;
+    joinRoomBtn.disabled = true;
+    if (createAiRoomBtn) createAiRoomBtn.disabled = true;
+
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#060a0c;z-index:99999;pointer-events:none;';
+    document.body.appendChild(overlay);
+
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        window.location.href = targetUrl;
+      });
+    } else {
+      window.location.href = targetUrl;
+    }
+  });
+}
+
 // 通用事件绑定函数，同时支持点击和触摸事件
 const bindEvent = (element, handler) => {
   if (element) {
@@ -147,6 +180,7 @@ const bindEvent = (element, handler) => {
 // 事件监听
 bindEvent(createRoomBtn, createRoom);
 bindEvent(joinRoomBtn, joinRoom);
+bindEvent(createAiRoomBtn, createAiRoom);
 
 // 回车键提交
 nicknameInput.addEventListener('keypress', (e) => {

@@ -1,6 +1,7 @@
 // 游戏处理模块 - 德州扑克标准规则
 const { generateDeck, shuffleDeck } = require('../../utils/deck');
 const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../utils/handEvaluator');
+const { makeDecision, getThinkTime } = require('../../utils/aiEngine');
 
 module.exports = (socket, rooms, io) => {
   socket.on('gameAction', ({ action, data }) => {
@@ -44,10 +45,10 @@ module.exports = (socket, rooms, io) => {
 
       switch (action) {
         case 'startGame':
-          startGame(room, roomId, io, data);
+          startGame(room, roomId, io, data, rooms);
           break;
         case 'nextHand':
-          nextHand(room, roomId, io);
+          nextHand(room, roomId, io, rooms);
           break;
         case 'resetGame':
           resetGame(room, roomId, io);
@@ -68,7 +69,7 @@ module.exports = (socket, rooms, io) => {
           handleAllIn(room, roomId, io, socket.id, rooms);
           break;
         case 'confirmContinue':
-          handleConfirmContinue(room, roomId, io, socket.id);
+          handleConfirmContinue(room, roomId, io, socket.id, rooms);
           break;
         default:
           console.warn(`[游戏] 未知操作: ${action}`);
@@ -86,6 +87,7 @@ module.exports = (socket, rooms, io) => {
 function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
   const activePlayers = room.players.filter(p => p.isActive);
   room.players.forEach(player => {
+    if (player.isAI) return;
     const playersWithCards = room.players.map(p => {
       const { cards, ...playerCopy } = { ...p };
       const isActive = p.isActive;
@@ -117,14 +119,19 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
 }
 
 function broadcastGameAction(rooms, io, roomId, actionType, playerId, amount) {
-  const player = rooms.get(roomId)?.players.find(p => p.id === playerId);
+  const room = rooms.get(roomId);
+  if (!room) return;
+  const player = room.players.find(p => p.id === playerId);
   if (!player) return;
-  io.to(roomId).emit('gameAction', {
-    type: actionType,
-    playerId: playerId,
-    nickname: player.nickname,
-    amount: amount || null,
-    timestamp: Date.now(),
+  room.players.forEach(p => {
+    if (p.isAI) return;
+    io.to(p.id).emit('gameAction', {
+      type: actionType,
+      playerId: playerId,
+      nickname: player.nickname,
+      amount: amount || null,
+      timestamp: Date.now(),
+    });
   });
 }
 
@@ -160,8 +167,8 @@ function findNextActivePlayerClockwise(room, startSeatIndex) {
 
 // ==================== 状态机核心 ====================
 
-function startGame(room, roomId, io, config) {
-  io.to(roomId).emit('gameAction', { type: 'startGame', timestamp: Date.now() });
+function startGame(room, roomId, io, config, rooms) {
+  room.players.forEach(p => { if (!p.isAI) io.to(p.id).emit('gameAction', { type: 'startGame', timestamp: Date.now() }); });
   if (config) {
     room.config = { ...room.config, ...config };
   }
@@ -208,46 +215,46 @@ function startGame(room, roomId, io, config) {
     room.gameState.roundBets[player.id] = 0;
   });
 
-  transitionTo(room, roomId, io, 'PRE_FLOP_BLINDS');
+  transitionTo(room, roomId, io, 'PRE_FLOP_BLINDS', rooms);
 }
 
-function transitionTo(room, roomId, io, nextPhase) {
+function transitionTo(room, roomId, io, nextPhase, rooms) {
   room.gameState.phase = nextPhase;
   console.log(`[状态机] 房间${roomId} -> ${nextPhase}`);
 
   switch (nextPhase) {
     case 'PRE_FLOP_BLINDS':
-      doPreFlopBlinds(room, roomId, io);
+      doPreFlopBlinds(room, roomId, io, rooms);
       break;
     case 'PRE_FLOP_DEAL':
-      doPreFlopDeal(room, roomId, io);
+      doPreFlopDeal(room, roomId, io, rooms);
       break;
     case 'PRE_FLOP_BETTING':
-      startBettingRound(room, roomId, io, '翻牌前下注开始');
+      startBettingRound(room, roomId, io, '翻牌前下注开始', rooms);
       break;
     case 'FLOP_DEAL':
-      doFlopDeal(room, roomId, io);
+      doFlopDeal(room, roomId, io, rooms);
       break;
     case 'FLOP_BETTING':
-      startBettingRound(room, roomId, io, '翻牌圈下注开始');
+      startBettingRound(room, roomId, io, '翻牌圈下注开始', rooms);
       break;
     case 'TURN_DEAL':
-      doTurnDeal(room, roomId, io);
+      doTurnDeal(room, roomId, io, rooms);
       break;
     case 'TURN_BETTING':
-      startBettingRound(room, roomId, io, '转牌圈下注开始');
+      startBettingRound(room, roomId, io, '转牌圈下注开始', rooms);
       break;
     case 'RIVER_DEAL':
-      doRiverDeal(room, roomId, io);
+      doRiverDeal(room, roomId, io, rooms);
       break;
     case 'RIVER_BETTING':
-      startBettingRound(room, roomId, io, '河牌圈下注开始');
+      startBettingRound(room, roomId, io, '河牌圈下注开始', rooms);
       break;
     case 'SHOWDOWN':
-      doShowdown(room, roomId, io);
+      doShowdown(room, roomId, io, rooms);
       break;
     case 'HAND_END':
-      doHandEnd(room, roomId, io);
+      doHandEnd(room, roomId, io, rooms);
       break;
     case 'WAITING':
       sendGameUpdateWithCards(room, roomId, io, '等待房主开始下一局');
@@ -257,7 +264,7 @@ function transitionTo(room, roomId, io, nextPhase) {
 
 // ==================== PRE_FLOP_BLINDS ====================
 
-function doPreFlopBlinds(room, roomId, io) {
+function doPreFlopBlinds(room, roomId, io, rooms) {
   const activePlayers = getActivePlayers(room);
   if (activePlayers.length < 1) {
     sendGameUpdateWithCards(room, roomId, io, '没有活跃玩家，无法开始游戏');
@@ -323,14 +330,14 @@ function doPreFlopBlinds(room, roomId, io) {
   room.gameState.currentBet = room.bigBlindAmount;
   room.gameState.minRaise = room.bigBlindAmount;
 
-  transitionTo(room, roomId, io, 'PRE_FLOP_DEAL');
+  transitionTo(room, roomId, io, 'PRE_FLOP_DEAL', rooms);
 }
 
 // ==================== PRE_FLOP_DEAL ====================
 
-function doPreFlopDeal(room, roomId, io) {
+function doPreFlopDeal(room, roomId, io, rooms) {
   dealPlayerCards(room);
-  transitionTo(room, roomId, io, 'PRE_FLOP_BETTING');
+  transitionTo(room, roomId, io, 'PRE_FLOP_BETTING', rooms);
 }
 
 function dealPlayerCards(room) {
@@ -361,7 +368,7 @@ function communityCardsComplete(room) {
   return room.gameState.communityCards.length >= 5;
 }
 
-function fastForwardToShowdown(room, roomId, io) {
+function fastForwardToShowdown(room, roomId, io, rooms) {
   console.log(`[快速发牌] 所有存活玩家已all-in，直接发放剩余公共牌`);
   sendGameUpdateWithCards(room, roomId, io, '所有玩家已all-in，自动发放剩余公共牌...');
 
@@ -378,7 +385,7 @@ function fastForwardToShowdown(room, roomId, io) {
   }
 
   setTimeout(() => {
-    transitionTo(room, roomId, io, 'SHOWDOWN');
+    transitionTo(room, roomId, io, 'SHOWDOWN', rooms);
   }, 1500);
 }
 
@@ -409,16 +416,16 @@ function getFirstActor(room) {
 
 // ==================== 下注轮次核心逻辑 ====================
 
-function startBettingRound(room, roomId, io, message) {
+function startBettingRound(room, roomId, io, message, rooms) {
   const activePlayers = getActivePlayers(room);
 
   if (activePlayers.length <= 1) {
-    earlyEndGame(room, roomId, io);
+    earlyEndGame(room, roomId, io, rooms);
     return;
   }
 
   if (areAllActivePlayersAllIn(room) && !communityCardsComplete(room)) {
-    fastForwardToShowdown(room, roomId, io);
+    fastForwardToShowdown(room, roomId, io, rooms);
     return;
   }
 
@@ -436,7 +443,7 @@ function startBettingRound(room, roomId, io, message) {
 
   const firstActor = getFirstActor(room);
   if (!firstActor) {
-    endBettingRound(room, roomId, io);
+    endBettingRound(room, roomId, io, rooms);
     return;
   }
 
@@ -446,18 +453,22 @@ function startBettingRound(room, roomId, io, message) {
   room.gameState.playersActedThisRound.add(firstActor.id);
 
   sendGameUpdateWithCards(room, roomId, io, `${message}，轮到 ${firstActor.nickname} 行动`);
+
+  if (firstActor.isAI) {
+    scheduleAiAction(room, roomId, io, firstActor, rooms);
+  }
 }
 
-function moveToNextPlayer(room, roomId, io) {
+function moveToNextPlayer(room, roomId, io, rooms) {
   const activePlayers = getActivePlayers(room);
 
   if (activePlayers.length <= 1) {
-    earlyEndGame(room, roomId, io);
+    earlyEndGame(room, roomId, io, rooms);
     return;
   }
 
   if (areAllActivePlayersAllIn(room) && !communityCardsComplete(room)) {
-    fastForwardToShowdown(room, roomId, io);
+    fastForwardToShowdown(room, roomId, io, rooms);
     return;
   }
 
@@ -470,7 +481,7 @@ function moveToNextPlayer(room, roomId, io) {
     let nextPlayer = activePlayers[currentIdx];
 
     if (isBettingRoundComplete(room)) {
-      endBettingRound(room, roomId, io);
+      endBettingRound(room, roomId, io, rooms);
       return;
     }
 
@@ -492,10 +503,14 @@ function moveToNextPlayer(room, roomId, io) {
     }
 
     sendGameUpdateWithCards(room, roomId, io, `轮到 ${nextPlayer.nickname} 行动`);
+
+    if (nextPlayer.isAI) {
+      scheduleAiAction(room, roomId, io, nextPlayer, rooms);
+    }
     return;
   }
 
-  endBettingRound(room, roomId, io);
+  endBettingRound(room, roomId, io, rooms);
 }
 
 function isBettingRoundComplete(room) {
@@ -526,7 +541,7 @@ function isBettingRoundComplete(room) {
 
   if (allBetsEqual) {
     if (room.gameState.lastRaiserId) {
-      const lastRaiserActed = room.gameState.playersActedThisRoom?.has(room.gameState.lastRaiserId);
+      const lastRaiserActed = room.gameState.playersActedThisRound?.has(room.gameState.lastRaiserId);
       if (lastRaiserActed === false) return false;
     }
     return true;
@@ -544,7 +559,7 @@ function handleFold(room, roomId, io, playerId, rooms) {
   player.isActive = false;
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'fold', playerId);
-  moveToNextPlayer(room, roomId, io);
+  moveToNextPlayer(room, roomId, io, rooms);
 }
 
 function handleCheck(room, roomId, io, playerId, rooms) {
@@ -552,18 +567,28 @@ function handleCheck(room, roomId, io, playerId, rooms) {
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
   const myRoundBet = room.gameState.roundBets[playerId] || 0;
-  if (myRoundBet < room.gameState.currentBet) return;
+  if (room.gameState.currentBet > 0 && myRoundBet < room.gameState.currentBet) {
+    console.warn(`[游戏] ${player.nickname} 尝试过牌但需要跟注 ${room.gameState.currentBet - myRoundBet}，转为跟注`);
+    handleCall(room, roomId, io, playerId, rooms);
+    return;
+  }
 
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'check', playerId);
-  moveToNextPlayer(room, roomId, io);
+  moveToNextPlayer(room, roomId, io, rooms);
 }
 
 function handleCall(room, roomId, io, playerId, rooms) {
   const player = room.players.find(p => p.id === playerId);
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
-  const callAmount = room.gameState.currentBet - (room.gameState.roundBets[playerId] || 0);
+  const myRoundBet = room.gameState.roundBets[playerId] || 0;
+  const callAmount = Math.max(0, room.gameState.currentBet - myRoundBet);
+
+  if (callAmount <= 0) {
+    handleCheck(room, roomId, io, playerId, rooms);
+    return;
+  }
 
   if (player.chips <= callAmount) {
     handleAllIn(room, roomId, io, playerId, rooms);
@@ -599,9 +624,9 @@ function handleCall(room, roomId, io, playerId, rooms) {
     } else {
       console.log(`[两人局翻前] ${player.nickname}(SB)跟注→跳过BB，直接进入FLOP`);
     }
-    endBettingRound(room, roomId, io);
+    endBettingRound(room, roomId, io, rooms);
   } else {
-    moveToNextPlayer(room, roomId, io);
+    moveToNextPlayer(room, roomId, io, rooms);
   }
 }
 
@@ -610,10 +635,11 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   if (!player || !player.isActive || room.gameState.currentPlayer !== playerId) return;
 
   const currentRoundBet = room.gameState.roundBets[playerId] || 0;
-  const raiseTotal = amount;
-  const raiseIncrement = raiseTotal - currentRoundBet;
+  const raiseTotal = Math.max(amount, 0);
+  const raiseIncrement = Math.max(0, raiseTotal - currentRoundBet);
 
   if (raiseTotal <= room.gameState.currentBet) return;
+  if (raiseIncrement <= 0) return;
   if (raiseIncrement < room.gameState.minRaise) return;
 
   if (player.chips < raiseIncrement) {
@@ -630,6 +656,7 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   }
   room.gameState.currentBet = raiseTotal;
   room.gameState.lastRaiserId = playerId;
+  room.gameState.minRaise = raiseIncrement;
 
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'raise', playerId, raiseTotal);
@@ -641,7 +668,7 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
     p.hasActed = false;
   });
 
-  moveToNextPlayer(room, roomId, io);
+  moveToNextPlayer(room, roomId, io, rooms);
 }
 
 function activePlayersExceptCurrent(room) {
@@ -661,8 +688,12 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
   createSidePotsIfNeeded(room, playerId, totalBet, allInAmount);
 
   if (totalBet > room.gameState.currentBet) {
+    const raiseIncrement = totalBet - room.gameState.currentBet;
     room.gameState.currentBet = totalBet;
     room.gameState.lastRaiserId = playerId;
+    if (raiseIncrement > room.gameState.minRaise) {
+      room.gameState.minRaise = raiseIncrement;
+    }
     room.gameState.playersActedThisRound = new Set();
     room.gameState.playersActedThisRound.add(playerId);
     activePlayersExceptCurrent(room).forEach(p => { p.hasActed = false; });
@@ -680,9 +711,9 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
 
   if (huPreflopSBallInCall) {
     console.log(`[两人局翻前] ${player.nickname}(SB)全押(跟注额)→跳过BB，直接进入FLOP`);
-    endBettingRound(room, roomId, io);
+    endBettingRound(room, roomId, io, rooms);
   } else {
-    moveToNextPlayer(room, roomId, io);
+    moveToNextPlayer(room, roomId, io, rooms);
   }
 }
 
@@ -749,7 +780,7 @@ function createSidePotsIfNeeded(room, allInPlayerId, allInAmount, contributedAmo
 
 // ==================== 结束下注轮 / 发公共牌 ====================
 
-function endBettingRound(room, roomId, io) {
+function endBettingRound(room, roomId, io, rooms) {
   room.players.forEach(player => {
     player.isTurn = false;
     room.gameState.bets[player.id] = 0;
@@ -760,33 +791,33 @@ function endBettingRound(room, roomId, io) {
 
   switch (room.gameState.phase) {
     case 'PRE_FLOP_BETTING':
-      transitionTo(room, roomId, io, 'FLOP_DEAL');
+      transitionTo(room, roomId, io, 'FLOP_DEAL', rooms);
       break;
     case 'FLOP_BETTING':
-      transitionTo(room, roomId, io, 'TURN_DEAL');
+      transitionTo(room, roomId, io, 'TURN_DEAL', rooms);
       break;
     case 'TURN_BETTING':
-      transitionTo(room, roomId, io, 'RIVER_DEAL');
+      transitionTo(room, roomId, io, 'RIVER_DEAL', rooms);
       break;
     case 'RIVER_BETTING':
-      transitionTo(room, roomId, io, 'SHOWDOWN');
+      transitionTo(room, roomId, io, 'SHOWDOWN', rooms);
       break;
   }
 }
 
-function doFlopDeal(room, roomId, io) {
+function doFlopDeal(room, roomId, io, rooms) {
   dealCommunityCards(room, 3);
-  transitionTo(room, roomId, io, 'FLOP_BETTING');
+  transitionTo(room, roomId, io, 'FLOP_BETTING', rooms);
 }
 
-function doTurnDeal(room, roomId, io) {
+function doTurnDeal(room, roomId, io, rooms) {
   dealCommunityCards(room, 1);
-  transitionTo(room, roomId, io, 'TURN_BETTING');
+  transitionTo(room, roomId, io, 'TURN_BETTING', rooms);
 }
 
-function doRiverDeal(room, roomId, io) {
+function doRiverDeal(room, roomId, io, rooms) {
   dealCommunityCards(room, 1);
-  transitionTo(room, roomId, io, 'RIVER_BETTING');
+  transitionTo(room, roomId, io, 'RIVER_BETTING', rooms);
 }
 
 function dealCommunityCards(room, count) {
@@ -799,7 +830,7 @@ function dealCommunityCards(room, count) {
 
 // ==================== 提前结束（仅剩一人）====================
 
-function earlyEndGame(room, roomId, io) {
+function earlyEndGame(room, roomId, io, rooms) {
   const activePlayers = getActivePlayers(room);
   if (activePlayers.length === 0) return;
   const winner = activePlayers[0];
@@ -813,22 +844,22 @@ function earlyEndGame(room, roomId, io) {
   sendGameUpdateWithCards(room, roomId, io, `${winner.nickname} 获胜（其余玩家弃牌），赢得 ${totalPot} 筹码！`);
 
   // 发送获胜者事件到前端
-  io.to(roomId).emit('gameAction', {
+  room.players.forEach(p => { if (!p.isAI) io.to(p.id).emit('gameAction', {
     type: 'winner',
     playerId: winner.id,
     nickname: winner.nickname,
     amount: totalPot,
     timestamp: Date.now(),
-  });
+  }); });
 
   setTimeout(() => {
-    finishHandEndTransition(room, roomId, io);
+    finishHandEndTransition(room, roomId, io, rooms);
   }, 3000);
 }
 
 // ==================== SHOWDOWN 摊牌 ====================
 
-function doShowdown(room, roomId, io) {
+function doShowdown(room, roomId, io, rooms) {
   room.gameState.phase = 'SHOWDOWN';
   const activePlayers = getActivePlayers(room);
   let results = [];
@@ -892,29 +923,27 @@ function doShowdown(room, roomId, io) {
 
   // 发送获胜者事件到前端
   results.forEach(result => {
-    io.to(roomId).emit('gameAction', {
+    room.players.forEach(p => { if (!p.isAI) io.to(p.id).emit('gameAction', {
       type: 'winner',
-      playerId: room.players.find(p => p.nickname === result.winner)?.id || '',
+      playerId: room.players.find(pl => pl.nickname === result.winner)?.id || '',
       nickname: result.winner,
       amount: result.amount,
       hand: result.hand || '',
       isTie: result.isTie || false,
       timestamp: Date.now(),
-    });
+    }); });
   });
 
   setTimeout(() => {
-    transitionTo(room, roomId, io, 'HAND_END');
+    transitionTo(room, roomId, io, 'HAND_END', rooms);
   }, 4000);
 }
 
 // ==================== HAND_END 本局结束 ====================
 
-function doHandEnd(room, roomId, io) {
-  // 只处理在线玩家
-  room.players = room.players.filter(player => player.isOnline !== false);
+function doHandEnd(room, roomId, io, rooms) {
+  room.players = room.players.filter(player => player.isOnline !== false || player.isAI);
   
-  // 重置在线玩家的状态
   room.players.forEach(player => {
     player.isActive = true;
     player.isTurn = false;
@@ -925,7 +954,6 @@ function doHandEnd(room, roomId, io) {
     player.hasActed = false;
   });
 
-  // 重新计算 dealerButton
   if (room.players.length > 0) {
     if (room.dealerButton === undefined) {
       room.dealerButton = 0;
@@ -935,14 +963,13 @@ function doHandEnd(room, roomId, io) {
     room.players[room.dealerButton].isButton = true;
   }
 
-  // 保存当前的公共牌和手牌状态
   const currentCommunityCards = [...room.gameState.communityCards];
   const currentPlayerCards = { ...room.gameState.playerCards };
 
   room.gameState = {
     phase: 'CONFIRM_CONTINUE',
-    communityCards: currentCommunityCards, // 保持公共牌翻开
-    playerCards: currentPlayerCards, // 保持手牌状态
+    communityCards: currentCommunityCards,
+    playerCards: currentPlayerCards,
     pots: [{ amount: 0, eligiblePlayers: [] }],
     currentBet: 0,
     minRaise: room.bigBlindAmount || 20,
@@ -952,20 +979,34 @@ function doHandEnd(room, roomId, io) {
     roundBets: {},
     playersActedThisRound: new Set(),
     lastRaiserId: null,
-    playersConfirmedContinue: new Set(), // 记录已确认继续的玩家
+    playersConfirmedContinue: new Set(),
   };
 
-  sendGameUpdateWithCards(room, roomId, io, '本局结束，请确认是否继续游戏');
+  room.players.forEach(p => {
+    if (p.isAI) {
+      room.gameState.playersConfirmedContinue.add(p.id);
+    }
+  });
+
+  const humanPlayers = room.players.filter(p => !p.isAI);
+  if (humanPlayers.length <= 0) return;
+
+  const allConfirmed = room.players.every(p => room.gameState.playersConfirmedContinue.has(p.id));
+  if (allConfirmed) {
+    nextHand(room, roomId, io, rooms);
+  } else {
+    sendGameUpdateWithCards(room, roomId, io, '本局结束，请确认是否继续游戏');
+  }
 }
 
-function nextHand(room, roomId, io) {
+function nextHand(room, roomId, io, rooms) {
   if (room.gameState.phase !== 'WAITING' && room.gameState.phase !== 'CONFIRM_CONTINUE') return;
-  io.to(roomId).emit('gameAction', { type: 'nextHand', timestamp: Date.now() });
-  startGame(room, roomId, io, room.config);
+  room.players.forEach(p => { if (!p.isAI) io.to(p.id).emit('gameAction', { type: 'nextHand', timestamp: Date.now() }); });
+  startGame(room, roomId, io, room.config, rooms);
 }
 
-function finishHandEndTransition(room, roomId, io) {
-  doHandEnd(room, roomId, io);
+function finishHandEndTransition(room, roomId, io, rooms) {
+  doHandEnd(room, roomId, io, rooms);
 }
 
 // ==================== 重置游戏 ====================
@@ -1001,26 +1042,81 @@ function resetGame(room, roomId, io) {
   sendGameUpdateWithCards(room, roomId, io, '游戏已重置');
 }
 
-function handleConfirmContinue(room, roomId, io, playerId) {
+function handleConfirmContinue(room, roomId, io, playerId, rooms) {
   if (room.gameState.phase !== 'CONFIRM_CONTINUE') return;
   
   const player = room.players.find(p => p.id === playerId);
   if (!player) return;
   
-  // 将玩家添加到已确认继续的列表中
   room.gameState.playersConfirmedContinue.add(playerId);
   console.log(`[游戏] 玩家 ${player.nickname} 已确认继续游戏`);
   
-  // 检查是否所有在线玩家都已确认继续
   const allPlayersConfirmed = room.players.every(p => room.gameState.playersConfirmedContinue.has(p.id));
   if (allPlayersConfirmed) {
     console.log(`[游戏] 所有玩家都已确认继续，开始下一局`);
-    nextHand(room, roomId, io);
+    nextHand(room, roomId, io, rooms);
   } else {
-    // 通知其他玩家还有哪些玩家未确认
-    const remainingPlayers = room.players.filter(p => !room.gameState.playersConfirmedContinue.has(p.id)).map(p => p.nickname);
-    sendGameUpdateWithCards(room, roomId, io, `等待 ${remainingPlayers.join('、')} 确认继续游戏`);
+    const remainingPlayers = room.players.filter(p => !room.gameState.playersConfirmedContinue.has(p.id) && !p.isAI).map(p => p.nickname);
+    if (remainingPlayers.length > 0) {
+      sendGameUpdateWithCards(room, roomId, io, `等待 ${remainingPlayers.join('、')} 确认继续游戏`);
+    }
   }
+}
+
+function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
+  const thinkTime = getThinkTime(aiPlayer.aiDifficulty || 'medium');
+  setTimeout(() => {
+    if (room.gameState.currentPlayer !== aiPlayer.id) return;
+    if (!aiPlayer.isActive) return;
+
+    const gameState = buildAiGameState(room, aiPlayer);
+    const decision = makeDecision(aiPlayer.aiDifficulty || 'medium', gameState, aiPlayer.id);
+    console.log(`[AI] ${aiPlayer.nickname} 决策: ${decision.action}`, decision.amount || '');
+
+    switch (decision.action) {
+      case 'fold':
+        handleFold(room, roomId, io, aiPlayer.id, rooms);
+        break;
+      case 'check':
+        handleCheck(room, roomId, io, aiPlayer.id, rooms);
+        break;
+      case 'call':
+        handleCall(room, roomId, io, aiPlayer.id, rooms);
+        break;
+      case 'raise':
+        handleRaise(room, roomId, io, aiPlayer.id, decision.amount, rooms);
+        break;
+      case 'all-in':
+        handleAllIn(room, roomId, io, aiPlayer.id, rooms);
+        break;
+      default:
+        handleFold(room, roomId, io, aiPlayer.id, rooms);
+    }
+  }, thinkTime);
+}
+
+function buildAiGameState(room, aiPlayer) {
+  return {
+    phase: room.gameState.phase,
+    communityCards: room.gameState.communityCards || [],
+    pot: room.gameState.pots.reduce((sum, pot) => sum + pot.amount, 0),
+    currentBet: room.gameState.currentBet || 0,
+    minRaise: room.gameState.minRaise || room.bigBlindAmount || 20,
+    bigBlind: room.bigBlindAmount || 20,
+    smallBlind: room.smallBlindAmount || 10,
+    players: room.players.map(p => ({
+      id: p.id,
+      nickname: p.nickname,
+      chips: p.chips,
+      isActive: p.isActive,
+      isAI: p.isAI || false,
+      currentBet: room.gameState.roundBets[p.id] || 0,
+      isAllIn: p.chips === 0 && p.isActive,
+    })),
+    myBet: room.gameState.roundBets[aiPlayer.id] || 0,
+    myChips: aiPlayer.chips,
+    myCards: room.gameState.playerCards[aiPlayer.id] || [],
+  };
 }
 
 

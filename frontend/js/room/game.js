@@ -71,7 +71,16 @@ class GameManager {
     const isCreating = params.get('isCreating') === 'true';
 
     if (isCreating) {
-        const result = await socketClient.createRoom(nickname);
+        const isAiRoom = params.get('isAiRoom') === 'true';
+        let result;
+        if (isAiRoom) {
+          const aiCount = parseInt(params.get('aiCount') || '3', 10);
+          const aiDifficulty = params.get('aiDifficulty') || 'medium';
+          const initialChips = parseInt(params.get('initialChips') || '1000', 10);
+          result = await socketClient.createAiRoom(nickname, aiCount, aiDifficulty, initialChips);
+        } else {
+          result = await socketClient.createRoom(nickname);
+        }
         this.gameState.roomId = result.roomId;
         this.gameState.playerId = result.playerId;
         
@@ -82,10 +91,10 @@ class GameManager {
         url.searchParams.set('roomId', result.roomId);
         url.searchParams.set('isCreating', 'false');
         url.searchParams.set('isHost', 'true');
+        url.searchParams.delete('isAiRoom');
+        url.searchParams.delete('aiCount');
+        url.searchParams.delete('aiDifficulty');
         window.history.replaceState({}, '', url);
-
-        // 不需要再次调用joinRoom，因为createRoom已经将玩家加入房间
-        // 直接更新游戏状态，等待服务器的gameUpdate事件
       } else {
         const playerId = this.gameState.playerId || null;
         const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
@@ -127,44 +136,6 @@ class GameManager {
         window.location.href = 'index.html';
       }
     });
-
-    document.getElementById('fold-btn').addEventListener('click', () => {
-      this.sendGameAction('fold');
-    });
-
-    document.getElementById('check-btn').addEventListener('click', () => {
-      this.sendGameAction('check');
-    });
-
-    document.getElementById('call-btn').addEventListener('click', () => {
-      this.sendGameAction('call');
-    });
-
-    document.getElementById('raise-btn').addEventListener('click', () => {
-      const amount = roomUI.getBetAmount();
-      this.sendGameAction('raise', { amount });
-    });
-
-    document.getElementById('all-in-btn').addEventListener('click', () => {
-      this.sendGameAction('all-in');
-    });
-
-    if (this.gameState.isHost) {
-      document.getElementById('start-game').addEventListener('click', () => {
-        const config = roomUI.getHostConfig();
-        this.sendGameAction('startGame', config);
-      });
-
-      document.getElementById('next-hand-btn').addEventListener('click', () => {
-        this.sendGameAction('nextHand');
-      });
-
-      document.getElementById('reset-game').addEventListener('click', () => {
-        if (confirm('确定要重置游戏吗？所有积分将恢复为1000')) {
-          this.sendGameAction('resetGame');
-        }
-      });
-    }
   }
 
   updateGameState(gameState) {

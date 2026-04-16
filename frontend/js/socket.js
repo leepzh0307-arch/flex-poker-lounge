@@ -175,6 +175,28 @@ class SocketClient {
     });
   }
 
+  createAiRoom(nickname, aiCount, aiDifficulty, initialChips) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('创建AI房间超时，服务器未响应'));
+      }, 15000);
+
+      this.socket.emit('createAiRoom', { nickname, aiCount, aiDifficulty, initialChips }, (response) => {
+        clearTimeout(timeout);
+        if (response && response.success) {
+          resolve({ roomId: response.roomId, playerId: response.playerId });
+        } else {
+          reject(new Error((response && response.error) || '创建AI房间失败'));
+        }
+      });
+    });
+  }
+
   joinRoom(roomId, nickname, playerId = null) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {

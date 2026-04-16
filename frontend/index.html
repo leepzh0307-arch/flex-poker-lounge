@@ -63,9 +63,35 @@
           <button type="button" id="create-room" class="action-btn"><span>创建房间</span></button>
           <button type="button" id="join-room" class="action-btn"><span>加入房间</span></button>
         </div>
-      </form>
 
-      <div class="divider-line"></div>
+        <div class="divider-line"></div>
+
+        <div class="ai-mode-section">
+          <div class="ai-mode-title">人机对战</div>
+          <div class="ai-config-row">
+            <label class="ai-config-label">难度</label>
+            <select id="ai-difficulty" class="ai-select">
+              <option value="easy">简单</option>
+              <option value="medium" selected>中等</option>
+              <option value="hard">困难</option>
+            </select>
+          </div>
+          <div class="ai-config-row">
+            <label class="ai-config-label">AI数量</label>
+            <select id="ai-count" class="ai-select">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+            </select>
+          </div>
+          <button type="button" id="create-ai-room" class="action-btn ai-btn"><span>开始人机对战</span></button>
+        </div>
 
       <div class="info-row">
         <span class="info-label">状态</span>
