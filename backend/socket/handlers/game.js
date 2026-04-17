@@ -480,6 +480,13 @@ function moveToNextPlayer(room, roomId, io, rooms) {
   const currentId = room.gameState.currentPlayer;
   let currentIdx = activePlayers.findIndex(p => p.id === currentId);
 
+  if (currentIdx === -1) {
+    currentIdx = room.players.findIndex(p => p.id === currentId);
+    const sortedActive = getActivePlayersSorted(room);
+    const lastActiveIdx = sortedActive.findIndex(p => p.seat < room.players[currentIdx]?.seat);
+    currentIdx = lastActiveIdx >= 0 ? room.players.findIndex(p => p.id === sortedActive[lastActiveIdx].id) : 0;
+  }
+
   let attempts = 0;
   while (attempts < activePlayers.length) {
     currentIdx = (currentIdx + 1) % activePlayers.length;
@@ -499,13 +506,16 @@ function moveToNextPlayer(room, roomId, io, rooms) {
       continue;
     }
 
+    if (room.gameState.playersActedThisRound.has(nextPlayer.id)) {
+      attempts++;
+      continue;
+    }
+
     room.gameState.currentPlayer = nextPlayer.id;
     nextPlayer.isTurn = true;
 
-    if (!room.gameState.playersActedThisRound.has(nextPlayer.id)) {
-      nextPlayer.hasActed = true;
-      room.gameState.playersActedThisRound.add(nextPlayer.id);
-    }
+    nextPlayer.hasActed = true;
+    room.gameState.playersActedThisRound.add(nextPlayer.id);
 
     sendGameUpdateWithCards(room, roomId, io, `轮到 ${nextPlayer.nickname} 行动`);
 
