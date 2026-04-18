@@ -183,6 +183,10 @@ function makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet
     return { action: 'check' };
   }
 
+  if (callAmount >= player.chips) {
+    return handStrength > 0.3 ? { action: 'all-in' } : { action: 'fold' };
+  }
+
   if (handStrength < 0.2 && roll < 0.6) return { action: 'fold' };
   if (handStrength < 0.35 && callAmount > player.chips * 0.3) return { action: 'fold' };
 
@@ -192,7 +196,6 @@ function makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet
     return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
   }
 
-  if (callAmount >= player.chips) return { action: 'all-in' };
   return { action: 'call' };
 }
 
@@ -214,6 +217,10 @@ function makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds,
     return { action: 'check' };
   }
 
+  if (callAmount >= player.chips) {
+    return handStrength > 0.4 ? { action: 'all-in' } : { action: 'fold' };
+  }
+
   if (handStrength < 0.2) return { action: 'fold' };
   if (handStrength < 0.35 && potOdds > 0.3) return { action: 'fold' };
   if (handStrength < 0.3 && callAmount > player.chips * 0.25 && activePlayers > 2) return { action: 'fold' };
@@ -223,17 +230,12 @@ function makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds,
       const raiseAmt = currentBet + minRaise + Math.floor(handStrength * bigBlind * 1.5);
       return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
     }
-    if (callAmount >= player.chips) return { action: 'all-in' };
     return { action: 'call' };
   }
 
   if (handStrength > 0.5 && roll < 0.25) {
     const raiseAmt = currentBet + minRaise + Math.floor(handStrength * bigBlind);
     return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
-  }
-
-  if (callAmount >= player.chips) {
-    return handStrength > 0.4 ? { action: 'all-in' } : { action: 'fold' };
   }
 
   return { action: 'call' };
@@ -260,6 +262,10 @@ function makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, c
     return { action: 'check' };
   }
 
+  if (callAmount >= player.chips) {
+    return handStrength > 0.35 ? { action: 'all-in' } : { action: 'fold' };
+  }
+
   const equityNeeded = potOdds;
   const shouldCall = handStrength > equityNeeded * 0.8;
 
@@ -281,7 +287,6 @@ function makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, c
       const raiseAmt = currentBet + minRaise + Math.floor(bigBlind * handStrength);
       return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
     }
-    if (callAmount >= player.chips) return { action: 'all-in' };
     return { action: 'call' };
   }
 
@@ -291,9 +296,6 @@ function makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, c
   }
 
   if (shouldCall) {
-    if (callAmount >= player.chips) {
-      return handStrength > 0.35 ? { action: 'all-in' } : { action: 'fold' };
-    }
     return { action: 'call' };
   }
 

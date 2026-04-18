@@ -86,6 +86,9 @@ module.exports = (socket, rooms, io) => {
 
 function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
   const activePlayers = room.players.filter(p => p.isActive);
+  const isShowdownOrAfter = ['SHOWDOWN', 'HAND_END', 'CONFIRM_CONTINUE'].includes(room.gameState.phase);
+  const showdownPlayerIds = room.gameState.showdownPlayerIds || [];
+
   room.players.forEach(player => {
     if (player.isAI) return;
     const playersWithCards = room.players.map(p => {
@@ -93,6 +96,8 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
       const isActive = p.isActive;
       const isSelf = p.id === player.id;
       if (isSelf) {
+        playerCopy.cards = room.gameState.playerCards[p.id] || [];
+      } else if (isShowdownOrAfter && showdownPlayerIds.includes(p.id)) {
         playerCopy.cards = room.gameState.playerCards[p.id] || [];
       } else if (isActive && room.gameState.phase === 'SHOWDOWN') {
         playerCopy.cards = room.gameState.playerCards[p.id] || [];
@@ -633,11 +638,22 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   const raiseTotal = Math.max(amount, 0);
   const raiseIncrement = Math.max(0, raiseTotal - currentRoundBet);
 
-  if (raiseTotal <= room.gameState.currentBet) return;
-  if (raiseIncrement <= 0) return;
-  if (raiseIncrement < room.gameState.minRaise) return;
+  if (raiseTotal <= room.gameState.currentBet) {
+    handleCall(room, roomId, io, playerId, rooms);
+    return;
+  }
 
-  if (player.chips < raiseIncrement) {
+  if (raiseIncrement <= 0) {
+    handleCall(room, roomId, io, playerId, rooms);
+    return;
+  }
+
+  if (raiseIncrement < room.gameState.minRaise && player.chips > raiseIncrement) {
+    handleCall(room, roomId, io, playerId, rooms);
+    return;
+  }
+
+  if (player.chips <= raiseIncrement) {
     handleAllIn(room, roomId, io, playerId, rooms);
     return;
   }
@@ -729,7 +745,7 @@ function createSidePotsIfNeeded(room, allInPlayerId, allInAmount, contributedAmo
   );
   
   if (allInPlayerTotalBet < otherPlayersMaxBet) {
-    const sidePotAmount = 0;
+    let sidePotAmount = 0;
     const sidePotEligiblePlayers = [];
     
     playerBets.forEach(playerBet => {
@@ -827,6 +843,7 @@ function earlyEndGame(room, roomId, io, rooms) {
   });
 
   room.gameState.phase = 'HAND_END';
+  room.gameState.showdownPlayerIds = [];
   sendGameUpdateWithCards(room, roomId, io, `${winner.nickname} 获胜（其余玩家弃牌），赢得 ${totalPot} 筹码！`);
 
   // 发送获胜者事件到前端
@@ -848,6 +865,7 @@ function earlyEndGame(room, roomId, io, rooms) {
 function doShowdown(room, roomId, io, rooms) {
   room.gameState.phase = 'SHOWDOWN';
   const activePlayers = getActivePlayers(room);
+  room.gameState.showdownPlayerIds = activePlayers.map(p => p.id);
   let results = [];
 
   room.gameState.pots.forEach((pot, potIndex) => {
@@ -951,11 +969,13 @@ function doHandEnd(room, roomId, io, rooms) {
 
   const currentCommunityCards = [...room.gameState.communityCards];
   const currentPlayerCards = { ...room.gameState.playerCards };
+  const currentShowdownPlayerIds = room.gameState.showdownPlayerIds || [];
 
   room.gameState = {
     phase: 'CONFIRM_CONTINUE',
     communityCards: currentCommunityCards,
     playerCards: currentPlayerCards,
+    showdownPlayerIds: currentShowdownPlayerIds,
     pots: [{ amount: 0, eligiblePlayers: [] }],
     currentBet: 0,
     minRaise: room.bigBlindAmount || 20,
@@ -1054,31 +1074,38 @@ function handleConfirmContinue(room, roomId, io, playerId, rooms) {
 function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
   const thinkTime = getThinkTime(aiPlayer.aiDifficulty || 'medium');
   setTimeout(() => {
-    if (room.gameState.currentPlayer !== aiPlayer.id) return;
-    if (!aiPlayer.isActive) return;
+    try {
+      if (room.gameState.currentPlayer !== aiPlayer.id) return;
+      if (!aiPlayer.isActive) return;
 
-    const gameState = buildAiGameState(room, aiPlayer);
-    const decision = makeDecision(aiPlayer.aiDifficulty || 'medium', gameState, aiPlayer.id);
-    console.log(`[AI] ${aiPlayer.nickname} 决策: ${decision.action}`, decision.amount || '');
+      const gameState = buildAiGameState(room, aiPlayer);
+      const decision = makeDecision(aiPlayer.aiDifficulty || 'medium', gameState, aiPlayer.id);
+      console.log(`[AI] ${aiPlayer.nickname} 决策: ${decision.action}`, decision.amount || '');
 
-    switch (decision.action) {
-      case 'fold':
+      switch (decision.action) {
+        case 'fold':
+          handleFold(room, roomId, io, aiPlayer.id, rooms);
+          break;
+        case 'check':
+          handleCheck(room, roomId, io, aiPlayer.id, rooms);
+          break;
+        case 'call':
+          handleCall(room, roomId, io, aiPlayer.id, rooms);
+          break;
+        case 'raise':
+          handleRaise(room, roomId, io, aiPlayer.id, decision.amount, rooms);
+          break;
+        case 'all-in':
+          handleAllIn(room, roomId, io, aiPlayer.id, rooms);
+          break;
+        default:
+          handleFold(room, roomId, io, aiPlayer.id, rooms);
+      }
+    } catch (error) {
+      console.error(`[AI] ${aiPlayer.nickname} 行动异常:`, error);
+      if (aiPlayer.isActive && room.gameState.currentPlayer === aiPlayer.id) {
         handleFold(room, roomId, io, aiPlayer.id, rooms);
-        break;
-      case 'check':
-        handleCheck(room, roomId, io, aiPlayer.id, rooms);
-        break;
-      case 'call':
-        handleCall(room, roomId, io, aiPlayer.id, rooms);
-        break;
-      case 'raise':
-        handleRaise(room, roomId, io, aiPlayer.id, decision.amount, rooms);
-        break;
-      case 'all-in':
-        handleAllIn(room, roomId, io, aiPlayer.id, rooms);
-        break;
-      default:
-        handleFold(room, roomId, io, aiPlayer.id, rooms);
+      }
     }
   }, thinkTime);
 }
