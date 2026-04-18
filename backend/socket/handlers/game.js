@@ -183,14 +183,8 @@ function startGame(room, roomId, io, config, rooms) {
   room.bigBlindAmount = config?.bigBlind || (room.smallBlindAmount * 2);
 
   if (room.dealerButton === undefined) {
-    const hostIdx = room.players.findIndex(p => p.id === room.host);
-    const N = room.players.length;
-    if (hostIdx >= 0 && N >= 2) {
-      room.dealerButton = ((hostIdx - 2) % N + N) % N;
-      console.log(`[位置] 首局：房主=${room.players[hostIdx].nickname}担任BB(索引${hostIdx})，BTN设为索引${room.dealerButton}`);
-    } else {
-      room.dealerButton = Math.floor(Math.random() * room.players.length);
-    }
+    room.dealerButton = Math.floor(Math.random() * room.players.length);
+    console.log(`[位置] 首局庄位随机设为索引 ${room.dealerButton}`);
   }
 
   room.gameState = {
@@ -305,12 +299,8 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
   room.gameState.pots = [{ amount: 0, eligiblePlayers: [] }];
   room.gameState.deck = shuffleDeck(generateDeck());
 
-  let actualSb = 0;
-  let actualBb = 0;
-
   if (sbPlayer && sbPlayer.isActive) {
     const sbActual = Math.min(room.smallBlindAmount, sbPlayer.chips);
-    actualSb = sbActual;
     sbPlayer.chips -= sbActual;
     room.gameState.bets[sbPlayer.id] = sbActual;
     room.gameState.roundBets[sbPlayer.id] = sbActual;
@@ -322,7 +312,6 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
 
   if (bbPlayer && bbPlayer.isActive) {
     const bbActual = Math.min(room.bigBlindAmount, bbPlayer.chips);
-    actualBb = bbActual;
     bbPlayer.chips -= bbActual;
     room.gameState.bets[bbPlayer.id] = bbActual;
     room.gameState.roundBets[bbPlayer.id] = bbActual;
@@ -342,7 +331,7 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
     console.log(`[两人局] 无UTG位置，SB(BTN)先行动`);
   }
 
-  room.gameState.currentBet = Math.max(actualSb, actualBb);
+  room.gameState.currentBet = room.bigBlindAmount;
   room.gameState.minRaise = room.bigBlindAmount;
 
   transitionTo(room, roomId, io, 'PRE_FLOP_DEAL', rooms);
@@ -558,7 +547,7 @@ function isBettingRoundComplete(room) {
   if (!allActed) return false;
 
   const allBetsEqual = playersWhoCanAct.every(p =>
-    (room.gameState.roundBets[p.id] || 0) === room.gameState.currentBet
+    (room.gameState.roundBets[p.id] || 0) >= room.gameState.currentBet
   );
 
   if (allBetsEqual) {
@@ -581,7 +570,39 @@ function handleFold(room, roomId, io, playerId, rooms) {
   player.isActive = false;
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'fold', playerId);
-  moveToNextPlayer(room, roomId, io, rooms);
+
+  const activePlayers = getActivePlayers(room);
+  if (activePlayers.length <= 1) {
+    earlyEndGame(room, roomId, io, rooms);
+    return;
+  }
+  if (areAllActivePlayersAllIn(room) && !communityCardsComplete(room)) {
+    fastForwardToShowdown(room, roomId, io, rooms);
+    return;
+  }
+  if (isBettingRoundComplete(room)) {
+    endBettingRound(room, roomId, io, rooms);
+    return;
+  }
+
+  const startSeatIndex = player.seat - 1;
+  const nextPlayer = findNextActivePlayerClockwise(room, startSeatIndex);
+
+  if (!nextPlayer) {
+    moveToNextPlayer(room, roomId, io, rooms);
+    return;
+  }
+
+  room.gameState.currentPlayer = nextPlayer.id;
+  nextPlayer.isTurn = true;
+  nextPlayer.hasActed = true;
+  room.gameState.playersActedThisRound.add(nextPlayer.id);
+
+  sendGameUpdateWithCards(room, roomId, io, `轮到 ${nextPlayer.nickname} 行动`);
+
+  if (nextPlayer.isAI) {
+    scheduleAiAction(room, roomId, io, nextPlayer, rooms);
+  }
 }
 
 function handleCheck(room, roomId, io, playerId, rooms) {
@@ -640,6 +661,15 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   const raiseTotal = Math.max(amount, 0);
   const raiseIncrement = Math.max(0, raiseTotal - currentRoundBet);
 
+  if (room.gameState.currentBet === 0) {
+    const minBet = room.bigBlindAmount;
+    if (raiseTotal < minBet && player.chips > raiseTotal) {
+      console.warn(`[游戏] ${player.nickname} 下注额 ${raiseTotal} 小于大盲 ${minBet}，转为过牌`);
+      handleCheck(room, roomId, io, playerId, rooms);
+      return;
+    }
+  }
+
   if (raiseTotal <= room.gameState.currentBet) {
     handleCall(room, roomId, io, playerId, rooms);
     return;
@@ -653,6 +683,10 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   if (raiseIncrement < room.gameState.minRaise && player.chips > raiseIncrement) {
     handleCall(room, roomId, io, playerId, rooms);
     return;
+  }
+
+  if (raiseIncrement >= room.gameState.minRaise) {
+    room.gameState.minRaise = raiseIncrement;
   }
 
   if (player.chips <= raiseIncrement) {
@@ -670,10 +704,16 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   }
   room.gameState.currentBet = raiseTotal;
   room.gameState.lastRaiserId = playerId;
-  room.gameState.minRaise = raiseIncrement;
 
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'raise', playerId, raiseTotal);
+
+  room.gameState.playersActedThisRound = new Set();
+  room.gameState.playersActedThisRound.add(playerId);
+
+  activePlayersExceptCurrent(room).forEach(p => {
+    p.hasActed = false;
+  });
 
   moveToNextPlayer(room, roomId, io, rooms);
 }
@@ -693,13 +733,16 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
   room.gameState.roundBets[playerId] = totalBet;
   room.gameState.handBets[playerId] = (room.gameState.handBets[playerId] || 0) + allInAmount;
 
-  createSidePotsIfNeeded(room, playerId, totalBet, allInAmount);
+  recalculateSidePots(room);
 
   if (totalBet > room.gameState.currentBet) {
     const raiseIncrement = totalBet - room.gameState.currentBet;
+    const isFullRaise = raiseIncrement >= room.gameState.minRaise;
+
     room.gameState.currentBet = totalBet;
-    room.gameState.lastRaiserId = playerId;
-    if (raiseIncrement >= room.gameState.minRaise) {
+
+    if (isFullRaise) {
+      room.gameState.lastRaiserId = playerId;
       room.gameState.minRaise = raiseIncrement;
       room.gameState.playersActedThisRound = new Set();
       room.gameState.playersActedThisRound.add(playerId);
@@ -713,70 +756,64 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
   moveToNextPlayer(room, roomId, io, rooms);
 }
 
-function createSidePotsIfNeeded(room, allInPlayerId, allInAmount, contributedAmount) {
+function recalculateSidePots(room) {
   const activePlayers = getActivePlayers(room);
-  
   if (activePlayers.length <= 1) {
     return;
   }
-  
-  const mainPot = room.gameState.pots[0];
-  
+
   const playerBets = activePlayers.map(p => ({
     id: p.id,
     bet: room.gameState.roundBets[p.id] || 0
-  }));
-  
-  const allInPlayerBet = playerBets.find(p => p.id === allInPlayerId);
-  if (!allInPlayerBet) {
-    console.warn(`[边池] 玩家 ${allInPlayerId} 不在活跃玩家列表中`);
+  })).filter(p => p.bet > 0);
+
+  if (playerBets.length === 0) {
+    room.gameState.pots = [{ amount: 0, eligiblePlayers: [] }];
     return;
   }
-  
-  const allInPlayerTotalBet = allInPlayerBet.bet;
-  const otherPlayersMaxBet = Math.max(
-    ...playerBets.filter(p => p.id !== allInPlayerId).map(p => p.bet),
-    0
-  );
-  
-  if (allInPlayerTotalBet < otherPlayersMaxBet) {
-    let sidePotAmount = 0;
-    const sidePotEligiblePlayers = [];
-    
-    playerBets.forEach(playerBet => {
-      if (playerBet.id === allInPlayerId) {
-        return;
+
+  playerBets.sort((a, b) => a.bet - b.bet);
+
+  const newPots = [];
+  let previousBet = 0;
+
+  for (let i = 0; i < playerBets.length; i++) {
+    const currentBet = playerBets[i].bet;
+    if (currentBet > previousBet) {
+      const increment = currentBet - previousBet;
+      const eligiblePlayers = playerBets
+        .filter(p => p.bet >= currentBet)
+        .map(p => p.id);
+
+      let layerAmount = 0;
+      activePlayers.forEach(p => {
+        const playerBet = room.gameState.roundBets[p.id] || 0;
+        if (playerBet >= currentBet) {
+          layerAmount += increment;
+        } else if (playerBet > previousBet) {
+          layerAmount += playerBet - previousBet;
+        }
+      });
+
+      if (layerAmount > 0) {
+        newPots.push({
+          amount: layerAmount,
+          eligiblePlayers: eligiblePlayers
+        });
       }
-      
-      const excess = playerBet.bet - allInPlayerTotalBet;
-      if (excess > 0) {
-        mainPot.amount -= excess;
-        sidePotAmount += excess;
-        sidePotEligiblePlayers.push(playerBet.id);
-      }
-    });
-    
-    if (sidePotAmount > 0) {
-      const sidePot = {
-        amount: sidePotAmount,
-        eligiblePlayers: sidePotEligiblePlayers
-      };
-      
-      room.gameState.pots.push(sidePot);
-      console.log(`[边池] 创建边池，金额: ${sidePotAmount}, 参与玩家: ${sidePotEligiblePlayers.length}人`);
+      previousBet = currentBet;
     }
   }
-  
-  mainPot.amount += contributedAmount;
-  
-  if (!mainPot.eligiblePlayers.includes(allInPlayerId)) {
-    mainPot.eligiblePlayers.push(allInPlayerId);
-  }
+
+  room.gameState.pots = newPots.length > 0 ? newPots : [{ amount: 0, eligiblePlayers: [] }];
+  console.log(`[边池] 重新计算完成，共 ${newPots.length} 个底池`);
 }
 
 // ==================== 结束下注轮 / 发公共牌 ====================
 
 function endBettingRound(room, roomId, io, rooms) {
+  recalculateSidePots(room);
+
   room.players.forEach(player => {
     player.isTurn = false;
     room.gameState.bets[player.id] = 0;
