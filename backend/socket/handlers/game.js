@@ -305,8 +305,12 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
   room.gameState.pots = [{ amount: 0, eligiblePlayers: [] }];
   room.gameState.deck = shuffleDeck(generateDeck());
 
+  let actualSb = 0;
+  let actualBb = 0;
+
   if (sbPlayer && sbPlayer.isActive) {
     const sbActual = Math.min(room.smallBlindAmount, sbPlayer.chips);
+    actualSb = sbActual;
     sbPlayer.chips -= sbActual;
     room.gameState.bets[sbPlayer.id] = sbActual;
     room.gameState.roundBets[sbPlayer.id] = sbActual;
@@ -318,6 +322,7 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
 
   if (bbPlayer && bbPlayer.isActive) {
     const bbActual = Math.min(room.bigBlindAmount, bbPlayer.chips);
+    actualBb = bbActual;
     bbPlayer.chips -= bbActual;
     room.gameState.bets[bbPlayer.id] = bbActual;
     room.gameState.roundBets[bbPlayer.id] = bbActual;
@@ -337,7 +342,7 @@ function doPreFlopBlinds(room, roomId, io, rooms) {
     console.log(`[两人局] 无UTG位置，SB(BTN)先行动`);
   }
 
-  room.gameState.currentBet = room.bigBlindAmount;
+  room.gameState.currentBet = Math.max(actualSb, actualBb);
   room.gameState.minRaise = room.bigBlindAmount;
 
   transitionTo(room, roomId, io, 'PRE_FLOP_DEAL', rooms);
@@ -470,7 +475,7 @@ function startBettingRound(room, roomId, io, message, rooms) {
 }
 
 function moveToNextPlayer(room, roomId, io, rooms) {
-  const activePlayers = getActivePlayers(room);
+  const activePlayers = getActivePlayersSorted(room);
 
   if (activePlayers.length <= 1) {
     earlyEndGame(room, roomId, io, rooms);
@@ -486,10 +491,7 @@ function moveToNextPlayer(room, roomId, io, rooms) {
   let currentIdx = activePlayers.findIndex(p => p.id === currentId);
 
   if (currentIdx === -1) {
-    currentIdx = room.players.findIndex(p => p.id === currentId);
-    const sortedActive = getActivePlayersSorted(room);
-    const lastActiveIdx = sortedActive.findIndex(p => p.seat < room.players[currentIdx]?.seat);
-    currentIdx = lastActiveIdx >= 0 ? room.players.findIndex(p => p.id === sortedActive[lastActiveIdx].id) : 0;
+    currentIdx = activePlayers.length - 1;
   }
 
   let attempts = 0;
@@ -556,7 +558,7 @@ function isBettingRoundComplete(room) {
   if (!allActed) return false;
 
   const allBetsEqual = playersWhoCanAct.every(p =>
-    (room.gameState.roundBets[p.id] || 0) >= room.gameState.currentBet
+    (room.gameState.roundBets[p.id] || 0) === room.gameState.currentBet
   );
 
   if (allBetsEqual) {
@@ -673,13 +675,6 @@ function handleRaise(room, roomId, io, playerId, amount, rooms) {
   player.isTurn = false;
   broadcastGameAction(rooms, io, roomId, 'raise', playerId, raiseTotal);
 
-  room.gameState.playersActedThisRound = new Set();
-  room.gameState.playersActedThisRound.add(playerId);
-
-  activePlayersExceptCurrent(room).forEach(p => {
-    p.hasActed = false;
-  });
-
   moveToNextPlayer(room, roomId, io, rooms);
 }
 
@@ -704,12 +699,12 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
     const raiseIncrement = totalBet - room.gameState.currentBet;
     room.gameState.currentBet = totalBet;
     room.gameState.lastRaiserId = playerId;
-    if (raiseIncrement > room.gameState.minRaise) {
+    if (raiseIncrement >= room.gameState.minRaise) {
       room.gameState.minRaise = raiseIncrement;
+      room.gameState.playersActedThisRound = new Set();
+      room.gameState.playersActedThisRound.add(playerId);
+      activePlayersExceptCurrent(room).forEach(p => { p.hasActed = false; });
     }
-    room.gameState.playersActedThisRound = new Set();
-    room.gameState.playersActedThisRound.add(playerId);
-    activePlayersExceptCurrent(room).forEach(p => { p.hasActed = false; });
   }
 
   player.isTurn = false;
