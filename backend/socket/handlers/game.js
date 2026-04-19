@@ -1,7 +1,7 @@
 // 游戏处理模块 - 德州扑克标准规则
 const { generateDeck, shuffleDeck } = require('../../utils/deck');
 const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../utils/handEvaluator');
-const { makeDecision, getThinkTime } = require('../../utils/aiEngine');
+const { makeDecision, getThinkTime, pickAiName, clearRoomPersonality } = require('../../utils/aiEngine');
 
 module.exports = (socket, rooms, io) => {
   socket.on('gameAction', ({ action, data }) => {
@@ -758,7 +758,7 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
 function recalculateSidePots(room) {
   const activePlayers = getActivePlayers(room);
 
-  const allPlayersWithBets = room.players.filter(p => (room.gameState.roundBets[p.id] || 0) > 0);
+  const allPlayersWithBets = room.players.filter(p => (room.gameState.handBets[p.id] || 0) > 0);
 
   if (allPlayersWithBets.length === 0) {
     room.gameState.pots = [{ amount: 0, eligiblePlayers: [] }];
@@ -767,7 +767,7 @@ function recalculateSidePots(room) {
 
   const playerBets = allPlayersWithBets.map(p => ({
     id: p.id,
-    bet: room.gameState.roundBets[p.id] || 0,
+    bet: room.gameState.handBets[p.id] || 0,
     isActive: p.isActive
   }));
 
@@ -782,12 +782,12 @@ function recalculateSidePots(room) {
       const increment = currentBet - previousBet;
 
       const eligiblePlayers = activePlayers
-        .filter(p => (room.gameState.roundBets[p.id] || 0) >= currentBet)
+        .filter(p => (room.gameState.handBets[p.id] || 0) >= currentBet)
         .map(p => p.id);
 
       let layerAmount = 0;
       room.players.forEach(p => {
-        const playerBet = room.gameState.roundBets[p.id] || 0;
+        const playerBet = room.gameState.handBets[p.id] || 0;
         if (playerBet >= currentBet) {
           layerAmount += increment;
         } else if (playerBet > previousBet) {
@@ -818,7 +818,6 @@ function endBettingRound(room, roomId, io, rooms) {
     player.isTurn = false;
     room.gameState.bets[player.id] = 0;
     room.gameState.roundBets[player.id] = 0;
-    room.gameState.handBets[player.id] = 0;
   });
   room.gameState.currentBet = 0;
   room.gameState.minRaise = room.bigBlindAmount;
@@ -1108,7 +1107,7 @@ function handleConfirmContinue(room, roomId, io, playerId, rooms) {
 }
 
 function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
-  const thinkTime = getThinkTime(aiPlayer.aiDifficulty || 'medium');
+  const thinkTime = getThinkTime(aiPlayer.aiDifficulty || 'medium', aiPlayer.personality);
   setTimeout(() => {
     try {
       if (!room || room.gameState.currentPlayer !== aiPlayer.id) return;

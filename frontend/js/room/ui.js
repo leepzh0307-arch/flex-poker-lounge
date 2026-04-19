@@ -131,6 +131,7 @@ class RoomUI {
     this.currentBgTheme = 1;
     this.myPlayerId = null;
     this.previousBets = {};
+    this.winnerPlayerIds = new Set();
     this.handCount = 0;
     this.totalProfit = 0;
 
@@ -288,6 +289,7 @@ class RoomUI {
 
     if (player) {
       const isSelf = this.myPlayerId && player.id === this.myPlayerId;
+      seat._playerData = player;
 
       if (isSelf) {
         seat.classList.add('seat-self');
@@ -321,6 +323,10 @@ class RoomUI {
           const cardElement = this.createCardElement(card);
           cardsContainer.appendChild(cardElement);
         });
+      }
+
+      if (this.winnerPlayerIds.has(player.id)) {
+        this._applyWinnerBadge(player.id);
       }
 
       seat.classList.toggle('active', !!player.isActive);
@@ -413,6 +419,7 @@ class RoomUI {
       }
     } else {
       seat.classList.add('seat-empty');
+      seat._playerData = null;
 
       let labelEl = seat.querySelector('.seat-label');
       if (!labelEl) {
@@ -435,6 +442,36 @@ class RoomUI {
       if (betEl) betEl.style.display = 'none';
       if (statusEl) statusEl.style.display = 'none';
     }
+  }
+
+  showWinnerBadge(playerId) {
+    this.winnerPlayerIds.add(playerId);
+    this._applyWinnerBadge(playerId);
+  }
+
+  _applyWinnerBadge(playerId) {
+    this.elements.playerSeats.forEach(seat => {
+      const player = seat._playerData;
+      if (player && player.id === playerId) {
+        const cardsContainer = seat.querySelector('.player-cards');
+        if (cardsContainer && !cardsContainer.querySelector('.winner-badge')) {
+          const badge = document.createElement('div');
+          badge.className = 'winner-badge';
+          badge.innerHTML = '👑';
+          cardsContainer.appendChild(badge);
+        }
+        seat.classList.add('winner-seat');
+      }
+    });
+  }
+
+  clearWinnerBadges() {
+    this.winnerPlayerIds.clear();
+    this.elements.playerSeats.forEach(seat => {
+      const badge = seat.querySelector('.winner-badge');
+      if (badge) badge.remove();
+      seat.classList.remove('winner-seat');
+    });
   }
 
   createCardElement(card) {

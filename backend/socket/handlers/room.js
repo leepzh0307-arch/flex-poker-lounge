@@ -123,13 +123,15 @@ module.exports = (socket, rooms, io) => {
       const existingNames = [nickname];
       const aiPlayers = [];
       for (let i = 0; i < count; i++) {
-        const aiName = pickAiName(existingNames);
+        // 修改1：调用新 pickAiName，传递 roomId，获取不重复人格
+        const { name: aiName, personality } = pickAiName(existingNames, roomId);
         existingNames.push(aiName);
         const aiId = generateAiPlayerId();
         aiPlayers.push({
           id: aiId,
           playerId: aiId,
           nickname: aiName,
+          personality: personality, // 修改2：添加 personality 字段
           chips: chips,
           seat: i + 2,
           isActive: true,

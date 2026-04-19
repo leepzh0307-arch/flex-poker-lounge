@@ -313,9 +313,11 @@ class GameManager {
         break;
       case 'startGame':
         this.addGameLog(`<span class="log-action">游戏开始！</span>`, 'system');
+        roomUI.clearWinnerBadges();
         break;
       case 'nextHand':
         this.addGameLog(`<span class="log-action">新一局开始</span>`, 'system');
+        roomUI.clearWinnerBadges();
         break;
       case 'winner':
         let winnerMessage = `<span class="log-player">${name}</span> <span class="log-action">胜出</span>，赢得 <span class="log-amount">${action.amount || 0}</span> 积分`;
@@ -326,6 +328,9 @@ class GameManager {
           winnerMessage += ' [平局]';
         }
         this.addGameLog(winnerMessage, 'winner');
+        if (action.playerId) {
+          roomUI.showWinnerBadge(action.playerId);
+        }
         break;
       default:
         this.addGameLog(`<span class="log-player">${name}</span> <span class="log-action">${action.type || '行动'}</span>`, 'system');
