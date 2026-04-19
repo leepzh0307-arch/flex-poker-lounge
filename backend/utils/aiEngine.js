@@ -137,6 +137,69 @@ function calculatePotOdds(callAmount, potAmount) {
   return callAmount / totalPot;
 }
 
+function analyzeHandStrength(handStrength, communityCardsLength) {
+  const isPostflop = communityCardsLength >= 3;
+
+  let tier;
+  let isStrong = false;
+  let isVeryStrong = false;
+  let isNuts = false;
+
+  if (!isPostflop) {
+    if (handStrength >= 0.75) {
+      tier = 'premium';
+      isStrong = true;
+      isVeryStrong = handStrength >= 0.85;
+    } else if (handStrength >= 0.5) {
+      tier = 'playable';
+    } else {
+      tier = 'marginal';
+    }
+  } else {
+    if (handStrength >= 0.9) {
+      tier = 'nuts';
+      isNuts = true;
+      isVeryStrong = true;
+      isStrong = true;
+    } else if (handStrength >= 0.75) {
+      tier = 'veryStrong';
+      isVeryStrong = true;
+      isStrong = true;
+    } else if (handStrength >= 0.55) {
+      tier = 'strong';
+      isStrong = true;
+    } else if (handStrength >= 0.35) {
+      tier = 'medium';
+    } else {
+      tier = 'weak';
+    }
+  }
+
+  return { tier, isStrong, isVeryStrong, isNuts };
+}
+
+function getPositionInfo(seat, dealerSeat, totalPlayers) {
+  if (!seat || dealerSeat === undefined || !totalPlayers) {
+    return { relativePos: -1, isLate: false, isEarly: false, isButton: false, isBlind: false };
+  }
+  let relativePos = (seat - 1 - dealerSeat + totalPlayers) % totalPlayers;
+
+  const isLate = relativePos <= 2;
+  const isEarly = relativePos >= totalPlayers - 2 && totalPlayers > 4;
+
+  return {
+    relativePos,
+    isLate,
+    isEarly,
+    isButton: relativePos === 0,
+    isBlind: relativePos === 1 || relativePos === 2
+  };
+}
+
+function getRoundAggressionLevel(gameState) {
+  return gameState.lastRaiserId ? 'high' : 'low';
+}
+
 function makeDecision(difficulty, gameState, playerId) {
   const config = AI_CONFIGS[difficulty] || AI_CONFIGS.easy;
   const player = gameState.players.find(p => p.id === playerId);
@@ -162,23 +225,37 @@ function makeDecision(difficulty, gameState, playerId) {
   const potOdds = calculatePotOdds(callAmount, totalPot);
   const chipRatio = player.chips / (totalPot || 1);
   const activePlayers = gameState.players.filter(p => p.isActive).length;
+  const communityLength = communityCards.length;
+
+  const playerSeat = player.seat;
+  const dealerSeat = gameState.dealerButton;
+  const totalPlayers = gameState.players.length;
+  const positionInfo = getPositionInfo(playerSeat, dealerSeat, totalPlayers);
 
   if (difficulty === 'easy') {
-    return makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet, minRaise, player, totalPot, bigBlind);
+    return makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet, minRaise, player, totalPot, bigBlind, communityLength);
   } else if (difficulty === 'medium') {
-    return makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers);
+    return makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers, communityLength);
   } else {
-    return makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers, chipRatio);
+    return makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers, chipRatio, communityLength, positionInfo, gameState);
   }
 }
 
-function makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet, minRaise, player, totalPot, bigBlind) {
+function makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet, minRaise, player, totalPot, bigBlind, communityLength) {
   const roll = Math.random();
+  const { isStrong } = analyzeHandStrength(handStrength, communityLength);
 
   if (canCheck) {
-    if (handStrength > 0.7 && roll < config.raiseProb) {
-      const raiseAmt = currentBet + minRaise + Math.floor(Math.random() * bigBlind);
-      return { action: 'raise', amount: Math.min(raiseAmt, player.chips + (currentBet)) };
+    let raiseProb = config.raiseProb;
+    if (isStrong) {
+      raiseProb = 0.85;
+      if (handStrength > 0.8) raiseProb = 0.95;
+    }
+
+    if (roll < raiseProb) {
+      let raiseAmt = currentBet + minRaise + Math.floor(Math.random() * bigBlind);
+      if (isStrong) raiseAmt += Math.floor(bigBlind * 0.5);
+      return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
     }
     return { action: 'check' };
   }
@@ -199,21 +276,39 @@ function makeEasyDecision(config, canCheck, callAmount, handStrength, currentBet
   return { action: 'call' };
 }
 
-function makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers) {
+function makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers, communityLength) {
   const roll = Math.random();
+  const { tier, isStrong, isVeryStrong } = analyzeHandStrength(handStrength, communityLength);
 
   if (canCheck) {
-    if (handStrength > 0.6) {
-      if (roll < 0.4) {
-        const raiseAmt = currentBet + minRaise + Math.floor(handStrength * bigBlind);
-        return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
-      }
-      return { action: 'check' };
+    let raiseProb = 0;
+    let raiseMultiplier = 1.0;
+
+    if (isVeryStrong) {
+      raiseProb = 0.9;
+      raiseMultiplier = 1.8;
+    } else if (isStrong) {
+      raiseProb = 0.7;
+      raiseMultiplier = 1.3;
+    } else if (handStrength > 0.35) {
+      raiseProb = 0.2;
+    } else {
+      raiseProb = 0.05;
     }
-    if (handStrength > 0.35 && roll < 0.15) {
-      const raiseAmt = currentBet + minRaise;
+
+    if (activePlayers <= 2) raiseProb *= 1.2;
+
+    if (roll < raiseProb) {
+      const baseRaise = currentBet + minRaise;
+      const extra = Math.floor(handStrength * bigBlind * raiseMultiplier);
+      const raiseAmt = baseRaise + extra;
       return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
     }
+
+    if (isVeryStrong && handStrength >= 0.85 && roll < 0.15) {
+      return { action: 'check' };
+    }
+
     return { action: 'check' };
   }
 
@@ -241,24 +336,60 @@ function makeMediumDecision(config, canCheck, callAmount, handStrength, potOdds,
   return { action: 'call' };
 }
 
-function makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers, chipRatio) {
+function makeHardDecision(config, canCheck, callAmount, handStrength, potOdds, currentBet, minRaise, player, totalPot, bigBlind, activePlayers, chipRatio, communityLength, positionInfo, gameState) {
   const roll = Math.random();
-  const shouldBluff = roll < config.bluffProb && activePlayers <= 3;
+  const { tier, isStrong, isVeryStrong, isNuts } = analyzeHandStrength(handStrength, communityLength);
+  const shouldBluff = roll < config.bluffProb && activePlayers <= 3 && handStrength < 0.4;
+  const aggressionLevel = getRoundAggressionLevel(gameState);
 
   if (canCheck) {
-    if (handStrength > 0.55 || shouldBluff) {
-      const aggression = handStrength > 0.8 ? 2 : (handStrength > 0.65 ? 1.5 : 1);
-      const raiseAmt = currentBet + minRaise + Math.floor(aggression * bigBlind);
-      if (shouldBluff && handStrength < 0.4) {
-        const bluffAmt = currentBet + minRaise + Math.floor(bigBlind);
-        return { action: 'raise', amount: Math.min(bluffAmt, player.chips + currentBet) };
-      }
+    let raiseProb = 0;
+    let raiseMultiplier = 1.0;
+
+    if (isNuts) {
+      raiseProb = 0.95;
+      raiseMultiplier = 2.5;
+    } else if (isVeryStrong) {
+      raiseProb = 0.85;
+      raiseMultiplier = 2.0;
+    } else if (isStrong) {
+      raiseProb = 0.7;
+      raiseMultiplier = 1.5;
+    } else if (handStrength >= 0.4) {
+      raiseProb = 0.25;
+    } else {
+      raiseProb = 0.08;
+    }
+
+    if (positionInfo && positionInfo.isLate) {
+      raiseProb *= 1.3;
+      raiseMultiplier *= 1.2;
+    }
+
+    if (chipRatio > 5) {
+      raiseMultiplier *= 1.3;
+    }
+
+    if (aggressionLevel === 'low' && isStrong) {
+      raiseProb *= 1.2;
+    }
+
+    if (shouldBluff && handStrength < 0.35) {
+      const bluffAmt = currentBet + minRaise + Math.floor(bigBlind * 2);
+      return { action: 'raise', amount: Math.min(bluffAmt, player.chips + currentBet) };
+    }
+
+    if (roll < raiseProb) {
+      const baseRaise = currentBet + minRaise;
+      const extra = Math.floor(handStrength * bigBlind * raiseMultiplier);
+      const raiseAmt = baseRaise + extra;
       return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
     }
-    if (handStrength > 0.35 && roll < 0.1) {
-      const raiseAmt = currentBet + minRaise;
-      return { action: 'raise', amount: Math.min(raiseAmt, player.chips + currentBet) };
+
+    if (isNuts && roll < 0.08 && activePlayers > 1) {
+      return { action: 'check' };
     }
+
     return { action: 'check' };
   }
 

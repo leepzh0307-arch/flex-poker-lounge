@@ -569,6 +569,7 @@ function handleFold(room, roomId, io, playerId, rooms) {
 
   player.isActive = false;
   player.isTurn = false;
+  room.gameState.playersActedThisRound.delete(playerId);
   broadcastGameAction(rooms, io, roomId, 'fold', playerId);
 
   const activePlayers = getActivePlayers(room);
@@ -751,6 +752,8 @@ function handleAllIn(room, roomId, io, playerId, rooms) {
   }
 
   player.isTurn = false;
+  player.hasActed = true;
+  room.gameState.playersActedThisRound.add(playerId);
   broadcastGameAction(rooms, io, roomId, 'all-in', playerId, totalBet);
 
   moveToNextPlayer(room, roomId, io, rooms);
@@ -1151,6 +1154,8 @@ function buildAiGameState(room, aiPlayer) {
     minRaise: room.gameState.minRaise || room.bigBlindAmount || 20,
     bigBlind: room.bigBlindAmount || 20,
     smallBlind: room.smallBlindAmount || 10,
+    dealerButton: room.dealerButton || 0,
+    lastRaiserId: room.gameState.lastRaiserId || null,
     players: room.players.map(p => ({
       id: p.id,
       nickname: p.nickname,
@@ -1159,6 +1164,7 @@ function buildAiGameState(room, aiPlayer) {
       isAI: p.isAI || false,
       currentBet: room.gameState.roundBets[p.id] || 0,
       isAllIn: p.chips === 0 && p.isActive,
+      seat: p.seat,
     })),
     myBet: room.gameState.roundBets[aiPlayer.id] || 0,
     myChips: aiPlayer.chips,
