@@ -2,7 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
   <title>Flex Poker - 游戏房间</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +39,14 @@
   </style>
 </head>
 <body>
+  <div id="portrait-overlay" class="portrait-overlay">
+    <div class="portrait-content">
+      <div class="rotate-icon">📱</div>
+      <h2>请旋转设备</h2>
+      <p>横屏模式下体验更佳</p>
+      <p class="portrait-sub">Rotate your device for the best experience</p>
+    </div>
+  </div>
   <video class="bg-video" preload="auto" autoplay muted loop playsinline>
     <source src="css/images/game-bg1.mp4" type="video/mp4">
   </video>
@@ -358,7 +370,6 @@
       const pokerPowerModal = document.getElementById('poker-power-modal');
       
       if (pokerPowerBtn && pokerPowerModal) {
-        // 点击按钮切换图片显示/隐藏
         pokerPowerBtn.addEventListener('click', function() {
           if (pokerPowerModal.style.display === 'none' || pokerPowerModal.style.display === '') {
             pokerPowerModal.style.display = 'flex';
@@ -367,7 +378,6 @@
           }
         });
         
-        // 点击弹出层背景关闭图片
         pokerPowerModal.addEventListener('click', function(e) {
           if (e.target === pokerPowerModal) {
             pokerPowerModal.style.display = 'none';
@@ -375,6 +385,81 @@
         });
       }
     });
+  </script>
+
+  <!-- 移动端横屏等比例缩放 -->
+  <script>
+    (function() {
+      function isMobile() {
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+      }
+
+      function isLandscape() {
+        return window.innerWidth > window.innerHeight;
+      }
+
+      function applyScaling() {
+        if (!isMobile()) return;
+
+        var overlay = document.getElementById('portrait-overlay');
+        var container = document.querySelector('.room-container');
+        if (!container) return;
+
+        if (!isLandscape()) {
+          if (overlay) overlay.style.display = 'flex';
+          if (container.style.transform) {
+            container.style.transform = '';
+            container.style.transformOrigin = '';
+            container.style.width = '';
+            container.style.height = '';
+          }
+          return;
+        }
+
+        if (overlay) overlay.style.display = 'none';
+
+        var vh = window.innerHeight;
+        var vw = window.innerWidth;
+
+        if (vh < 500) {
+          var designHeight = 768;
+          var scale = vh / designHeight;
+          scale = Math.max(0.35, Math.min(1, scale));
+
+          container.style.transform = 'scale(' + scale + ')';
+          container.style.transformOrigin = 'top left';
+          container.style.width = (vw / scale) + 'px';
+          container.style.height = (designHeight) + 'px';
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.overflow = 'hidden';
+        } else {
+          container.style.transform = '';
+          container.style.transformOrigin = '';
+          container.style.width = '';
+          container.style.height = '';
+          document.documentElement.style.overflow = '';
+          document.body.style.overflow = '';
+        }
+      }
+
+      applyScaling();
+
+      var resizeTimer;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(applyScaling, 100);
+      });
+
+      window.addEventListener('orientationchange', function() {
+        setTimeout(applyScaling, 300);
+      });
+
+      if (screen.orientation) {
+        screen.orientation.addEventListener('change', function() {
+          setTimeout(applyScaling, 300);
+        });
+      }
+    })();
   </script>
 </body>
 </html>

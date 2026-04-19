@@ -3334,3 +3334,152 @@
     min-height: 50px;
   }
 }
+
+/* ====== 移动端竖屏提示 ====== */
+
+.portrait-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(10, 14, 23, 0.97);
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.portrait-content {
+  color: #fff;
+}
+
+.rotate-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  animation: rotateHint 2s ease-in-out infinite;
+}
+
+@keyframes rotateHint {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(90deg); }
+  75% { transform: rotate(0deg); }
+}
+
+.portrait-content h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.portrait-content p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.portrait-sub {
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+@media screen and (orientation: portrait) and (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  .portrait-overlay {
+    display: flex;
+  }
+}
+
+/* ====== 移动端横屏等比例缩放 ====== */
+
+@media screen and (orientation: landscape) and (max-height: 500px) and (hover: none) and (pointer: coarse) {
+  .room-container {
+    transform-origin: top left;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .room-header {
+    padding-top: env(safe-area-inset-top);
+    height: auto;
+    min-height: 36px;
+  }
+
+  .action-panel {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .bg-video {
+    display: none;
+  }
+
+  .mist-layer {
+    display: none;
+  }
+}
+
+@media screen and (orientation: landscape) and (max-height: 420px) {
+  .room-header {
+    font-size: 11px;
+    padding: 2px 12px;
+    min-height: 28px;
+  }
+
+  .room-header .logo {
+    width: 20px;
+    height: 20px;
+  }
+
+  .action-panel {
+    padding: 8px !important;
+    gap: 4px !important;
+  }
+
+  .action-buttons-vertical {
+    gap: 3px !important;
+  }
+
+  .action-btn {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    min-height: 32px !important;
+  }
+
+  .chip-btn {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    font-size: 10px !important;
+  }
+
+  .bet-control label {
+    font-size: 10px !important;
+  }
+
+  .bet-amount {
+    font-size: 12px !important;
+    padding: 2px 4px !important;
+  }
+
+  .my-info {
+    font-size: 10px !important;
+  }
+}
+
+/* ====== 安全区域全局处理 ====== */
+
+@supports (padding: env(safe-area-inset-top)) {
+  .room-header {
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+
+  .action-panel[position="bottom"],
+  .action-panel[style*="position: fixed"] {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}

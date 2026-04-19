@@ -525,3 +525,35 @@ body {
     min-height: 44px;
   }
 }
+
+/* ====== 移动端安全区域 ====== */
+
+@supports (padding: env(safe-area-inset-top)) {
+  .login-panel {
+    padding-top: calc(32px + env(safe-area-inset-top));
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
+    padding-left: calc(32px + env(safe-area-inset-left));
+    padding-right: calc(32px + env(safe-area-inset-right));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bg-video {
+    display: none;
+  }
+
+  .mist-layer {
+    display: none;
+  }
+
+  .falling-text-canvas {
+    display: none;
+  }
+}
