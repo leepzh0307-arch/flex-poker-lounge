@@ -83,6 +83,8 @@ class GameManager {
         }
         this.gameState.roomId = result.roomId;
         this.gameState.playerId = result.playerId;
+        this.gameState.isHost = true;
+        roomUI.showHostPanel();
         
         localStorage.setItem('playerId', result.playerId);
         roomUI.updateRoomId(result.roomId);
