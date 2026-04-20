@@ -16,12 +16,17 @@ const socketToPlayerMap = new Map();
 
 function buildGameUpdateForPlayer(room, playerId) {
   const gs = room.gameState;
+  const isShowdownOrAfter = ['SHOWDOWN', 'HAND_END', 'CONFIRM_CONTINUE'].includes(gs.phase);
+  const showdownPlayerIds = gs.showdownPlayerIds || [];
+
   return {
     roomId: room.id,
     players: room.players.map(p => {
       const { cards, ...playerCopy } = { ...p };
       const isSelf = p.id === playerId;
       if (isSelf) {
+        playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }];
+      } else if (isShowdownOrAfter && showdownPlayerIds.includes(p.id)) {
         playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }];
       } else if (p.isActive && gs.phase === 'SHOWDOWN') {
         playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }];
@@ -37,7 +42,11 @@ function buildGameUpdateForPlayer(room, playerId) {
     maxBet: gs.maxBet || 0,
     gamePhase: gs.phase || 'WAITING',
     currentPlayer: gs.currentPlayer,
+    dealerButton: room.dealerButton,
+    smallBlindAmount: room.smallBlindAmount || 10,
+    bigBlindAmount: room.bigBlindAmount || 20,
     roundBets: gs.roundBets ? { ...gs.roundBets } : {},
+    handBets: gs.handBets ? { ...gs.handBets } : {},
   };
 }
 

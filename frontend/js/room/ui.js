@@ -170,7 +170,10 @@ class RoomUI {
     });
 
     bindEvent(this.elements.exitRoom, () => {
-      if (confirm('确定要退出房间吗？')) {
+      const msg = this.currentLanguage === 'en' ? 'Are you sure you want to leave?' : '确定要退出房间吗？';
+      if (confirm(msg)) {
+        if (window.socketClient) socketClient.leaveRoom();
+        if (window.agoraVoice) agoraVoice.leaveChannel();
         window.location.href = 'index.html';
       }
     });
@@ -356,41 +359,40 @@ class RoomUI {
 
         if (currentBet > 0 && player.isActive) {
           betEl.textContent = currentBet;
-          betEl.style.display = 'block';
+          betEl.style.display = 'flex';
+
+          const seatRect = seat.getBoundingClientRect();
+          const tableEl = seat.closest('main') || seat.parentElement;
+          const tableRect = tableEl.getBoundingClientRect();
+          const centerX = tableRect.left + tableRect.width / 2;
+          const centerY = tableRect.top + tableRect.height / 2;
+          const seatCenterX = seatRect.left + seatRect.width / 2;
+          const seatCenterY = seatRect.top + seatRect.height / 2;
+          const dx = centerX - seatCenterX;
+          const dy = centerY - seatCenterY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const moveDistance = Math.min(dist * 0.35, 120);
+          const nx = dist > 0 ? dx / dist : 0;
+          const ny = dist > 0 ? dy / dist : 0;
+          const tx = Math.round(nx * moveDistance);
+          const ty = Math.round(ny * moveDistance);
+          betEl.style.setProperty('--bet-tx', tx + 'px');
+          betEl.style.setProperty('--bet-ty', ty + 'px');
           
           if (betChanged) {
-            const seatRect = seat.getBoundingClientRect();
-            const tableEl = seat.closest('main') || seat.parentElement;
-            const tableRect = tableEl.getBoundingClientRect();
-            const centerX = tableRect.left + tableRect.width / 2;
-            const centerY = tableRect.top + tableRect.height / 2;
-            const seatCenterX = seatRect.left + seatRect.width / 2;
-            const seatCenterY = seatRect.top + seatRect.height / 2;
-            const dx = centerX - seatCenterX;
-            const dy = centerY - seatCenterY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveDistance = Math.min(dist * 0.35, 120);
-            const nx = dist > 0 ? dx / dist : 0;
-            const ny = dist > 0 ? dy / dist : 0;
-            const tx = Math.round(nx * moveDistance);
-            const ty = Math.round(ny * moveDistance);
-            betEl.style.setProperty('--bet-tx', tx + 'px');
-            betEl.style.setProperty('--bet-ty', ty + 'px');
+            betEl.classList.remove('fade-out', 'animate');
+            void betEl.offsetWidth;
+            betEl.classList.add('animate');
             
-            betEl.classList.remove('fade-out');
             setTimeout(() => {
-              betEl.classList.add('animate');
-              
-              setTimeout(() => {
-                betEl.classList.remove('animate');
-              }, 1500);
-            }, 100);
+              betEl.classList.remove('animate');
+            }, 1200);
           }
         } else {
           if (player.id) {
             this.previousBets[player.id] = 0;
           }
-          if (betEl.style.display === 'block') {
+          if (betEl.style.display === 'flex') {
             betEl.classList.add('fade-out');
             
             // 动画结束后隐藏元素
@@ -612,7 +614,7 @@ class RoomUI {
   // 触发筹码汇聚动画
   triggerBetGatherAnimation() {
     this.elements.playerBets.forEach(betEl => {
-      if (betEl && betEl.style.display === 'block') {
+      if (betEl && betEl.style.display === 'flex') {
         // 移除之前的动画类
         betEl.classList.remove('animate', 'fade-out');
         
@@ -1180,31 +1182,6 @@ class RoomUI {
         entry.classList.remove('english-text');
       }
     });
-
-    // 重新绑定复制按钮事件
-    setTimeout(() => {
-      const newCopyBtn = document.getElementById('copy-room-id');
-      if (newCopyBtn) {
-        newCopyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText(this.elements.roomId.textContent)
-            .then(() => {
-              this.showGameStatus(t['copy-success'], t['copy-message']);
-              setTimeout(() => { this.hideGameStatus(); }, 500);
-            })
-            .catch(err => console.error('复制失败:', err));
-        });
-      }
-
-      // 重新绑定退出按钮事件
-      const newExitBtn = document.getElementById('exit-room');
-      if (newExitBtn) {
-        newExitBtn.addEventListener('click', () => {
-          if (confirm(t['confirm-exit'])) {
-            window.location.href = 'index.html';
-          }
-        });
-      }
-    }, 100);
   }
 }
 

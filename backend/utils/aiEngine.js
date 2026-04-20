@@ -23,21 +23,24 @@ const AI_NAMES = [
 // ========== 仅3档难度：简单 / 中等 / 困难 ==========
 const AI_CONFIGS = {
   easy: {
+    label: '简单',
     mul: 0.6,
-    mistakeRate: 0.4,  // 高失误：乱打、乱弃
-    winBonus: 0.0,     // 无胜率加成
+    mistakeRate: 0.4,
+    winBonus: 0.0,
     think: [600, 1200]
   },
   medium: {
+    label: '中等',
     mul: 1.0,
-    mistakeRate: 0.15, // 少量失误
-    winBonus: 0.1,     // 正常胜率
+    mistakeRate: 0.15,
+    winBonus: 0.1,
     think: [1200, 2500]
   },
   hard: {
+    label: '困难',
     mul: 1.4,
-    mistakeRate: 0.02, // 几乎零失误
-    winBonus: 0.25,    // 高手胜率
+    mistakeRate: 0.02,
+    winBonus: 0.25,
     think: [1500, 3500]
   }
 };
@@ -210,6 +213,7 @@ function getThinkTime(difficulty, personality) {
 module.exports = {
   AI_NAMES,
   AI_PERSONALITIES,
+  AI_CONFIGS,
   pickAiName,
   clearRoomPersonality,
   makeDecision,

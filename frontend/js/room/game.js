@@ -83,8 +83,6 @@ class GameManager {
         }
         this.gameState.roomId = result.roomId;
         this.gameState.playerId = result.playerId;
-        this.gameState.isHost = true;
-        roomUI.showHostPanel();
         
         localStorage.setItem('playerId', result.playerId);
         roomUI.updateRoomId(result.roomId);
@@ -129,15 +127,6 @@ class GameManager {
   }
 
   bindEvents() {
-    // 语音按钮事件已在ui.js中绑定，这里不再重复绑定
-
-    document.getElementById('exit-room').addEventListener('click', () => {
-      if (confirm('确定要退出房间吗？')) {
-        socketClient.leaveRoom();
-        agoraVoice.leaveChannel();
-        window.location.href = 'index.html';
-      }
-    });
   }
 
   updateGameState(gameState) {

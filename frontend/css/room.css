@@ -1425,8 +1425,8 @@
 .player-bet {
   position: absolute;
   top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: url('images/chip-btn1.webp') no-repeat center center;
   background-size: contain;
   color: #000000;
@@ -1444,14 +1444,13 @@
   text-align: center;
   width: 60px;
   height: 60px;
-  display: flex;
   align-items: center;
   justify-content: center;
   padding-top: 20px;
 }
 
 .player-bet.animate {
-  animation: betThrow 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, betPulse 0.5s ease-in-out infinite alternate 1s;
+  animation: betThrow 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards, betPulse 0.5s ease-in-out infinite alternate 0.8s;
 }
 
 .player-bet.fade-out {
@@ -1460,25 +1459,26 @@
 
 @keyframes betThrow {
   0% {
-    transform: translateY(-50%) rotate(0deg);
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translate(calc(-50% + var(--bet-tx, 0px) * 0.5), calc(-50% + var(--bet-ty, 0px) * 0.5)) scale(1.1);
     opacity: 1;
-    scale: 1;
   }
   100% {
-    transform: translate(var(--bet-tx, 50px), var(--bet-ty, -50px)) rotate(360deg);
+    transform: translate(calc(-50% + var(--bet-tx, 0px)), calc(-50% + var(--bet-ty, 0px))) scale(1);
     opacity: 1;
-    scale: 1;
   }
 }
 
 @keyframes betGather {
   0% {
-    transform: translate(var(--bet-tx, 50px), var(--bet-ty, -50px)) rotate(360deg);
+    transform: translate(calc(-50% + var(--bet-tx, 0px)), calc(-50% + var(--bet-ty, 0px))) scale(1);
     opacity: 1;
-    scale: 1;
   }
   100% {
-    transform: translate(calc(var(--bet-tx, 50px) * 2.5), calc(var(--bet-ty, -50px) * 2.5)) scale(0);
+    transform: translate(calc(-50% + var(--bet-tx, 0px) * 2.5), calc(-50% + var(--bet-ty, 0px) * 2.5)) scale(0);
     opacity: 0;
   }
 }
