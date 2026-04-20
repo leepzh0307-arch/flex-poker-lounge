@@ -267,6 +267,36 @@ class RoomUI {
         window.gameManager.sendGameAction('resetGame');
       }
     });
+
+    bindEvent(document.getElementById('settle-game-btn'), () => {
+      if (window.gameManager) {
+        window.gameManager.sendGameAction('settleGame');
+      }
+    });
+
+    bindEvent(document.getElementById('set-chips-btn'), () => {
+      const select = document.getElementById('player-select');
+      const input = document.getElementById('chips-amount-input');
+      const playerId = select?.value;
+      const chips = parseInt(input?.value) || 0;
+      if (playerId && chips >= 0 && window.gameManager) {
+        window.gameManager.sendGameAction('setPlayerChips', { playerId, chips });
+      }
+    });
+
+    bindEvent(document.getElementById('add-chips-btn'), () => {
+      const select = document.getElementById('player-select');
+      const input = document.getElementById('chips-amount-input');
+      const playerId = select?.value;
+      const amount = parseInt(input?.value) || 0;
+      if (playerId && amount > 0 && window.gameManager) {
+        window.gameManager.sendGameAction('addPlayerChips', { playerId, amount });
+      }
+    });
+
+    bindEvent(document.getElementById('settle-close-btn'), () => {
+      document.getElementById('settle-modal').style.display = 'none';
+    });
   }
 
   updateRoomId(roomId) {
@@ -361,41 +391,47 @@ class RoomUI {
           betEl.textContent = currentBet;
           betEl.style.display = 'flex';
 
-          const seatRect = seat.getBoundingClientRect();
-          const tableEl = seat.closest('main') || seat.parentElement;
-          const tableRect = tableEl.getBoundingClientRect();
-          const centerX = tableRect.left + tableRect.width / 2;
-          const centerY = tableRect.top + tableRect.height / 2;
-          const seatCenterX = seatRect.left + seatRect.width / 2;
-          const seatCenterY = seatRect.top + seatRect.height / 2;
-          const dx = centerX - seatCenterX;
-          const dy = centerY - seatCenterY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const moveDistance = Math.min(dist * 0.35, 120);
-          const nx = dist > 0 ? dx / dist : 0;
-          const ny = dist > 0 ? dy / dist : 0;
-          const tx = Math.round(nx * moveDistance);
-          const ty = Math.round(ny * moveDistance);
+          // 根据座位号确定筹码偏移方向（朝牌桌中心方向）
+          // 座位1/9/10在底部 → 筹码向上（负Y）
+          // 座位2/3在左侧 → 筹码向右（正X）
+          // 座位4/5/6在顶部 → 筹码向下（正Y）
+          // 座位7/8在右侧 → 筹码向左（负X）
+          const betOffsets = {
+            1:  { dx: 0,  dy: -1 },
+            2:  { dx: 1,  dy: 0 },
+            3:  { dx: 1,  dy: 0 },
+            4:  { dx: 0,  dy: 1 },
+            5:  { dx: 0,  dy: 1 },
+            6:  { dx: 0,  dy: 1 },
+            7:  { dx: -1, dy: 0 },
+            8:  { dx: -1, dy: 0 },
+            9:  { dx: 0,  dy: -1 },
+            10: { dx: 0,  dy: -1 }
+          };
+          const offset = betOffsets[seatIndex] || { dx: 0, dy: -1 };
+          const moveDistance = 80;
+          const tx = Math.round(offset.dx * moveDistance);
+          const ty = Math.round(offset.dy * moveDistance);
           betEl.style.setProperty('--bet-tx', tx + 'px');
           betEl.style.setProperty('--bet-ty', ty + 'px');
           
           if (betChanged) {
-            betEl.classList.remove('fade-out', 'animate');
-            void betEl.offsetWidth;
-            betEl.classList.add('animate');
-            
-            setTimeout(() => {
-              betEl.classList.remove('animate');
-            }, 1200);
+            betEl.classList.remove('fade-out', 'animate', 'gather');
+            betEl.offsetHeight;
+            requestAnimationFrame(() => {
+              betEl.classList.add('animate');
+              setTimeout(() => {
+                betEl.classList.remove('animate');
+              }, 1200);
+            });
           }
         } else {
           if (player.id) {
             this.previousBets[player.id] = 0;
           }
           if (betEl.style.display === 'flex') {
+            betEl.classList.remove('animate', 'gather');
             betEl.classList.add('fade-out');
-            
-            // 动画结束后隐藏元素
             setTimeout(() => {
               betEl.style.display = 'none';
               betEl.classList.remove('fade-out');
@@ -643,6 +679,8 @@ class RoomUI {
     if (this.elements.startGameBtn) {
       this.elements.startGameBtn.style.display = 'none';
     }
+    const settleBtn = document.getElementById('settle-game-btn');
+    if (settleBtn) settleBtn.style.display = show ? 'inline-block' : 'none';
   }
 
   showStartGameButton(show) {
@@ -652,6 +690,8 @@ class RoomUI {
     if (this.elements.nextHandBtn) {
       this.elements.nextHandBtn.style.display = 'none';
     }
+    const settleBtn = document.getElementById('settle-game-btn');
+    if (settleBtn) settleBtn.style.display = show ? 'inline-block' : 'none';
   }
 
   hideHostButtons() {
@@ -661,6 +701,42 @@ class RoomUI {
     if (this.elements.nextHandBtn) {
       this.elements.nextHandBtn.style.display = 'none';
     }
+  }
+
+  updatePlayerSelect(players) {
+    const select = document.getElementById('player-select');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '';
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.playerId;
+      opt.textContent = `${p.nickname} (${p.chips})`;
+      select.appendChild(opt);
+    });
+    if (currentVal && players.some(p => p.playerId === currentVal)) {
+      select.value = currentVal;
+    }
+  }
+
+  showSettleModal(scoreboard) {
+    const modal = document.getElementById('settle-modal');
+    const tbody = document.getElementById('settle-table-body');
+    if (!modal || !tbody) return;
+    tbody.innerHTML = '';
+    scoreboard.forEach(row => {
+      const tr = document.createElement('tr');
+      const profitClass = row.profit > 0 ? 'profit-positive' : row.profit < 0 ? 'profit-negative' : 'profit-zero';
+      const profitText = row.profit > 0 ? `+${row.profit}` : row.profit === 0 ? '0' : `${row.profit}`;
+      tr.innerHTML = `
+        <td>${row.nickname}${row.isAI ? ' 🤖' : ''}</td>
+        <td>${row.currentChips}</td>
+        <td class="${profitClass}">${profitText}</td>
+        <td>${row.totalOriginal}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    modal.style.display = 'flex';
   }
 
   showContinueGameButton(show) {

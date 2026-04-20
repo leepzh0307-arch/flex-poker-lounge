@@ -265,9 +265,12 @@
     <!-- 房主专属面板 -->
     <div id="host-panel" class="host-panel" style="display: none;">
       <h3>房主控制面板</h3>
-      <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
-      <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
-      <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
+      <div class="host-btn-row">
+        <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
+        <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
+        <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
+        <button id="settle-game-btn" class="btn btn-host settle-btn" style="display: none;">结算牌局</button>
+      </div>
       <div class="host-grid">
         <div class="host-col">
           <div class="host-control">
@@ -285,6 +288,34 @@
             <input type="number" id="initial-chips-input" min="100" value="1000">
           </div>
         </div>
+      </div>
+      <div class="host-chips-section">
+        <h4>玩家筹码管理</h4>
+        <div class="host-chips-controls">
+          <select id="player-select" class="player-select"></select>
+          <input type="number" id="chips-amount-input" class="chips-amount-input" min="0" value="1000" placeholder="筹码数量">
+          <button id="set-chips-btn" class="btn btn-host set-chips-btn">设定筹码</button>
+          <button id="add-chips-btn" class="btn btn-host add-chips-btn">追加筹码</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结算计分板弹窗 -->
+    <div id="settle-modal" class="settle-modal" style="display: none;">
+      <div class="settle-modal-content">
+        <h3>牌局结算</h3>
+        <table class="settle-table">
+          <thead>
+            <tr>
+              <th>玩家</th>
+              <th>当前筹码</th>
+              <th>盈亏</th>
+              <th>原有筹码</th>
+            </tr>
+          </thead>
+          <tbody id="settle-table-body"></tbody>
+        </table>
+        <button id="settle-close-btn" class="btn btn-host settle-close-btn">关闭</button>
       </div>
     </div>
 

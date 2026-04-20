@@ -53,6 +53,15 @@ module.exports = (socket, rooms, io) => {
         case 'resetGame':
           resetGame(room, roomId, io);
           break;
+        case 'setPlayerChips':
+          handleSetPlayerChips(room, roomId, io, socket.id, data);
+          break;
+        case 'addPlayerChips':
+          handleAddPlayerChips(room, roomId, io, socket.id, data);
+          break;
+        case 'settleGame':
+          handleSettleGame(room, roomId, io, socket.id);
+          break;
         case 'fold':
           handleFold(room, roomId, io, socket.id, rooms);
           break;
@@ -181,6 +190,19 @@ function startGame(room, roomId, io, config, rooms) {
 
   room.smallBlindAmount = config?.smallBlind || 10;
   room.bigBlindAmount = config?.bigBlind || (room.smallBlindAmount * 2);
+
+  if (!room.initialChipsMap) room.initialChipsMap = {};
+  if (!room.extraChipsMap) room.extraChipsMap = {};
+
+  room.players.forEach(player => {
+    if (room.initialChipsMap[player.playerId] === undefined) {
+      const defaultChips = config?.initialChips || room.config?.initialChips || 1000;
+      room.initialChipsMap[player.playerId] = defaultChips;
+      if (player.chips === 1000 || player.chips === 0) {
+        player.chips = defaultChips;
+      }
+    }
+  });
 
   if (room.dealerButton === undefined) {
     room.dealerButton = Math.floor(Math.random() * room.players.length);
@@ -1055,8 +1077,13 @@ function finishHandEndTransition(room, roomId, io, rooms) {
 
 function resetGame(room, roomId, io) {
   room.dealerButton = undefined;
+  room.initialChipsMap = {};
+  room.extraChipsMap = {};
+  const defaultChips = room.config?.initialChips || 1000;
   room.players.forEach(player => {
-    player.chips = 1000;
+    const resetChips = defaultChips;
+    room.initialChipsMap[player.playerId] = resetChips;
+    player.chips = resetChips;
     player.isActive = true;
     player.isTurn = false;
     player.isSmallBlind = false;
@@ -1083,6 +1110,84 @@ function resetGame(room, roomId, io) {
   };
 
   sendGameUpdateWithCards(room, roomId, io, '游戏已重置');
+}
+
+// ==================== 房主设定玩家筹码 ====================
+
+function handleSetPlayerChips(room, roomId, io, hostSocketId, data) {
+  if (room.host !== hostSocketId) return;
+  if (!data || !data.playerId || data.chips === undefined) return;
+  const chips = Math.max(0, parseInt(data.chips) || 0);
+  const target = room.players.find(p => p.playerId === data.playerId);
+  if (!target) return;
+
+  if (!room.initialChipsMap) room.initialChipsMap = {};
+  if (room.initialChipsMap[data.playerId] === undefined) {
+    room.initialChipsMap[data.playerId] = target.chips;
+  }
+  room.initialChipsMap[data.playerId] = chips;
+  target.chips = chips;
+
+  sendGameUpdateWithCards(room, roomId, io, `${target.nickname} 的筹码已设为 ${chips}`);
+}
+
+// ==================== 房主追加玩家筹码 ====================
+
+function handleAddPlayerChips(room, roomId, io, hostSocketId, data) {
+  if (room.host !== hostSocketId) return;
+  if (!data || !data.playerId || data.amount === undefined) return;
+  const amount = Math.max(0, parseInt(data.amount) || 0);
+  if (amount <= 0) return;
+  const target = room.players.find(p => p.playerId === data.playerId);
+  if (!target) return;
+
+  if (!room.extraChipsMap) room.extraChipsMap = {};
+  if (!room.extraChipsMap[data.playerId]) room.extraChipsMap[data.playerId] = 0;
+  room.extraChipsMap[data.playerId] += amount;
+  target.chips += amount;
+
+  sendGameUpdateWithCards(room, roomId, io, `房主给 ${target.nickname} 追加了 ${amount} 筹码`);
+}
+
+// ==================== 结算牌局 ====================
+
+function handleSettleGame(room, roomId, io, hostSocketId) {
+  if (room.host !== hostSocketId) return;
+
+  if (!room.initialChipsMap) room.initialChipsMap = {};
+  if (!room.extraChipsMap) room.extraChipsMap = {};
+
+  const scoreboard = room.players.map(p => {
+    const initialChips = room.initialChipsMap[p.playerId] !== undefined
+      ? room.initialChipsMap[p.playerId]
+      : (room.config?.initialChips || 1000);
+    const extraChips = room.extraChipsMap[p.playerId] || 0;
+    const totalOriginal = initialChips + extraChips;
+    const profit = p.chips - totalOriginal;
+    return {
+      playerId: p.playerId,
+      nickname: p.nickname,
+      currentChips: p.chips,
+      profit: profit,
+      totalOriginal: totalOriginal,
+      isAI: p.isAI || false,
+    };
+  });
+
+  scoreboard.sort((a, b) => b.currentChips - a.currentChips);
+
+  room.gameState.phase = 'SETTLED';
+
+  room.players.forEach(p => {
+    if (p.isAI) return;
+    io.to(p.id).emit('gameAction', {
+      type: 'settleGame',
+      scoreboard: scoreboard,
+      timestamp: Date.now(),
+    });
+  });
+
+  sendGameUpdateWithCards(room, roomId, io, '牌局已结算');
 }
 
 function handleConfirmContinue(room, roomId, io, playerId, rooms) {

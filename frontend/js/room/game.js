@@ -212,6 +212,9 @@ class GameManager {
       } else {
         roomUI.hideHostButtons();
       }
+      if (updates.players) {
+        roomUI.updatePlayerSelect(gameState.players || []);
+      }
     }
 
     // 检查是否需要显示继续游戏按钮
@@ -321,6 +324,12 @@ class GameManager {
         this.addGameLog(winnerMessage, 'winner');
         if (action.playerId) {
           roomUI.showWinnerBadge(action.playerId);
+        }
+        break;
+      case 'settleGame':
+        this.addGameLog(`<span class="log-action">牌局已结算</span>`, 'system');
+        if (action.scoreboard) {
+          roomUI.showSettleModal(action.scoreboard);
         }
         break;
       default:

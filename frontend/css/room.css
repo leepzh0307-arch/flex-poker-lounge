@@ -1450,7 +1450,14 @@
 }
 
 .player-bet.animate {
-  animation: betThrow 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards, betPulse 0.5s ease-in-out infinite alternate 0.8s;
+  animation: betThrow 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, betPulse 0.5s ease-in-out infinite alternate 0.8s;
+}
+
+.player-bet {
+  /* 确保没有动画时也保持最终位置 */
+  transform: translate(calc(-50% + var(--bet-tx, 0px)), calc(-50% + var(--bet-ty, 0px))) scale(1);
+  opacity: 1;
+  will-change: transform, opacity; /* 优化动画性能 */
 }
 
 .player-bet.fade-out {
@@ -1462,8 +1469,8 @@
     transform: translate(-50%, -50%) scale(0.6);
     opacity: 0.5;
   }
-  40% {
-    transform: translate(calc(-50% + var(--bet-tx, 0px) * 0.5), calc(-50% + var(--bet-ty, 0px) * 0.5)) scale(1.1);
+  60% {
+    transform: translate(calc(-50% + var(--bet-tx, 0px) * 0.65), calc(-50% + var(--bet-ty, 0px) * 0.65)) scale(1.15);
     opacity: 1;
   }
   100% {
@@ -1829,6 +1836,232 @@
 
 .btn-danger:active {
   transform: translateY(2px) scale(0.98);
+}
+
+.host-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.settle-btn {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 152, 0, 0.2));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+  padding: 10px 16px;
+  font-size: 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.settle-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.35), rgba(255, 152, 0, 0.35));
+  text-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
+  transform: translateY(-1px);
+}
+
+.host-chips-section {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.host-chips-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 11px;
+  font-family: 'PingFang SC';
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.host-chips-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.player-select {
+  width: 100%;
+  padding: 8px 4px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.25)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.player-select option {
+  background: #1a2220;
+  color: #fff;
+}
+
+.chips-amount-input {
+  width: 100%;
+  padding: 8px 4px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  outline: none;
+  text-align: center;
+}
+
+.chips-amount-input:focus {
+  border-color: rgba(140, 195, 175, 0.4);
+}
+
+.host-chips-controls .btn-row {
+  display: flex;
+  gap: 6px;
+}
+
+.set-chips-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 10px;
+  background: rgba(100, 180, 140, 0.15);
+  border: 1px solid rgba(100, 180, 140, 0.25);
+  color: #82dcbe;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.set-chips-btn:hover {
+  background: rgba(100, 180, 140, 0.3);
+  transform: translateY(-1px);
+}
+
+.add-chips-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 10px;
+  background: rgba(100, 140, 220, 0.15);
+  border: 1px solid rgba(100, 140, 220, 0.25);
+  color: #82b4dc;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.add-chips-btn:hover {
+  background: rgba(100, 140, 220, 0.3);
+  transform: translateY(-1px);
+}
+
+.settle-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.settle-modal-content {
+  background: linear-gradient(145deg, rgba(20, 25, 30, 0.95), rgba(10, 15, 20, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px 40px;
+  min-width: 380px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: center;
+  animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.settle-modal-content h3 {
+  margin: 0 0 24px 0;
+  font-family: 'PingFang SC';
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffc107;
+  letter-spacing: 2px;
+}
+
+.settle-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+
+.settle-table th {
+  font-family: 'PingFang SC';
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.settle-table td {
+  font-family: 'PingFang SC';
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  text-align: center;
+}
+
+.settle-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.settle-table .profit-positive {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.settle-table .profit-negative {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.settle-table .profit-zero {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.settle-close-btn {
+  padding: 10px 32px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.settle-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* ====== 下注操作面板（左侧） ====== */
