@@ -1543,6 +1543,15 @@
   animation: allinGlow 1s ease-in-out infinite alternate;
 }
 
+.player-status.eliminated {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  display: block;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
 @keyframes allinGlow {
   from { box-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
   to { box-shadow: 0 0 16px rgba(255, 215, 0, 0.9); }

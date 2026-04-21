@@ -2,6 +2,7 @@
 const roomHandler = require('./handlers/room');
 const gameHandler = require('./handlers/game');
 const voiceHandler = require('./handlers/voice');
+const { clearRoomPersonality } = require('../utils/aiEngine');
 
 // 房间存储
 const rooms = new Map();
@@ -73,6 +74,7 @@ module.exports = (io) => {
                 }
                 
                 rooms.delete(roomId);
+                clearRoomPersonality(roomId);
                 console.log(`房间 ${roomId} 已删除（所有玩家离线）`);
               }
             }

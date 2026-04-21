@@ -226,7 +226,13 @@ function startGame(room, roomId, io, config, rooms) {
   };
 
   room.players.forEach(player => {
-    player.isActive = true;
+    if (player.chips <= 0) {
+      player.isActive = false;
+      player.isEliminated = true;
+    } else {
+      player.isActive = true;
+      player.isEliminated = false;
+    }
     player.isTurn = false;
     player.isSmallBlind = false;
     player.isBigBlind = false;
@@ -1006,7 +1012,13 @@ function doHandEnd(room, roomId, io, rooms) {
   room.players = room.players.filter(player => player.isOnline !== false || player.isAI);
   
   room.players.forEach(player => {
-    player.isActive = true;
+    if (player.chips <= 0) {
+      player.isActive = false;
+      player.isEliminated = true;
+    } else {
+      player.isActive = true;
+      player.isEliminated = false;
+    }
     player.isTurn = false;
     player.isSmallBlind = false;
     player.isBigBlind = false;
@@ -1128,6 +1140,11 @@ function handleSetPlayerChips(room, roomId, io, hostSocketId, data) {
   room.initialChipsMap[data.playerId] = chips;
   target.chips = chips;
 
+  if (chips > 0) {
+    target.isActive = true;
+    target.isEliminated = false;
+  }
+
   sendGameUpdateWithCards(room, roomId, io, `${target.nickname} 的筹码已设为 ${chips}`);
 }
 
@@ -1145,6 +1162,11 @@ function handleAddPlayerChips(room, roomId, io, hostSocketId, data) {
   if (!room.extraChipsMap[data.playerId]) room.extraChipsMap[data.playerId] = 0;
   room.extraChipsMap[data.playerId] += amount;
   target.chips += amount;
+
+  if (target.chips > 0) {
+    target.isActive = true;
+    target.isEliminated = false;
+  }
 
   sendGameUpdateWithCards(room, roomId, io, `房主给 ${target.nickname} 追加了 ${amount} 筹码`);
 }

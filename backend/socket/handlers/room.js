@@ -1,6 +1,6 @@
 // 房间处理模块
 const { generateRoomId } = require('../../utils/deck');
-const { pickAiName, AI_CONFIGS } = require('../../utils/aiEngine');
+const { pickAiName, AI_CONFIGS, AI_PERSONALITIES } = require('../../utils/aiEngine');
 
 // 生成唯一玩家ID
 function generatePlayerId() {
@@ -131,16 +131,17 @@ module.exports = (socket, rooms, io) => {
 
       const existingNames = [nickname];
       const aiPlayers = [];
+      const allPersonalities = Object.keys(AI_PERSONALITIES);
       for (let i = 0; i < count; i++) {
-        // 修改1：调用新 pickAiName，传递 roomId，获取不重复人格
-        const { name: aiName, personality } = pickAiName(existingNames, roomId);
+        const aiName = `BOT${i + 1}`;
         existingNames.push(aiName);
         const aiId = generateAiPlayerId();
+        const personality = allPersonalities[i % allPersonalities.length];
         aiPlayers.push({
           id: aiId,
           playerId: aiId,
           nickname: aiName,
-          personality: personality, // 修改2：添加 personality 字段
+          personality: personality,
           chips: chips,
           seat: i + 2,
           isActive: true,

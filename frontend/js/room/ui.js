@@ -444,8 +444,13 @@ class RoomUI {
 
       if (statusEl) {
         if (!player.isActive) {
-          statusEl.textContent = '已弃牌';
-          statusEl.className = 'player-status folded';
+          if (player.isEliminated) {
+            statusEl.textContent = '出局';
+            statusEl.className = 'player-status eliminated';
+          } else {
+            statusEl.textContent = '已弃牌';
+            statusEl.className = 'player-status folded';
+          }
           statusEl.style.display = 'block';
         } else if (player.chips === 0) {
           statusEl.textContent = 'ALL IN';
