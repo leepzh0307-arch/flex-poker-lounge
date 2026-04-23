@@ -3,6 +3,7 @@ const roomHandler = require('./handlers/room');
 const gameHandler = require('./handlers/game');
 const voiceHandler = require('./handlers/voice');
 const { clearRoomPersonality } = require('../utils/aiEngine');
+const StandUpGame = require('../utils/standupGame');
 
 // 房间存储
 const rooms = new Map();
@@ -38,6 +39,18 @@ module.exports = (io) => {
           const playerId = player.id;
           const playerNickname = player.nickname;
           
+          var suLeaveResult = StandUpGame.onPlayerLeave(room, socket.id);
+          if (suLeaveResult) {
+            room.players.forEach(p => {
+              if (p.isAI) return;
+              io.to(p.id).emit('gameAction', {
+                type: 'standupGame',
+                result: suLeaveResult,
+                timestamp: Date.now(),
+              });
+            });
+          }
+          
           // 延迟标记玩家为离线，给玩家重新连接的机会
           const disconnectTimeout = setTimeout(() => {
             const checkRoom = rooms.get(roomId);
@@ -72,6 +85,8 @@ module.exports = (io) => {
                 if (playerInfo) {
                   playerMap.delete(socket.id);
                 }
+                
+                StandUpGame.onTableClose(checkRoom);
                 
                 rooms.delete(roomId);
                 clearRoomPersonality(roomId);

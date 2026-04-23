@@ -294,6 +294,14 @@ class RoomUI {
       }
     });
 
+    const standupToggle = document.getElementById('standup-game-toggle');
+    const standupPenaltyControl = document.getElementById('standup-penalty-control');
+    if (standupToggle && standupPenaltyControl) {
+      standupToggle.addEventListener('change', () => {
+        standupPenaltyControl.style.display = standupToggle.checked ? 'block' : 'none';
+      });
+    }
+
     bindEvent(document.getElementById('settle-close-btn'), () => {
       document.getElementById('settle-modal').style.display = 'none';
     });
@@ -826,12 +834,16 @@ class RoomUI {
   }
 
   getHostConfig() {
+    const standupToggle = document.getElementById('standup-game-toggle');
+    const standupPenalty = document.getElementById('standup-penalty-input');
     return {
       smallBlind: parseInt(document.getElementById('small-blind-input')?.value) || 10,
       bigBlind: parseInt(document.getElementById('big-blind-input')?.value) || 20,
       initialChips: parseInt(document.getElementById('initial-chips-input')?.value) || 1000,
       playerCards: 2,
       communityCards: 5,
+      enable_standup_game: standupToggle ? standupToggle.checked : false,
+      standup_penalty_amount: standupPenalty ? parseInt(standupPenalty.value) || 5000 : 5000,
     };
   }
 
@@ -1262,6 +1274,100 @@ class RoomUI {
       } else {
         entry.classList.remove('english-text');
       }
+    });
+  }
+
+  updateStandupStatus(standupData) {
+    const container = document.getElementById('standup-status');
+    const counterEl = document.getElementById('standup-counter');
+    const playersEl = document.getElementById('standup-players');
+
+    if (!container) return;
+
+    if (!standupData || !standupData.enabled) {
+      container.style.display = 'none';
+      return;
+    }
+
+    container.style.display = 'block';
+
+    if (counterEl) {
+      counterEl.textContent = `${standupData.standingCount}/${standupData.participantCount}`;
+    }
+
+    if (playersEl && standupData.players) {
+      playersEl.innerHTML = '';
+      Object.keys(standupData.players).forEach(pid => {
+        const pInfo = standupData.players[pid];
+        const tag = document.createElement('span');
+        tag.className = 'standup-player-tag';
+
+        if (standupData.payPlayerId === pid) {
+          tag.classList.add('payer');
+          tag.textContent = `💰${pInfo.nickname}`;
+        } else if (pInfo.isStanding) {
+          tag.classList.add('standing');
+          tag.textContent = `🧍${pInfo.nickname}`;
+        } else {
+          tag.classList.add('sitting');
+          tag.textContent = `🪑${pInfo.nickname}`;
+        }
+
+        playersEl.appendChild(tag);
+      });
+    }
+  }
+
+  showStandupSettlement(result) {
+    if (!result || result.type !== 'FINAL_SETTLEMENT') return;
+
+    const modal = document.createElement('div');
+    modal.className = 'standup-settlement-modal';
+
+    const isZh = this.currentLanguage === 'zh';
+    const title = isZh ? '站立游戏结算' : 'Stand Up Game Settlement';
+    const payerLabel = isZh ? '支付方' : 'Payer';
+    const perPersonLabel = isZh ? '每人惩罚金' : 'Penalty per person';
+    const totalLabel = isZh ? '总支付' : 'Total paid';
+    const closeLabel = isZh ? '关闭' : 'Close';
+
+    let detailHtml = `
+      <div class="payer-name">${payerLabel}: ${result.payPlayerNickname}</div>
+      <div>${perPersonLabel}: <span class="amount">${result.penaltyPerPerson}</span></div>
+      <div>${totalLabel}: <span class="amount">${result.totalPayable}</span></div>
+    `;
+
+    if (!result.fullyPaid) {
+      const note = isZh
+        ? `⚠️ 筹码不足，实际支付 ${result.payerOriginalChips}，按比例分配`
+        : `⚠️ Insufficient chips. Paid ${result.payerOriginalChips} proportionally`;
+      detailHtml += `<div class="partial-note">${note}</div>`;
+    }
+
+    if (result.settlements && result.settlements.length > 0) {
+      const receiverLabel = isZh ? '收款方' : 'Receivers';
+      detailHtml += `<div style="margin-top:8px;">${receiverLabel}:</div>`;
+      result.settlements.forEach(s => {
+        detailHtml += `<div>${s.receiverNickname}: +<span class="amount">${s.amount}</span></div>`;
+      });
+    }
+
+    modal.innerHTML = `
+      <div class="standup-settlement-content">
+        <h3>${title}</h3>
+        <div class="standup-settlement-detail">${detailHtml}</div>
+        <button class="standup-settlement-close">${closeLabel}</button>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector('.standup-settlement-close').addEventListener('click', () => {
+      modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
     });
   }
 }

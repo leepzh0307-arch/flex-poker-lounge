@@ -2,6 +2,7 @@
 const { generateDeck, shuffleDeck } = require('../../utils/deck');
 const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../utils/handEvaluator');
 const { makeDecision, getThinkTime, pickAiName, clearRoomPersonality } = require('../../utils/aiEngine');
+const StandUpGame = require('../../utils/standupGame');
 
 module.exports = (socket, rooms, io) => {
   socket.on('gameAction', ({ action, data }) => {
@@ -128,6 +129,7 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
       bigBlindAmount: room.bigBlindAmount || 20,
       roundBets: { ...room.gameState.roundBets },
       handBets: { ...room.gameState.handBets },
+      standupGame: StandUpGame.getStatusForFrontend(room),
       message: additionalMessage,
     });
   });
@@ -145,6 +147,18 @@ function broadcastGameAction(rooms, io, roomId, actionType, playerId, amount) {
       playerId: playerId,
       nickname: player.nickname,
       amount: amount || null,
+      timestamp: Date.now(),
+    });
+  });
+}
+
+function _broadcastStandUpEvent(room, roomId, io, suResult) {
+  if (!suResult) return;
+  room.players.forEach(p => {
+    if (p.isAI) return;
+    io.to(p.id).emit('gameAction', {
+      type: 'standupGame',
+      result: suResult,
       timestamp: Date.now(),
     });
   });
@@ -244,6 +258,15 @@ function startGame(room, roomId, io, config, rooms) {
     room.gameState.roundBets[player.id] = 0;
     room.gameState.handBets[player.id] = 0;
   });
+
+  if (config && config.enable_standup_game) {
+    if (!room.standupGame || room.standupGame.is_round_finished) {
+      room.standupGame = StandUpGame.create(room, config);
+      if (room.standupGame) {
+        console.log(`[站立游戏] 房间${roomId}已启用站立游戏附加规则，惩罚金额: ${config.standup_penalty_amount || 5000}`);
+      }
+    }
+  }
 
   transitionTo(room, roomId, io, 'PRE_FLOP_BLINDS', rooms);
 }
@@ -905,6 +928,12 @@ function earlyEndGame(room, roomId, io, rooms) {
 
   room.gameState.phase = 'HAND_END';
   room.gameState.showdownPlayerIds = [];
+
+  var suResult = StandUpGame.onHandEnd(room, [winner.id]);
+  if (suResult) {
+    _broadcastStandUpEvent(room, roomId, io, suResult);
+  }
+
   sendGameUpdateWithCards(room, roomId, io, `${winner.nickname} 获胜（其余玩家弃牌），赢得 ${totalPot} 筹码！`);
 
   // 发送获胜者事件到前端
@@ -978,6 +1007,16 @@ function doShowdown(room, roomId, io, rooms) {
 
   room.gameState.pots = [{ amount: 0, eligiblePlayers: [] }];
 
+  var showdownWinnerIds = [];
+  results.forEach(function(r) {
+    var wp = room.players.find(function(pl) { return pl.nickname === r.winner; });
+    if (wp) showdownWinnerIds.push(wp.id);
+  });
+  var suResult = StandUpGame.onHandEnd(room, showdownWinnerIds);
+  if (suResult) {
+    _broadcastStandUpEvent(room, roomId, io, suResult);
+  }
+
   const totalWon = results.reduce((s, r) => s + r.amount, 0);
   const resultMsg = results.map(r => {
     let msg = `${r.winner} 赢得 ${r.amount} 筹码`;
@@ -1013,6 +1052,12 @@ function doHandEnd(room, roomId, io, rooms) {
   
   room.players.forEach(player => {
     if (player.chips <= 0) {
+      if (player.isActive && !player.isEliminated) {
+        var elimResult = StandUpGame.onAllInElimination(room, player.id);
+        if (elimResult) {
+          _broadcastStandUpEvent(room, roomId, io, elimResult);
+        }
+      }
       player.isActive = false;
       player.isEliminated = true;
     } else {
@@ -1091,6 +1136,7 @@ function resetGame(room, roomId, io) {
   room.dealerButton = undefined;
   room.initialChipsMap = {};
   room.extraChipsMap = {};
+  StandUpGame._destroy(room);
   const defaultChips = room.config?.initialChips || 1000;
   room.players.forEach(player => {
     const resetChips = defaultChips;

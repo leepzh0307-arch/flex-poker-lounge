@@ -227,6 +227,12 @@ class GameManager {
     if (gameState.message && updates.message) {
       roomUI.showGameStatus('游戏通知', gameState.message);
     }
+
+    if (gameState.standupGame) {
+      roomUI.updateStandupStatus(gameState.standupGame);
+    } else {
+      roomUI.updateStandupStatus(null);
+    }
   }
   
   detectChanges(oldState, newState) {
@@ -332,6 +338,11 @@ class GameManager {
           roomUI.showSettleModal(action.scoreboard);
         }
         break;
+      case 'standupGame':
+        if (action.result) {
+          this._handleStandupGameEvent(action.result);
+        }
+        break;
       default:
         this.addGameLog(`<span class="log-player">${name}</span> <span class="log-action">${action.type || '行动'}</span>`, 'system');
     }
@@ -344,6 +355,60 @@ class GameManager {
 
   getGameState() {
     return this.gameState;
+  }
+
+  _handleStandupGameEvent(result) {
+    switch (result.type) {
+      case 'STATUS_UPDATED':
+        if (result.changedPlayers && result.changedPlayers.length > 0) {
+          result.changedPlayers.forEach(cp => {
+            this.addGameLog(
+              `<span class="log-player">${cp.nickname}</span> <span class="log-action">坐下</span>（站立游戏）`,
+              'system'
+            );
+          });
+        }
+        this.addGameLog(
+          `<span class="log-action">站立游戏</span> 剩余站立: ${result.remainingStanding}人`,
+          'system'
+        );
+        break;
+
+      case 'FINAL_SETTLEMENT':
+        roomUI.showStandupSettlement(result);
+        this.addGameLog(
+          `<span class="log-action">站立游戏结束</span> <span class="log-player">${result.payPlayerNickname}</span> 支付 <span class="log-amount">${result.totalPayable}</span> 筹码`,
+          'system'
+        );
+        if (!result.fullyPaid) {
+          this.addGameLog(
+            `<span class="log-action">⚠️ 筹码不足</span>，实际支付 ${result.payerOriginalChips}`,
+            'system'
+          );
+        }
+        break;
+
+      case 'ROUND_END_NO_SETTLEMENT':
+        this.addGameLog(
+          `<span class="log-action">站立游戏结束</span> 无惩罚结算（${result.reason}）`,
+          'system'
+        );
+        break;
+
+      case 'PARTICIPANT_REMOVED':
+        this.addGameLog(
+          `<span class="log-action">站立游戏</span> 坐下玩家离开，移出参与列表`,
+          'system'
+        );
+        break;
+
+      case 'TABLE_CLOSED_NO_SETTLEMENT':
+        this.addGameLog(
+          `<span class="log-action">站立游戏</span> 桌台关闭，不执行结算`,
+          'system'
+        );
+        break;
+    }
   }
 }
 

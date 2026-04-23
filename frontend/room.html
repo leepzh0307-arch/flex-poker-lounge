@@ -107,6 +107,16 @@
           <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
         </div>
 
+        <!-- 站立游戏状态 -->
+        <div id="standup-status" class="standup-status" style="display: none;">
+          <div class="standup-header">
+            <span class="standup-icon">🧍</span>
+            <span class="standup-title">站立游戏</span>
+            <span class="standup-counter" id="standup-counter">0/0</span>
+          </div>
+          <div class="standup-players" id="standup-players"></div>
+        </div>
+
         <div class="player-seat seat-1" id="player-1">
           <div class="position-badge" id="pos-1"></div>
           <div class="player-info">
@@ -286,6 +296,22 @@
           <div class="host-control">
             <label for="initial-chips-input">初始积分</label>
             <input type="number" id="initial-chips-input" min="100" value="1000">
+          </div>
+        </div>
+      </div>
+      <div class="host-addon-section">
+        <h4>附加规则</h4>
+        <div class="host-addon-controls">
+          <div class="host-control host-control-toggle">
+            <label for="standup-game-toggle">站立游戏</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="standup-game-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="host-control host-control-penalty" id="standup-penalty-control" style="display:none;">
+            <label for="standup-penalty-input">惩罚筹码</label>
+            <input type="number" id="standup-penalty-input" min="1" value="5000">
           </div>
         </div>
       </div>

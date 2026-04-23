@@ -12,7 +12,7 @@ var FallingText = (function() {
   var animationStartTime = 0;
 
   var CONFIG = {
-    gravity: 1.5,
+    gravity: 0.8,
     mouseConstraintStiffness: 0.9,
     friction: 0.5,
     frictionStatic: 0.8,
@@ -25,97 +25,76 @@ var FallingText = (function() {
     velocityThreshold: 0.08
   };
 
-  // ✅ 修复1：统一字体样式获取，避免中英文副标题样式不一致
+  var TEXT_COLOR = '#2D3A31';
+  var SUBTEXT_COLOR = '#6B7D63';
+
   function getComputedTextStyles(el) {
     var cs = window.getComputedStyle(el);
-    var line1 = el.querySelector('.hero-title-line1');
-    var line2 = el.querySelector('.hero-title-line2');
-    var subtextLeft = el.querySelector('.hero-subtext-left p');
-    
-    var lineCs = line1 ? window.getComputedStyle(line1) : cs;
-    var subtextLeftCs = subtextLeft ? window.getComputedStyle(subtextLeft) : lineCs;
-    
+    var titleLines = el.querySelectorAll('.hero-title-line');
+    var subtitle = el.querySelector('.hero-subtitle');
+
+    var titleCs = titleLines.length > 0 ? window.getComputedStyle(titleLines[0]) : cs;
+    var subCs = subtitle ? window.getComputedStyle(subtitle) : titleCs;
+
     return {
-      fontFamily: lineCs.fontFamily || "'Playfair Display', serif",
-      fontWeight: lineCs.fontWeight || '700',
-      fontSize: lineCs.fontSize || '6.5vw',
-      color: lineCs.color || '#ffffff',
-      letterSpacing: lineCs.letterSpacing || '-0.02em',
-      lineHeight: lineCs.lineHeight || '1.1',
-      // 单独获取副标题样式
-      leftSub: {
-        fontFamily: subtextLeftCs.fontFamily || "'Inter', sans-serif",
-        fontWeight: subtextLeftCs.fontWeight || '300',
-        fontSize: subtextLeftCs.fontSize || '0.8125vw',
-        lineHeight: subtextLeftCs.lineHeight || '1.6',
-        fontStyle: 'italic'
+      fontFamily: titleCs.fontFamily || "'Playfair Display', serif",
+      fontWeight: titleCs.fontWeight || '700',
+      fontSize: titleCs.fontSize || '6vw',
+      color: TEXT_COLOR,
+      letterSpacing: titleCs.letterSpacing || '-0.02em',
+      lineHeight: titleCs.lineHeight || '1.1',
+      sub: {
+        fontFamily: subCs.fontFamily || "'Playfair Display', serif",
+        fontWeight: subCs.fontWeight || '400',
+        fontSize: subCs.fontSize || '1.2vw',
+        lineHeight: subCs.lineHeight || '1.7',
+        fontStyle: 'italic',
+        color: SUBTEXT_COLOR
       }
     };
   }
 
-  // ✅ 修复2：移除所有换行标记，纯按类型拆分单词，彻底避免标记歧义
   function extractWords(container) {
-    var words = {
-      title: [],
-      subEnglish: []
-    };
-    var line1 = container.querySelector('.hero-title-line1');
-    var line2 = container.querySelector('.hero-title-line2');
-    var englishSubtext = container.querySelector('.hero-subtext-left p');
-    
-    // 提取主标题（两行合并，后续布局单独处理）
-    if (line1) {
-      var line1Text = line1.textContent.trim();
-      if (line1Text) {
-        line1Text.split(/\s+/).forEach(function(word) {
-          if (word) words.title.push({ text: word, type: 'title', line: 1 });
+    var words = { title: [], sub: [] };
+    var titleLines = container.querySelectorAll('.hero-title-line');
+    var subtitle = container.querySelector('.hero-subtitle');
+
+    titleLines.forEach(function(line, lineIndex) {
+      var text = line.textContent.trim();
+      if (text) {
+        text.split(/\s+/).forEach(function(word) {
+          if (word) words.title.push({ text: word, type: 'title', line: lineIndex + 1 });
+        });
+      }
+    });
+
+    if (subtitle) {
+      var subText = subtitle.textContent.trim();
+      if (subText) {
+        subText.split(/\s+/).forEach(function(word) {
+          if (word) words.sub.push({ text: word, type: 'sub' });
         });
       }
     }
-    if (line2) {
-      var line2Text = line2.textContent.trim();
-      if (line2Text) {
-        line2Text.split(/\s+/).forEach(function(word) {
-          if (word) words.title.push({ text: word, type: 'title', line: 2 });
-        });
-      }
-    }
-    
-    // 提取英文副标题
-    if (englishSubtext) {
-      var englishText = englishSubtext.textContent.trim();
-      if (englishText) {
-        englishText.split(/\s+/).forEach(function(word) {
-          if (word) words.subEnglish.push({ text: word, type: 'subtext-english' });
-        });
-      }
-    }
-    
+
     return words;
   }
 
-  // ✅ 修复3：精准测量文字尺寸，区分中英文副标题字体
   function measureWord(word, styles) {
     var mCanvas = document.createElement('canvas');
     var mCtx = mCanvas.getContext('2d');
-    
-    var fontConfig;
-    if (word.type === 'subtext-english') {
-      fontConfig = styles.leftSub;
-    } else {
-      fontConfig = styles;
-    }
-    
+
+    var fontConfig = word.type === 'sub' ? styles.sub : styles;
+
     var fontSizePx = parseFloat(fontConfig.fontSize);
     if (fontConfig.fontSize.indexOf('vw') !== -1) {
       fontSizePx = parseFloat(fontConfig.fontSize) * window.innerWidth / 100;
     }
-    
+
     var fontStyle = fontConfig.fontStyle ? fontConfig.fontStyle + ' ' : '';
     mCtx.font = fontStyle + fontConfig.fontWeight + ' ' + Math.round(fontSizePx) + 'px ' + fontConfig.fontFamily;
     var metrics = mCtx.measureText(word.text);
-    
-    // 主标题使用紧凑尺寸，副标题保持原样
+
     var isTitle = word.type === 'title';
     return {
       width: isTitle ? metrics.width : metrics.width + 4,
@@ -164,7 +143,6 @@ var FallingText = (function() {
   }
 
   function createWordBody(word, x, y, w, h, styles, fontConfig) {
-    // Matter.js矩形需要传入中心点坐标，这里精准计算左上角对应中心点
     var centerX = x + w / 2;
     var centerY = y + h / 2;
     var body = Matter.Bodies.rectangle(centerX, centerY, w, h, {
@@ -188,79 +166,68 @@ var FallingText = (function() {
     return body;
   }
 
-  // ✅ 修复4：完全重构布局逻辑，分块独立处理，强制锁定副标题同一行起始
   function layoutWords(words, styles, cachedRects) {
     var bodies = [];
-    var { line1Rect, line2Rect, englishRect } = cachedRects;
+    var titleRects = [];
+    var subRect = cachedRects.subRect;
 
-    // ========== 1. 主标题布局 ==========
-    var titleLine1X = line1Rect ? line1Rect.left : 80;
-    var titleLine1Y = line1Rect ? line1Rect.top : 120;
-    var titleLine2X = line2Rect ? line2Rect.left : titleLine1X;
-    var titleLine2Y = line2Rect ? line2Rect.top : titleLine1Y + 80;
+    var titleLines = containerEl ? containerEl.querySelectorAll('.hero-title-line') : [];
+    titleLines.forEach(function(line) {
+      titleRects.push(line.getBoundingClientRect());
+    });
+
     var titleLineHeight = parseFloat(styles.fontSize);
     if (styles.fontSize.indexOf('vw') !== -1) {
       titleLineHeight = parseFloat(styles.fontSize) * window.innerWidth / 100;
     }
     var titleWordGap = titleLineHeight * 0.12;
 
-    var currentTitleX = titleLine1X;
-    var currentTitleY = titleLine1Y;
+    var currentX, currentY;
+    var currentLineIndex = 0;
+
     words.title.forEach(function(word, index) {
-      // 切换到第二行
-      if (word.line === 2 && index === words.title.findIndex(w => w.line === 2)) {
-        currentTitleX = titleLine2X;
-        currentTitleY = titleLine2Y;
+      var lineIndex = word.line - 1;
+      if (lineIndex !== currentLineIndex || index === 0) {
+        currentLineIndex = lineIndex;
+        var rect = titleRects[lineIndex];
+        currentX = rect ? rect.left : 80;
+        currentY = rect ? rect.top : 120;
       }
+
       var size = measureWord(word, styles);
-      var body = createWordBody(word, currentTitleX, currentTitleY, size.width, size.height, styles, size.fontConfig);
+      var body = createWordBody(word, currentX, currentY, size.width, size.height, styles, size.fontConfig);
       bodies.push(body);
-      currentTitleX += size.width + titleWordGap;
+      currentX += size.width + titleWordGap;
     });
 
-    // ========== 2. 副标题布局（支持自动换行） ==========
-    var subBaseY = 240;
-    if (englishRect) {
-      subBaseY = englishRect.top;
-    } else {
-      // 如果没有副标题元素，基于主标题位置计算
-      subBaseY = line2Rect ? line2Rect.top + 80 : titleLine1Y + 160;
-    }
+    if (words.sub.length > 0) {
+      var subBaseY = subRect ? subRect.top : (titleRects.length > 0 ? titleRects[titleRects.length - 1].bottom + 40 : 240);
+      var subStartX = subRect ? subRect.left : 80;
+      var subMaxWidth = subRect ? subRect.width : (window.innerWidth * 0.6);
 
-    // 英文副标题布局
-    var englishStartX = englishRect ? englishRect.left : 80;
-    // 获取副标题容器的最大宽度用于换行判断
-    var subMaxWidth = englishRect ? englishRect.width : (window.innerWidth * 0.6);
-
-    // 副标题通用参数
-    var subFontSize = parseFloat(styles.leftSub.fontSize);
-    if (styles.leftSub.fontSize.indexOf('vw') !== -1) {
-      subFontSize = parseFloat(styles.leftSub.fontSize) * window.innerWidth / 100;
-    }
-    var subLineHeight = subFontSize * 1.2;
-    var subWordGap = subLineHeight * 0.3;
-
-    // 英文副标题布局（支持自动换行）
-    var currentEnglishX = englishStartX;
-    var currentSubY = subBaseY;
-    var lineStartX = englishStartX; // 每行的起始X坐标
-
-    words.subEnglish.forEach(function(word, index) {
-      var size = measureWord(word, styles);
-      
-      // 检查是否需要换行（不是第一个单词且超出最大宽度）
-      var needNewLine = index > 0 && 
-                       (currentEnglishX + size.width > englishStartX + subMaxWidth);
-      
-      if (needNewLine) {
-        currentEnglishX = lineStartX;
-        currentSubY += subLineHeight;
+      var subFontSize = parseFloat(styles.sub.fontSize);
+      if (styles.sub.fontSize.indexOf('vw') !== -1) {
+        subFontSize = parseFloat(styles.sub.fontSize) * window.innerWidth / 100;
       }
-      
-      var body = createWordBody(word, currentEnglishX, currentSubY, size.width, size.height, styles, size.fontConfig);
-      bodies.push(body);
-      currentEnglishX += size.width + subWordGap;
-    });
+      var subLineHeight = subFontSize * 1.2;
+      var subWordGap = subLineHeight * 0.3;
+
+      var currentSubX = subStartX;
+      var currentSubY = subBaseY;
+
+      words.sub.forEach(function(word, index) {
+        var size = measureWord(word, styles);
+
+        if (index > 0 && (currentSubX + size.width > subStartX + subMaxWidth)) {
+          currentSubX = subStartX;
+          currentSubY += subLineHeight;
+        }
+
+        var body = createWordBody(word, currentSubX, currentSubY, size.width, size.height, styles, size.fontConfig);
+        bodies.push(body);
+        currentSubX += size.width + subWordGap;
+      });
+    }
 
     return bodies;
   }
@@ -288,28 +255,23 @@ var FallingText = (function() {
     canvasEl.style.touchAction = 'none';
   }
 
-  // ✅ 修复5：canvas只覆盖左侧非登录框区域
   function createCanvasOverlay() {
     var viewportWidth = window.innerWidth;
     var viewportHeight = window.innerHeight;
-    // 计算左侧区域宽度（非登录框区域）
-    var leftAreaWidth = viewportWidth * 0.64; // 左侧占63%（向右扩展8%）
     var dpr = window.devicePixelRatio || 1;
 
     var canvasEl = document.createElement('canvas');
     canvasEl.className = 'falling-text-canvas';
-    // 画布尺寸适配高清屏
-    canvasEl.width = leftAreaWidth * dpr;
+    canvasEl.width = viewportWidth * dpr;
     canvasEl.height = viewportHeight * dpr;
-    // 样式尺寸和左侧区域完全一致
-    canvasEl.style.width = leftAreaWidth + 'px';
+    canvasEl.style.width = viewportWidth + 'px';
     canvasEl.style.height = viewportHeight + 'px';
     canvasEl.style.position = 'fixed';
     canvasEl.style.top = '0';
     canvasEl.style.left = '0';
-    canvasEl.style.zIndex = '9999';
+    canvasEl.style.zIndex = '9998';
     canvasEl.style.pointerEvents = 'auto';
-    canvasEl.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+    canvasEl.style.backgroundColor = 'rgba(249, 248, 244, 0)';
 
     document.body.appendChild(canvasEl);
     return canvasEl;
@@ -330,19 +292,11 @@ var FallingText = (function() {
       var pos = body.position;
       var angle = body.angle;
       var data = body.wordData;
-      var fontConfig;
-      if (data.fontConfig) {
-        fontConfig = data.fontConfig;
-      } else if (data.type === 'subtext-english') {
-        fontConfig = data.styles.leftSub;
-      } else {
-        fontConfig = data.styles;
-      }
+      var fontConfig = data.fontConfig || (data.type === 'sub' ? data.styles.sub : data.styles);
 
       ctx.translate(pos.x, pos.y);
       ctx.rotate(angle);
 
-      // 使用原始的字体大小配置，确保动画前后一致
       var fontSizePx = parseFloat(fontConfig.fontSize);
       if (fontConfig.fontSize.indexOf('vw') !== -1) {
         fontSizePx = parseFloat(fontConfig.fontSize) * window.innerWidth / 100;
@@ -350,7 +304,7 @@ var FallingText = (function() {
       var fontSize = Math.round(fontSizePx);
       var fontStyle = fontConfig.fontStyle ? fontConfig.fontStyle + ' ' : '';
       ctx.font = fontStyle + fontConfig.fontWeight + ' ' + fontSize + 'px ' + fontConfig.fontFamily;
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = data.type === 'sub' ? SUBTEXT_COLOR : TEXT_COLOR;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
       ctx.fillText(data.text, 0, 0);
@@ -452,7 +406,6 @@ var FallingText = (function() {
     animationFrameId = requestAnimationFrame(loop);
   }
 
-  // ✅ 修复6：调整执行顺序，DOM修改前完成所有坐标/样式计算
   function trigger(selector) {
     return new Promise(function(resolve) {
       if (isAnimating || typeof Matter === 'undefined') {
@@ -460,15 +413,14 @@ var FallingText = (function() {
         return;
       }
 
-      containerEl = document.querySelector(selector || '.hero-title-container');
+      containerEl = document.querySelector(selector || '#hero-content');
       if (!containerEl) {
         resolve();
         return;
       }
 
-      // 1. 提前缓存所有原始数据（DOM修改前完成，绝对避免取值错误）
       var words = extractWords(containerEl);
-      var validWords = [...words.title, ...words.subEnglish];
+      var validWords = [].concat(words.title, words.sub);
       if (validWords.length === 0) {
         resolve();
         return;
@@ -482,27 +434,24 @@ var FallingText = (function() {
         opacity: containerEl.style.opacity
       };
 
-      // 2. 一次性缓存所有样式和DOM坐标，后续不再查询DOM
       var styles = getComputedTextStyles(containerEl);
+
+      var titleLines = containerEl.querySelectorAll('.hero-title-line');
+      var subtitle = containerEl.querySelector('.hero-subtitle');
       var cachedRects = {
-        line1Rect: containerEl.querySelector('.hero-title-line1')?.getBoundingClientRect() || null,
-        line2Rect: containerEl.querySelector('.hero-title-line2')?.getBoundingClientRect() || null,
-        englishRect: containerEl.querySelector('.hero-subtext-left p')?.getBoundingClientRect() || null
+        titleRects: Array.from(titleLines).map(function(l) { return l.getBoundingClientRect(); }),
+        subRect: subtitle ? subtitle.getBoundingClientRect() : null
       };
-      
+
       var viewportWidth = window.innerWidth;
       var viewportHeight = window.innerHeight;
-      // 计算左侧区域宽度（非登录框区域）
-      var leftAreaWidth = viewportWidth * 0.63; // 左侧占63%（向右扩展8%）
       savedContainerRect = {
-        width: leftAreaWidth,
+        width: viewportWidth,
         height: viewportHeight
       };
 
-      // 3. 完成布局计算（此时DOM还未修改，所有坐标都是原始值）
       wordBodies = layoutWords(words, styles, cachedRects);
 
-      // 4. 所有计算完成后，再修改DOM和创建canvas
       containerEl.innerHTML = '';
       try {
         canvas = createCanvasOverlay();
