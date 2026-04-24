@@ -1067,6 +1067,13 @@ class RoomUI {
       if (seat) {
         seat.style.left = x + '%';
         seat.style.top = y + '%';
+
+        const scaleMin = 0.6;
+        const scaleMax = 1.0;
+        const depthFactor = (y - 5) / 90;
+        const scale = scaleMin + (scaleMax - scaleMin) * Math.pow(depthFactor, 0.8);
+        const translateZ = (depthFactor - 0.5) * 100;
+        seat.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)}) translateZ(${translateZ.toFixed(0)}px)`;
       }
 
       const betEl = this.elements.playerBets[seatIdx];
