@@ -45,6 +45,8 @@
       var mode = this.getAttribute('data-mode');
       if (mode === 'pvp') openModal('pvp-modal');
       else if (mode === 'pvc') openModal('pvc-modal');
+      else if (mode === 'omaha-pvc') openModal('omaha-pvc-modal');
+      else if (mode === 'omaha-pvp') openModal('omaha-pvp-modal');
     });
   });
 
@@ -99,6 +101,17 @@
 
   function navigateToRoom(targetUrl) {
     if (FallingText.isAnimating()) return;
+
+    try {
+      var urlObj = new URL(targetUrl, window.location.origin);
+      var params = {};
+      urlObj.searchParams.forEach(function(value, key) {
+        params[key] = value;
+      });
+      if (Object.keys(params).length > 0) {
+        sessionStorage.setItem('flexPokerNavParams', JSON.stringify(params));
+      }
+    } catch (e) {}
 
     FallingText.trigger('#hero-content').then(function() {
       createRoomBtn.disabled = true;
@@ -165,6 +178,90 @@
   bindEvent(createRoomBtn, createRoom);
   bindEvent(joinRoomBtn, joinRoom);
   bindEvent(createAiRoomBtn, createAiRoom);
+
+  var createOmahaAiRoomBtn = document.getElementById('create-omaha-ai-room');
+  var omahaNicknameInput = document.getElementById('omaha-nickname');
+  var omahaAiDifficultySelect = document.getElementById('omaha-ai-difficulty');
+  var omahaAiCountSelect = document.getElementById('omaha-ai-count');
+  var omahaInitialChipsInput = document.getElementById('omaha-initial-chips');
+
+  function createOmahaAiRoom() {
+    var nickname = omahaNicknameInput ? omahaNicknameInput.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (omahaNicknameInput) omahaNicknameInput.focus();
+      return;
+    }
+
+    var aiDifficulty = omahaAiDifficultySelect ? omahaAiDifficultySelect.value : 'medium';
+    var aiCount = omahaAiCountSelect ? omahaAiCountSelect.value : '3';
+    var initialChips = omahaInitialChipsInput ? omahaInitialChipsInput.value : '1000';
+
+    var targetUrl = 'omaha-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&isAiRoom=true&aiDifficulty=' + aiDifficulty + '&aiCount=' + aiCount + '&initialChips=' + initialChips;
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  bindEvent(createOmahaAiRoomBtn, createOmahaAiRoom);
+
+  var createOmahaRoomBtn = document.getElementById('create-omaha-room');
+  var joinOmahaRoomBtn = document.getElementById('join-omaha-room');
+  var omahaPvpNickname = document.getElementById('omaha-pvp-nickname');
+  var omahaPvpRoomId = document.getElementById('omaha-pvp-room-id');
+
+  function createOmahaRoom() {
+    var nickname = omahaPvpNickname ? omahaPvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (omahaPvpNickname) omahaPvpNickname.focus();
+      return;
+    }
+    var targetUrl = 'omaha-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&gameType=omaha';
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  function joinOmahaRoom() {
+    var nickname = omahaPvpNickname ? omahaPvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (omahaPvpNickname) omahaPvpNickname.focus();
+      return;
+    }
+    var roomId = omahaPvpRoomId ? omahaPvpRoomId.value.trim() : '';
+    if (!roomId) {
+      showToast('请输入房间号');
+      if (omahaPvpRoomId) omahaPvpRoomId.focus();
+      return;
+    }
+    var targetUrl = 'omaha-room.html?roomId=' + roomId + '&nickname=' + encodeURIComponent(nickname) + '&isHost=false&gameType=omaha';
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  bindEvent(createOmahaRoomBtn, createOmahaRoom);
+  bindEvent(joinOmahaRoomBtn, joinOmahaRoom);
+
+  if (omahaPvpNickname) {
+    omahaPvpNickname.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        if (omahaPvpRoomId && omahaPvpRoomId.value.trim()) joinOmahaRoom();
+        else createOmahaRoom();
+      }
+    });
+  }
+
+  if (omahaPvpRoomId) {
+    omahaPvpRoomId.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') joinOmahaRoom();
+    });
+  }
+
+  if (omahaNicknameInput) {
+    omahaNicknameInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') createOmahaAiRoom();
+    });
+  }
 
   if (nicknamePvp) {
     nicknamePvp.addEventListener('keypress', function(e) {

@@ -59,6 +59,52 @@ function broadcastGameUpdate(room, io, message) {
   });
 }
 
+function buildOmahaGameUpdateForPlayer(room, playerId) {
+  var gs = room.gameState;
+  var isShowdownOrAfter = ['SHOWDOWN', 'HAND_END', 'CONFIRM_CONTINUE'].includes(gs.phase);
+  var showdownPlayerIds = gs.showdownPlayerIds || [];
+
+  return {
+    roomId: room.id,
+    players: room.players.map(function(p) {
+      var playerCopy = Object.assign({}, p);
+      delete playerCopy.cards;
+      playerCopy.cards = undefined;
+      var isSelf = p.id === playerId;
+      if (isSelf) {
+        playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }, { hidden: true }, { hidden: true }];
+      } else if (isShowdownOrAfter && showdownPlayerIds.includes(p.id)) {
+        playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }, { hidden: true }, { hidden: true }];
+      } else if (p.isActive && gs.phase === 'SHOWDOWN') {
+        playerCopy.cards = gs.playerCards && gs.playerCards[p.id] ? gs.playerCards[p.id] : [{ hidden: true }, { hidden: true }, { hidden: true }, { hidden: true }];
+      } else {
+        playerCopy.cards = [{ hidden: true }, { hidden: true }, { hidden: true }, { hidden: true }];
+      }
+      return playerCopy;
+    }),
+    communityCards: gs.communityCards || [],
+    pots: gs.pots || [{ amount: 0, eligiblePlayers: [] }],
+    currentBet: gs.currentBet || 0,
+    gamePhase: gs.phase || 'WAITING',
+    currentPlayer: gs.currentPlayer,
+    dealerButton: room.dealerButton,
+    smallBlindAmount: room.smallBlindAmount || 10,
+    bigBlindAmount: room.bigBlindAmount || 20,
+    roundBets: gs.roundBets ? Object.assign({}, gs.roundBets) : {},
+    handBets: gs.handBets ? Object.assign({}, gs.handBets) : {},
+  };
+}
+
+function broadcastOmahaGameUpdate(room, io, message) {
+  room.players.forEach(function(p) {
+    if (p.isOnline) {
+      var update = buildOmahaGameUpdateForPlayer(room, p.id);
+      if (message) update.message = message;
+      io.to(p.id).emit('omahaUpdate', update);
+    }
+  });
+}
+
 module.exports = (socket, rooms, io) => {
   
   // 创建房间
@@ -208,6 +254,152 @@ module.exports = (socket, rooms, io) => {
       callback({ success: false, error: error.message });
     }
   });
+
+  socket.on('createOmahaRoom', ({ nickname }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        gameType: 'omaha',
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            chips: 1000,
+            seat: 1,
+            isActive: true,
+            isTurn: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          }
+        ],
+        gameState: {
+          phase: 'WAITING',
+          communityCards: [],
+          pots: [{ amount: 0, eligiblePlayers: [] }],
+          currentBet: 0,
+          minBet: 0,
+          maxBet: 0,
+          currentPlayer: null,
+        },
+        config: {
+          dealOrder: 'clockwise',
+          playerCards: 4,
+          communityCards: 5,
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log(`[奥马哈房间] ${roomId} 创建成功，房主: ${nickname} (PlayerID: ${playerId})`);
+        var update = buildOmahaGameUpdateForPlayer(room, socket.id);
+        update.message = `奥马哈房间 ${roomId} 创建成功，您是房主`;
+        io.to(socket.id).emit('omahaUpdate', update);
+      }, 0);
+
+    } catch (error) {
+      console.error('创建奥马哈房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
+
+  socket.on('createOmahaAiRoom', ({ nickname, aiCount, aiDifficulty, initialChips }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+      const chips = initialChips || 1000;
+      const difficulty = aiDifficulty || 'medium';
+      const count = Math.min(Math.max(aiCount || 3, 1), 9);
+
+      const aiPlayers = [];
+      const allPersonalities = Object.keys(AI_PERSONALITIES);
+      for (let i = 0; i < count; i++) {
+        const aiName = `BOT${i + 1}`;
+        const aiId = generateAiPlayerId();
+        const personality = allPersonalities[i % allPersonalities.length];
+        aiPlayers.push({
+          id: aiId,
+          playerId: aiId,
+          nickname: aiName,
+          personality: personality,
+          chips: chips,
+          seat: i + 2,
+          isActive: true,
+          isTurn: false,
+          isOnline: true,
+          isAI: true,
+          aiDifficulty: difficulty,
+          joinedAt: Date.now()
+        });
+      }
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        isAiRoom: true,
+        gameType: 'omaha',
+        aiDifficulty: difficulty,
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            chips: chips,
+            seat: 1,
+            isActive: true,
+            isTurn: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          },
+          ...aiPlayers
+        ],
+        gameState: {
+          phase: 'WAITING',
+          communityCards: [],
+          pots: [{ amount: 0, eligiblePlayers: [] }],
+          currentBet: 0,
+          minBet: 0,
+          maxBet: 0,
+          currentPlayer: null,
+        },
+        config: {
+          dealOrder: 'clockwise',
+          playerCards: 4,
+          communityCards: 5,
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log(`[奥马哈AI房间] ${roomId} 创建成功，房主: ${nickname}, AI数量: ${count}`);
+        var update = buildOmahaGameUpdateForPlayer(room, socket.id);
+        update.message = `奥马哈人机对战房间已创建，${count}个AI对手（${AI_CONFIGS[difficulty].label}难度）`;
+        io.to(socket.id).emit('omahaUpdate', update);
+      }, 0);
+
+    } catch (error) {
+      console.error('创建奥马哈AI房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
   
   // 加入房间
   socket.on('joinRoom', ({ roomId, nickname, playerId: existingPlayerId }, callback) => {
@@ -282,11 +474,15 @@ module.exports = (socket, rooms, io) => {
         success: true, 
         playerId: player.playerId,
         isReconnect: isReconnect,
-        gameState: buildGameUpdateForPlayer(room, socket.id),
+        gameState: room.gameType === 'omaha' ? buildOmahaGameUpdateForPlayer(room, socket.id) : buildGameUpdateForPlayer(room, socket.id),
       });
       
       setTimeout(() => {
-        broadcastGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
+        if (room.gameType === 'omaha') {
+          broadcastOmahaGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
+        } else {
+          broadcastGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
+        }
         console.log(`玩家 ${nickname} ${isReconnect ? '重新连接' : '加入'}房间 ${roomId}`);
       }, 0);
       
@@ -308,3 +504,4 @@ module.exports.getSocketToPlayerMap = () => socketToPlayerMap;
 module.exports.getPlayerBySocketId = (socketId) => socketToPlayerMap.get(socketId);
 module.exports.buildGameUpdateForPlayer = buildGameUpdateForPlayer;
 module.exports.broadcastGameUpdate = broadcastGameUpdate;
+module.exports.buildOmahaGameUpdateForPlayer = buildOmahaGameUpdateForPlayer;

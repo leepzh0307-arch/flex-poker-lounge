@@ -1,0 +1,16 @@
+{
+  "name": "Windows Development Container",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+  "extensions": [
+    "ms-vscode.cmake-tools",
+    "ms-vscode.cpptools",
+    "ms-vscode.cmake-tools"
+  ],
+  "settings": {
+    "cmake.configureOnOpen": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build"
+  },
+  "postCreateCommand": "bash build_windows.sh",
+  "remoteUser": "vscode"
+}

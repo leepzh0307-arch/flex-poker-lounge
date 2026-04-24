@@ -37,6 +37,7 @@ class RoomUI {
         'language-button': '🌐 中文',
         'phase-waiting': '等待',
         'phase-pre-flop': '盲注',
+        'phase-preflop-betting': '翻前',
         'phase-flop': '翻牌',
         'phase-turn': '转牌',
         'phase-river': '河牌',
@@ -74,12 +75,21 @@ class RoomUI {
         'confirm-exit': '确定要退出房间吗？',
         'poker-power-btn': '查看牌力规则',
         'clear-btn': '清空',
-        'game-log-title': '游戏进程'
+        'game-log-title': '游戏进程',
+        'pot-1-3': '⅓底池',
+        'pot-1-2': '½底池',
+        'pot-1': '1底池',
+        'game-speed': '游戏速度',
+        'speed-slow': '慢',
+        'speed-fast': '快',
+        'sound-on': '🔊 音效: 开',
+        'sound-off': '🔇 音效: 关'
       },
       en: {
         'language-button': '🌐 English',
         'phase-waiting': 'Waiting',
         'phase-pre-flop': 'Blinds',
+        'phase-preflop-betting': 'Pre-Flop',
         'phase-flop': 'Flop',
         'phase-turn': 'Turn',
         'phase-river': 'River',
@@ -117,7 +127,15 @@ class RoomUI {
         'confirm-exit': 'Are you sure you want to exit the room?',
         'poker-power-btn': 'Poker Rules',
         'clear-btn': 'Clear',
-        'game-log-title': 'Game Log'
+        'game-log-title': 'Game Log',
+        'pot-1-3': '⅓ Pot',
+        'pot-1-2': '½ Pot',
+        'pot-1': '1 Pot',
+        'game-speed': 'Speed',
+        'speed-slow': 'Slow',
+        'speed-fast': 'Fast',
+        'sound-on': '🔊 Sound: On',
+        'sound-off': '🔇 Sound: Off'
       }
     };
 
@@ -134,10 +152,13 @@ class RoomUI {
     this.winnerPlayerIds = new Set();
     this.handCount = 0;
     this.totalProfit = 0;
+    this.currentPot = 0;
+    this.gameSpeed = 3;
+    this._prevPhase = 'WAITING';
+    this._prevCommunityCardCount = 0;
 
     this.bindEvents();
     
-    // 初始化语言设置
     this.updateLanguage();
   }
 
@@ -207,6 +228,36 @@ class RoomUI {
     bindEvent(clearBetBtn, () => {
       this.elements.betAmount.value = '';
     });
+
+    document.querySelectorAll('.pot-quick-btn').forEach(btn => {
+      bindEvent(btn, () => {
+        const fraction = parseFloat(btn.dataset.fraction) || 0;
+        const amount = Math.floor(this.currentPot * fraction);
+        if (amount > 0) {
+          this.elements.betAmount.value = amount;
+        }
+      });
+    });
+
+    const speedSlider = document.getElementById('game-speed-slider');
+    if (speedSlider) {
+      speedSlider.addEventListener('input', () => {
+        this.gameSpeed = parseInt(speedSlider.value) || 3;
+      });
+    }
+
+    const soundToggle = document.getElementById('sound-toggle');
+    if (soundToggle) {
+      bindEvent(soundToggle, () => {
+        if (window.pokerSoundManager) {
+          pokerSoundManager.init();
+          const isEnabled = pokerSoundManager.enabled;
+          pokerSoundManager.setEnabled(!isEnabled);
+          soundToggle.textContent = !isEnabled ? '🔊 音效: 开' : '🔇 音效: 关';
+          soundToggle.classList.toggle('muted', isEnabled);
+        }
+      });
+    }
 
     // 继续游戏按钮点击事件
     const continueGameBtn = document.getElementById('continue-game-btn');
@@ -312,11 +363,57 @@ class RoomUI {
   }
 
   updateCommunityCards(cards) {
+    const speedMultiplier = [2, 1.5, 1, 0.7, 0.5][this.gameSpeed - 1] || 1;
+    const prevCount = this._prevCommunityCardCount || 0;
+    const newCards = cards ? cards.filter(c => c && !c.hidden) : [];
+    const newCount = newCards.length;
+
     this.elements.communityCards.innerHTML = '';
-    cards.forEach(card => {
-      const cardElement = this.createCardElement(card);
-      this.elements.communityCards.appendChild(cardElement);
-    });
+
+    if (newCount > prevCount && newCount > 0) {
+      const dealDelay = Math.round(200 * speedMultiplier);
+
+      for (let i = 0; i < 5; i++) {
+        if (cards && cards[i]) {
+          const cardElement = this.createCardElement(cards[i]);
+          if (i >= prevCount && i < newCount) {
+            cardElement.classList.add('dealing');
+            cardElement.style.animationDelay = `${(i - prevCount) * dealDelay}ms`;
+            cardElement.style.opacity = '0';
+            setTimeout(() => {
+              if (window.pokerSoundManager) pokerSoundManager.dealCard();
+            }, (i - prevCount) * dealDelay);
+          }
+          this.elements.communityCards.appendChild(cardElement);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'poker-card back';
+          placeholder.style.opacity = '0.3';
+          this.elements.communityCards.appendChild(placeholder);
+        }
+      }
+
+      if (newCount === 3 && prevCount < 3 && window.pokerSoundManager) {
+        pokerSoundManager.flopCards();
+      } else if (newCount === 4 && prevCount < 4 && window.pokerSoundManager) {
+        pokerSoundManager.turnRiver();
+      } else if (newCount === 5 && prevCount < 5 && window.pokerSoundManager) {
+        pokerSoundManager.turnRiver();
+      }
+    } else {
+      for (let i = 0; i < 5; i++) {
+        if (cards && cards[i]) {
+          this.elements.communityCards.appendChild(this.createCardElement(cards[i]));
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'poker-card back';
+          placeholder.style.opacity = '0.3';
+          this.elements.communityCards.appendChild(placeholder);
+        }
+      }
+    }
+
+    this._prevCommunityCardCount = newCount;
   }
 
   updatePlayerSeat(seatIndex, player, currentBet = 0, handBet = 0) {
@@ -348,22 +445,39 @@ class RoomUI {
       }
       labelEl.style.display = 'none';
 
-      seat.querySelector('.player-name').textContent = player.nickname;
+      seat.querySelector('.player-name-display').textContent = player.nickname;
       if (player.isAI) {
-        seat.querySelector('.player-name').classList.add('ai-player-name');
+        seat.querySelector('.player-name-display').classList.add('ai-player-name');
       } else {
-        seat.querySelector('.player-name').classList.remove('ai-player-name');
+        seat.querySelector('.player-name-display').classList.remove('ai-player-name');
       }
       seat.querySelector('.player-chips').textContent = player.chips || 0;
       seat.querySelector('.player-bet-total').textContent = `本局下注: ${handBet || 0}`;
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
-      if (player.cards) {
+      cardsContainer.classList.add('fan-layout');
+      if (player.cards && player.cards.length > 0) {
+        cardsContainer.setAttribute('data-card-count', player.cards.length);
         player.cards.forEach(card => {
           const cardElement = this.createCardElement(card);
           cardsContainer.appendChild(cardElement);
         });
+      } else {
+        cardsContainer.removeAttribute('data-card-count');
+      }
+
+      let chipBadge = cardsContainer.querySelector('.player-chip-badge');
+      if (!chipBadge) {
+        chipBadge = document.createElement('div');
+        chipBadge.className = 'player-chip-badge';
+        cardsContainer.appendChild(chipBadge);
+      }
+      chipBadge.textContent = player.chips || 0;
+      if (this.currentLanguage === 'en') {
+        chipBadge.classList.add('english-text');
+      } else {
+        chipBadge.classList.remove('english-text');
       }
 
       if (this.winnerPlayerIds.has(player.id)) {
@@ -399,11 +513,6 @@ class RoomUI {
           betEl.textContent = currentBet;
           betEl.style.display = 'flex';
 
-          // 根据座位号确定筹码偏移方向（朝牌桌中心方向）
-          // 座位1/9/10在底部 → 筹码向上（负Y）
-          // 座位2/3在左侧 → 筹码向右（正X）
-          // 座位4/5/6在顶部 → 筹码向下（正Y）
-          // 座位7/8在右侧 → 筹码向左（负X）
           const betOffsets = {
             1:  { dx: 0,  dy: -1 },
             2:  { dx: 1,  dy: 0 },
@@ -451,19 +560,26 @@ class RoomUI {
       }
 
       if (statusEl) {
+        statusEl.innerHTML = '';
         if (!player.isActive) {
           if (player.isEliminated) {
-            statusEl.textContent = '出局';
-            statusEl.className = 'player-status eliminated';
+            const badge = document.createElement('span');
+            badge.className = 'status-badge eliminated';
+            badge.textContent = '出局';
+            statusEl.appendChild(badge);
           } else {
-            statusEl.textContent = '已弃牌';
-            statusEl.className = 'player-status folded';
+            const badge = document.createElement('span');
+            badge.className = 'status-badge folded';
+            badge.textContent = '已弃牌';
+            statusEl.appendChild(badge);
           }
-          statusEl.style.display = 'block';
+          statusEl.style.display = 'flex';
         } else if (player.chips === 0) {
-          statusEl.textContent = 'ALL IN';
-          statusEl.className = 'player-status allin';
-          statusEl.style.display = 'block';
+          const badge = document.createElement('span');
+          badge.className = 'status-badge allin';
+          badge.textContent = 'ALL IN';
+          statusEl.appendChild(badge);
+          statusEl.style.display = 'flex';
         } else {
           statusEl.style.display = 'none';
         }
@@ -482,16 +598,21 @@ class RoomUI {
       labelEl.style.display = 'block';
 
       seat.querySelector('.player-bet-total').textContent = '下注: 0';
-      seat.querySelector('.player-name').textContent = '--';
+      seat.querySelector('.player-name-display').textContent = '--';
       seat.querySelector('.player-chips').textContent = '0';
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
+      cardsContainer.classList.remove('fan-layout');
+      cardsContainer.removeAttribute('data-card-count');
 
       seat.classList.remove('active', 'turn');
       if (badge) badge.style.display = 'none';
       if (betEl) betEl.style.display = 'none';
-      if (statusEl) statusEl.style.display = 'none';
+      if (statusEl) {
+        statusEl.innerHTML = '';
+        statusEl.style.display = 'none';
+      }
     }
   }
 
@@ -589,6 +710,7 @@ class RoomUI {
   }
 
   updatePot(amount) {
+    this.currentPot = amount || 0;
     if (this.elements.potAmount) {
       // 添加振动动效
       this.elements.potAmount.classList.add('pot-amount-vibrate');
@@ -658,6 +780,22 @@ class RoomUI {
     if (phase === 'HAND_END' || phase === 'WAITING') {
       steps.forEach(s => s.classList.remove('current'));
     }
+
+    if (window.pokerSoundManager) {
+      if (phase === 'PRE_FLOP_BLINDS' && this._prevPhase === 'WAITING') {
+        pokerSoundManager.blindsSet();
+      } else if (phase === 'FLOP_BETTING' && this._prevPhase !== 'FLOP_BETTING') {
+        pokerSoundManager.flopCards();
+      } else if (phase === 'TURN_BETTING' && this._prevPhase !== 'TURN_BETTING') {
+        pokerSoundManager.turnRiver();
+      } else if (phase === 'RIVER_BETTING' && this._prevPhase !== 'RIVER_BETTING') {
+        pokerSoundManager.turnRiver();
+      } else if (phase === 'SHOWDOWN' && this._prevPhase !== 'SHOWDOWN') {
+        pokerSoundManager.showDown();
+      }
+    }
+
+    this._prevPhase = phase;
   }
 
   // 触发筹码汇聚动画
@@ -804,6 +942,10 @@ class RoomUI {
     const canCheck = actionContext.canCheck === true;
     const canCall = actionContext.canCall === true;
 
+    if (isBettingPhase && window.pokerSoundManager) {
+      pokerSoundManager.yourTurn();
+    }
+
     if (this.elements.foldBtn) {
       this.elements.foldBtn.disabled = !isBettingPhase;
     }
@@ -906,7 +1048,7 @@ class RoomUI {
       switch (phase) {
         case 'WAITING': key = 'phase-waiting'; break;
         case 'PRE_FLOP_BLINDS': key = 'phase-pre-flop'; break;
-        case 'PRE_FLOP_BETTING': key = 'phase-pre-flop'; break;
+        case 'PRE_FLOP_BETTING': key = 'phase-preflop-betting'; break;
         case 'FLOP_BETTING': key = 'phase-flop'; break;
         case 'TURN_BETTING': key = 'phase-turn'; break;
         case 'RIVER_BETTING': key = 'phase-river'; break;
@@ -1240,7 +1382,7 @@ class RoomUI {
     }
 
     // 更新玩家姓名
-    document.querySelectorAll('.player-name').forEach(name => {
+    document.querySelectorAll('.player-name-display').forEach(name => {
       if (this.currentLanguage === 'en') {
         name.classList.add('english-text');
       } else {
@@ -1275,6 +1417,33 @@ class RoomUI {
         entry.classList.remove('english-text');
       }
     });
+
+    document.querySelectorAll('.pot-quick-btn').forEach(btn => {
+      const fraction = btn.dataset.fraction;
+      if (fraction === '0.33') btn.textContent = t['pot-1-3'];
+      else if (fraction === '0.5') btn.textContent = t['pot-1-2'];
+      else if (fraction === '1') btn.textContent = t['pot-1'];
+      if (this.currentLanguage === 'en') btn.classList.add('english-text');
+      else btn.classList.remove('english-text');
+    });
+
+    const speedLabel = document.querySelector('.game-speed-control label');
+    if (speedLabel) {
+      speedLabel.textContent = t['game-speed'];
+      if (this.currentLanguage === 'en') speedLabel.classList.add('english-text');
+      else speedLabel.classList.remove('english-text');
+    }
+
+    const slowLabel = document.querySelector('.speed-label-slow');
+    const fastLabel = document.querySelector('.speed-label-fast');
+    if (slowLabel) slowLabel.textContent = t['speed-slow'];
+    if (fastLabel) fastLabel.textContent = t['speed-fast'];
+
+    const soundToggle = document.getElementById('sound-toggle');
+    if (soundToggle && window.pokerSoundManager) {
+      soundToggle.textContent = pokerSoundManager.enabled ? t['sound-on'] : t['sound-off'];
+      soundToggle.classList.toggle('muted', !pokerSoundManager.enabled);
+    }
   }
 
   updateStandupStatus(standupData) {

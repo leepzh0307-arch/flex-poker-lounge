@@ -1,0 +1,15 @@
+Qt 6.9.2 LTS
+https://www.qt.io/development/download-open-source
+
+Boost
+https://www.boost.org/doc/user-guide/bsl.html
+
+libprotobuf
+https://github.com/protocolbuffers/protobuf
+
+websocket++
+https://github.com/zaphoyd/websocketpp/blob/master/COPYING
+
+Due to dependencies of these libs, PokerTH may link to additional libs not listed here. If you think acknowledgement for a certain lib is missing, please contact us.
+
+This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/)

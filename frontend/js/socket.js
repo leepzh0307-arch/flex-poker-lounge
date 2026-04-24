@@ -17,6 +17,8 @@ class SocketClient {
         return;
       }
 
+      let resolved = false;
+
       try {
         const url = config.serverUrl;
         console.log(`[Socket] 正在连接到 ${url} ...`);
@@ -32,7 +34,6 @@ class SocketClient {
           upgrade: true,
         });
 
-        let resolved = false;
         let connectionTimeout = null;
 
         connectionTimeout = setTimeout(() => {
@@ -217,6 +218,81 @@ class SocketClient {
         }
       });
     });
+  }
+
+  createOmahaRoom(nickname) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('创建奥马哈房间超时，服务器未响应'));
+      }, 15000);
+
+      this.socket.emit('createOmahaRoom', { nickname }, (response) => {
+        clearTimeout(timeout);
+        if (response && response.success) {
+          resolve({ roomId: response.roomId, playerId: response.playerId });
+        } else {
+          reject(new Error((response && response.error) || '创建奥马哈房间失败'));
+        }
+      });
+    });
+  }
+
+  createOmahaAiRoom(nickname, aiCount, aiDifficulty, initialChips) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('创建奥马哈AI房间超时，服务器未响应'));
+      }, 15000);
+
+      this.socket.emit('createOmahaAiRoom', { nickname, aiCount, aiDifficulty, initialChips }, (response) => {
+        clearTimeout(timeout);
+        if (response && response.success) {
+          resolve({ roomId: response.roomId, playerId: response.playerId });
+        } else {
+          reject(new Error((response && response.error) || '创建奥马哈AI房间失败'));
+        }
+      });
+    });
+  }
+
+  joinOmahaRoom(roomId, nickname, playerId = null) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('加入奥马哈房间超时，服务器未响应'));
+      }, 15000);
+
+      this.socket.emit('joinRoom', { roomId, nickname, playerId }, (response) => {
+        clearTimeout(timeout);
+        if (response && response.success) {
+          resolve(response);
+        } else {
+          reject(new Error((response && response.error) || '加入奥马哈房间失败'));
+        }
+      });
+    });
+  }
+
+  sendOmahaAction(action, data) {
+    if (this.isConnected && this.socket) {
+      console.log(`[Socket] 发送奥马哈游戏操作: ${action}`, data);
+      this.socket.emit('omahaAction', { action, data });
+    } else {
+      console.warn(`[Socket] 未连接，操作未发送: ${action}`);
+    }
   }
 
   leaveRoom() {

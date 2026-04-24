@@ -43,6 +43,9 @@ app.get('/', (req, res) => {
 app.get('/room.html', (req, res) => {
   res.sendFile(path.join(frontendPath, 'room.html'));
 });
+app.get('/omaha-room.html', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'omaha-room.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

@@ -26,6 +26,20 @@ class GameManager {
 
   async init() {
     const params = new URLSearchParams(window.location.search);
+
+    try {
+      const stored = sessionStorage.getItem('flexPokerNavParams');
+      if (stored) {
+        const storedParams = JSON.parse(stored);
+        Object.keys(storedParams).forEach(function(key) {
+          if (!params.has(key)) {
+            params.set(key, storedParams[key]);
+          }
+        });
+        sessionStorage.removeItem('flexPokerNavParams');
+      }
+    } catch (e) {}
+
     this.gameState.roomId = params.get('roomId');
     const nickname = params.get('nickname');
     this.gameState.isHost = params.get('isHost') === 'true';
@@ -277,6 +291,17 @@ class GameManager {
     while (logList.children.length > 50) {
       logList.removeChild(logList.firstChild);
     }
+
+    if (window.pokerSoundManager) {
+      switch (type) {
+        case 'fold': pokerSoundManager.fold(); break;
+        case 'check': pokerSoundManager.check(); break;
+        case 'call': pokerSoundManager.call(); break;
+        case 'raise': pokerSoundManager.raise(); break;
+        case 'allin': pokerSoundManager.allIn(); break;
+        case 'winner': pokerSoundManager.winner(); break;
+      }
+    }
   }
 
   handlePlayerJoined(player) {
@@ -314,10 +339,12 @@ class GameManager {
       case 'startGame':
         this.addGameLog(`<span class="log-action">游戏开始！</span>`, 'system');
         roomUI.clearWinnerBadges();
+        if (window.pokerSoundManager) pokerSoundManager.gameStart();
         break;
       case 'nextHand':
         this.addGameLog(`<span class="log-action">新一局开始</span>`, 'system');
         roomUI.clearWinnerBadges();
+        if (window.pokerSoundManager) pokerSoundManager.nextHand();
         break;
       case 'winner':
         let winnerMessage = `<span class="log-player">${name}</span> <span class="log-action">胜出</span>，赢得 <span class="log-amount">${action.amount || 0}</span> 积分`;

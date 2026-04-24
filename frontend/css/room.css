@@ -1194,8 +1194,8 @@
 /* ====== 玩家座位区域 - 10座位布局 ====== */
 .player-seat {
   position: absolute;
-  width: 140px; /* 调整为两张扑克牌宽度 */
-  height: 50px;
+  width: 140px;
+  height: 145px;
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-xs);
   display: none;
@@ -1206,35 +1206,24 @@
   overflow: visible;
   z-index: 10;
   transform: translate(-50%, -50%);
-  background: transparent;
-  border: none;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .player-seat.seat-empty {
   display: none;
 }
 
-.player-seat.seat-empty .seat-label {
-  display: block;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 11px;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 30px;
-}
-
-.player-seat.seat-occupied {
+.player-seat.seat-occupied,
+.player-seat.seat-self {
   display: flex;
-  background: transparent;
-  border: none;
-  box-shadow: none;
 }
 
 .player-seat.seat-self {
-  display: flex;
-  background: rgba(0, 0, 0, 0.3);
-  border: none;
-  box-shadow: none;
+  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
 }
 
 .player-seat.active {
@@ -1342,7 +1331,7 @@
   color: #fff;
 }
 
-/* 玩家信息区 */
+/* ====== 玩家信息区 - 新布局 ====== */
 .player-info {
   display: flex;
   flex-direction: column;
@@ -1362,54 +1351,98 @@
   box-shadow: 0 0 5px rgba(114, 114, 114, 0);
 }
 
-.player-name {
+.player-name-display {
   font-family: 'PingFang SC';
-  font-size: 20px;
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  max-width: 90px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  width: 100%;
+  padding: 2px 4px;
+  margin-top: -2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-align: center;
-  margin-bottom: -4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-.player-name.english-text {
+.player-name-display.english-text {
   font-family: 'Playfair Display', serif;
 }
 
-.player-name.ai-player-name::after {
+.player-name-display.ai-player-name::after {
   content: ' 🤖';
   font-size: 0.7em;
 }
 
-.player-stats {
+.player-status-bar {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  gap: 8px;
+  min-height: 18px;
+  padding: 0 4px;
+}
+
+.player-status-bar .status-badge {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.player-status-bar .status-badge.folded {
+  background-color: rgba(192, 57, 43, 0.9);
+  color: #fff;
+  border: 1px solid #e74c3c;
+}
+
+.player-status-bar .status-badge.allin {
+  background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+  color: #000;
+  border: 1px solid #fff;
+  animation: allinGlow 1s ease-in-out infinite alternate;
+}
+
+.player-status-bar .status-badge.eliminated {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.player-stats-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 6px;
+  padding: 2px 4px;
 }
 
 .player-chips {
   font-family: 'PingFang SC';
-  font-size: 14px;
+  font-size: 12px;
   color: var(--chip-color);
-  font-weight: bold;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .divider {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-  font-weight: bold;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .player-bet-total {
   font-family: 'PingFang SC';
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: #E6D296;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .player-chips.english-text {
@@ -1424,13 +1457,13 @@
 /* 玩家当前下注额 */
 .player-bet {
   position: absolute;
-  top: 50%;
+  top: -12px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   background: url('images/chip-btn1.webp') no-repeat center center;
   background-size: contain;
   color: #000000;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   padding: 0;
   border-radius: 16px;
@@ -1442,11 +1475,11 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
   text-align: center;
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   align-items: center;
   justify-content: center;
-  padding-top: 20px;
+  padding-top: 16px;
 }
 
 .player-bet.animate {
@@ -1563,6 +1596,83 @@
   margin-top: 2px;
   justify-content: center;
   position: relative;
+}
+
+/* 扇形手牌展示 */
+.player-cards.fan-layout {
+  display: block;
+  width: 120px;
+  height: 70px;
+  position: relative;
+  margin: 0 auto 2px;
+}
+
+.player-cards.fan-layout .poker-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 70px;
+  transform-origin: bottom left;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* 德州扑克2张牌扇形 */
+.player-cards.fan-layout[data-card-count="2"] .poker-card:nth-child(1) {
+  transform: rotate(-12deg) translateX(0);
+  z-index: 1;
+}
+
+.player-cards.fan-layout[data-card-count="2"] .poker-card:nth-child(2) {
+  transform: rotate(12deg) translateX(20px);
+  z-index: 2;
+}
+
+/* 奥马哈4张牌扇形 */
+.player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(1) {
+  transform: rotate(-15deg) translateX(0);
+  z-index: 1;
+}
+
+.player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(2) {
+  transform: rotate(-5deg) translateX(8px);
+  z-index: 2;
+}
+
+.player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(3) {
+  transform: rotate(5deg) translateX(16px);
+  z-index: 3;
+}
+
+.player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(4) {
+  transform: rotate(15deg) translateX(24px);
+  z-index: 4;
+}
+
+/* 筹码徽章 */
+.player-chip-badge {
+  position: absolute;
+  bottom: -6px;
+  left: -6px;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.95) 0%, rgba(200, 80, 0, 0.95) 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 200, 100, 0.6);
+  box-shadow: 0 0 8px rgba(255, 140, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  min-width: 20px;
+  text-align: center;
+  font-family: 'PingFang SC', sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.player-chip-badge.english-text {
+  font-family: 'Playfair Display', serif;
 }
 
 .winner-badge {
@@ -3652,6 +3762,39 @@
     height: 35px;
   }
 
+  .player-cards.fan-layout {
+    width: 70px;
+    height: 50px;
+  }
+
+  .player-cards.fan-layout .poker-card {
+    width: 28px;
+  }
+
+  .player-cards.fan-layout[data-card-count="2"] .poker-card:nth-child(2) {
+    transform: rotate(8deg) translateX(10px);
+  }
+
+  .player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(2) {
+    transform: rotate(-5deg) translateX(4px);
+  }
+
+  .player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(3) {
+    transform: rotate(5deg) translateX(8px);
+  }
+
+  .player-cards.fan-layout[data-card-count="4"] .poker-card:nth-child(4) {
+    transform: rotate(15deg) translateX(12px);
+  }
+
+  .player-chip-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+    border-radius: 6px;
+    bottom: -4px;
+    left: -4px;
+  }
+
   .winner-badge {
     font-size: 14px;
     top: -12px;
@@ -3986,5 +4129,288 @@
   .action-panel[position="bottom"],
   .action-panel[style*="position: fixed"] {
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
+
+.pot-quick-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pot-quick-btn {
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  color: rgba(255, 193, 7, 0.9);
+  font-family: 'PingFang SC';
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.pot-quick-btn:hover {
+  background: rgba(255, 193, 7, 0.25);
+  border-color: rgba(255, 193, 7, 0.5);
+  transform: translateY(-1px);
+}
+
+.pot-quick-btn:active {
+  transform: translateY(0);
+}
+
+.pot-quick-btn.english-text {
+  font-family: 'Playfair Display', serif;
+}
+
+.game-speed-control {
+  margin-bottom: 12px;
+}
+
+.game-speed-control label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+  font-family: 'PingFang SC';
+}
+
+.game-speed-control label.english-text {
+  font-family: 'Playfair Display', serif;
+}
+
+.speed-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speed-label-slow,
+.speed-label-fast {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'PingFang SC';
+  min-width: 16px;
+  text-align: center;
+}
+
+.speed-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+}
+
+.speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speed-slider::-webkit-slider-thumb:hover {
+  background: rgba(255, 193, 7, 1);
+  transform: scale(1.2);
+}
+
+.speed-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.8);
+  cursor: pointer;
+  border: none;
+}
+
+.sound-control {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.sound-btn {
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(100, 180, 140, 0.12);
+  border: 1px solid rgba(100, 180, 140, 0.25);
+  color: rgba(100, 180, 140, 0.9);
+  font-size: 11px;
+  font-family: 'PingFang SC';
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sound-btn:hover {
+  background: rgba(100, 180, 140, 0.25);
+}
+
+.sound-btn.muted {
+  background: rgba(180, 100, 100, 0.12);
+  border-color: rgba(180, 100, 100, 0.25);
+  color: rgba(180, 100, 100, 0.9);
+}
+
+.poker-card.dealing {
+  animation: cardDeal 0.4s ease-out forwards;
+}
+
+@keyframes cardDeal {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-40px) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1) translateY(2px) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
+.poker-card.flip-in {
+  animation: cardFlip 0.5s ease-in-out forwards;
+}
+
+@keyframes cardFlip {
+  0% {
+    transform: rotateY(180deg) scale(0.8);
+  }
+  50% {
+    transform: rotateY(90deg) scale(0.9);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+.log-entry {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-bottom: 2px;
+  transition: background 0.3s ease;
+}
+
+.log-entry:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.log-entry.log-fold {
+  border-left: 2px solid rgba(239, 83, 80, 0.6);
+}
+
+.log-entry.log-check {
+  border-left: 2px solid rgba(100, 180, 140, 0.6);
+}
+
+.log-entry.log-call {
+  border-left: 2px solid rgba(66, 165, 245, 0.6);
+}
+
+.log-entry.log-raise {
+  border-left: 2px solid rgba(255, 193, 7, 0.6);
+}
+
+.log-entry.log-allin {
+  border-left: 2px solid rgba(255, 82, 82, 0.8);
+  background: rgba(255, 82, 82, 0.08);
+}
+
+.log-entry.log-winner {
+  border-left: 2px solid rgba(255, 215, 0, 0.8);
+  background: rgba(255, 215, 0, 0.1);
+  font-weight: 600;
+}
+
+.log-entry.log-system {
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.log-entry .log-player {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+.log-entry .log-action {
+  color: rgba(255, 193, 7, 0.9);
+  font-weight: 500;
+}
+
+.log-entry .log-amount {
+  color: rgba(100, 220, 180, 0.9);
+  font-weight: 600;
+}
+
+.log-entry.log-fold .log-action {
+  color: rgba(239, 83, 80, 0.9);
+}
+
+.log-entry.log-check .log-action {
+  color: rgba(100, 180, 140, 0.9);
+}
+
+.log-entry.log-call .log-action {
+  color: rgba(66, 165, 245, 0.9);
+}
+
+.log-entry.log-allin .log-action {
+  color: rgba(255, 82, 82, 1);
+}
+
+.log-entry.log-winner .log-action {
+  color: rgba(255, 215, 0, 1);
+}
+
+@media (max-width: 768px) {
+  .pot-quick-buttons {
+    gap: 6px;
+  }
+
+  .pot-quick-btn {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+
+  .speed-slider {
+    height: 3px;
+  }
+
+  .speed-slider::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media screen and (orientation: landscape) and (max-height: 420px) {
+  .pot-quick-buttons {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .pot-quick-btn {
+    padding: 3px 8px;
+    font-size: 9px !important;
+  }
+
+  .game-speed-control {
+    margin-bottom: 6px;
+  }
+
+  .game-speed-control label {
+    font-size: 9px !important;
   }
 }

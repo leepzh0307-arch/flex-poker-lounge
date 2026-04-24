@@ -1,6 +1,7 @@
 // Socket功能初始化
 const roomHandler = require('./handlers/room');
 const gameHandler = require('./handlers/game');
+const omahaGameHandler = require('./handlers/omahaGame');
 const voiceHandler = require('./handlers/voice');
 const { clearRoomPersonality } = require('../utils/aiEngine');
 const StandUpGame = require('../utils/standupGame');
@@ -17,10 +18,10 @@ module.exports = (io) => {
     // 房间相关事件
     roomHandler(socket, rooms, io);
     
-    // 游戏相关事件
     gameHandler(socket, rooms, io);
     
-    // 语音相关事件
+    omahaGameHandler(socket, rooms, io);
+    
     voiceHandler(socket, rooms, io);
     
     // 断开连接
