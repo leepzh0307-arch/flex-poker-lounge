@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#0a0a0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
   <title>Flex Poker - 游戏房间</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/room.css">
@@ -18,20 +18,16 @@
     @view-transition {
       navigation: auto;
     }
-
     ::view-transition-old(root) {
       animation: fade-out 2.5s ease-in-out;
     }
-
     ::view-transition-new(root) {
       animation: fade-in 2.5s ease-in-out;
     }
-
     @keyframes fade-out {
       from { opacity: 1; }
       to { opacity: 0; }
     }
-
     @keyframes fade-in {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -39,43 +35,47 @@
   </style>
 </head>
 <body>
-  <div id="portrait-overlay" class="portrait-overlay" style="display:flex">
+  <div id="portrait-overlay" class="portrait-overlay" style="display:none">
     <div class="portrait-content">
       <div class="rotate-icon">📱</div>
-      <h2>请旋转设备</h2>
-      <p>横屏模式下体验更佳</p>
-      <p class="portrait-sub">Rotate your device for the best experience</p>
+      <span>横屏体验更佳</span>
     </div>
   </div>
-  <video class="bg-video" preload="auto" autoplay muted loop playsinline>
-    <source src="css/images/game-bg1.mp4" type="video/mp4">
-  </video>
-  <div class="mist-layer"></div>
+
+  <div class="game-bg"></div>
+
   <div class="room-container">
-    <!-- 顶部信息栏 -->
     <header class="room-header">
-      <div class="logo-container">
-        <img src="css/images/LOGO.webp" alt="Logo" class="logo">
-        <div class="room-info">
-          房间号: <span id="room-id" class="room-id">--</span>
-          <button id="copy-room-id" class="btn copy-btn header-btn">复制</button>
-        </div>
+      <div class="header-left">
+        <span class="room-label">房间号</span>
+        <span id="room-id" class="room-id">--</span>
+        <button id="copy-room-id" class="btn header-btn copy-btn">复制</button>
       </div>
-      <div class="header-actions">
+      <div class="header-center">
         <span id="connection-status" class="connection-status disconnected">未连接</span>
-        <button id="language-toggle" class="btn language-btn header-btn">中文</button>
-        <button id="voice-toggle" class="btn voice-btn header-btn">语音: 开启</button>
-        <button id="exit-room" class="btn exit-btn header-btn">退出房间</button>
-        <button id="switch-table-bg" class="btn switch-bg-btn header-btn">切换牌桌背景</button>
-        <button id="poker-power-btn" class="btn poker-power-btn header-btn">查看牌力规则</button>
+      </div>
+      <div class="header-right">
+        <button id="voice-toggle" class="btn header-btn voice-btn">语音: 开启</button>
+        <button id="language-toggle" class="btn header-btn language-btn">中文</button>
+        <button id="switch-table-bg" class="btn header-btn switch-bg-btn">切换主题</button>
+        <button id="poker-power-btn" class="btn header-btn poker-power-btn">牌力规则</button>
+        <button id="exit-room" class="btn header-btn exit-btn">退出房间</button>
       </div>
     </header>
 
-    <!-- 游戏主区域 -->
+    <div id="game-log-panel" class="game-log-panel">
+      <div class="game-log-header" id="game-log-toggle">
+        <span class="game-log-title">游戏进程</span>
+        <span class="game-log-summary" id="game-log-summary"></span>
+        <span class="game-log-toggle-icon" id="game-log-toggle-icon">▾</span>
+      </div>
+      <div class="game-log-body" id="game-log-body" style="display:none">
+        <div id="game-log-list" class="game-log-list"></div>
+      </div>
+    </div>
+
     <main class="game-area">
-      <!-- 阶段指示器 -->
       <div class="phase-indicator-wrapper">
-        <!-- 中间：游戏阶段提示框 -->
         <div class="phase-indicator" id="phase-indicator">
           <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
           <div class="phase-step" data-phase="PRE_FLOP_BLINDS"><span class="phase-dot"></span><span class="phase-label">盲注</span></div>
@@ -87,27 +87,22 @@
         </div>
       </div>
 
-      <!-- 牌力规则图片弹出层 -->
       <div id="poker-power-modal" class="poker-power-modal" style="display: none;">
         <div class="poker-power-content">
           <img src="css/images/poker-power.webp" alt="牌力规则" class="poker-power-image">
         </div>
       </div>
 
-      <!-- 玩家座位区域（完整容器：包含背景图 + 公共牌 + 底池 + 所有座位） -->
       <div class="players-area">
-        <!-- 公共牌区域 -->
         <div class="community-cards-section">
           <div class="community-cards" id="community-cards"></div>
         </div>
 
-        <!-- 底池信息 -->
         <div class="pot-info">
           <div class="pot-main">底池: <span id="pot-amount">0</span></div>
           <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
         </div>
 
-        <!-- 站立游戏状态 -->
         <div id="standup-status" class="standup-status" style="display: none;">
           <div class="standup-header">
             <span class="standup-icon">🧍</span>
@@ -119,194 +114,266 @@
 
         <div class="player-seat seat-1" id="player-1">
           <div class="position-badge" id="pos-1"></div>
-          <div class="player-bet" id="bet-1"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-1"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-1"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-1"></div>
         </div>
         <div class="player-seat seat-2" id="player-2">
           <div class="position-badge" id="pos-2"></div>
-          <div class="player-bet" id="bet-2"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-2"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-2"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-2"></div>
         </div>
         <div class="player-seat seat-3" id="player-3">
           <div class="position-badge" id="pos-3"></div>
-          <div class="player-bet" id="bet-3"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-3"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-3"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-3"></div>
         </div>
         <div class="player-seat seat-4" id="player-4">
           <div class="position-badge" id="pos-4"></div>
-          <div class="player-bet" id="bet-4"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-4"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-4"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-4"></div>
         </div>
         <div class="player-seat seat-5" id="player-5">
           <div class="position-badge" id="pos-5"></div>
-          <div class="player-bet" id="bet-5"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-5"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-5"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-5"></div>
         </div>
         <div class="player-seat seat-6" id="player-6">
           <div class="position-badge" id="pos-6"></div>
-          <div class="player-bet" id="bet-6"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-6"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-6"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-6"></div>
         </div>
         <div class="player-seat seat-7" id="player-7">
           <div class="position-badge" id="pos-7"></div>
-          <div class="player-bet" id="bet-7"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-7"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-7"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-7"></div>
         </div>
         <div class="player-seat seat-8" id="player-8">
           <div class="position-badge" id="pos-8"></div>
-          <div class="player-bet" id="bet-8"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-8"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-8"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-8"></div>
         </div>
         <div class="player-seat seat-9" id="player-9">
           <div class="position-badge" id="pos-9"></div>
-          <div class="player-bet" id="bet-9"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-9"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-9"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-9"></div>
         </div>
         <div class="player-seat seat-10" id="player-10">
           <div class="position-badge" id="pos-10"></div>
-          <div class="player-bet" id="bet-10"></div>
-          <div class="player-cards fan-layout" data-card-count="2"></div>
-          <div class="player-name-display">--</div>
-          <div class="player-status-bar" id="status-10"></div>
-          <div class="player-stats-display">
-            <span class="player-chips">0</span>
-            <span class="divider">|</span>
-            <span class="player-bet-total">本局下注: 0</span>
+          <div class="player-info">
+            <div class="player-name">--</div>
+            <div class="player-stats">
+              <span class="player-chips">0</span>
+              <span class="divider">|</span>
+              <span class="player-bet-total">本局下注: 0</span>
+            </div>
           </div>
+          <div class="player-bet" id="bet-10"></div>
+          <div class="player-cards"></div>
+          <div class="player-status" id="status-10"></div>
         </div>
-        <!-- 继续游戏按钮 -->
+
         <div id="continue-game-container" class="continue-game-container" style="display: none;">
           <button id="continue-game-btn" class="btn continue-game-btn">继续游戏</button>
         </div>
       </div>
 
-
-
-      <!-- 游戏状态提示 -->
       <div id="game-status" class="game-status" style="display: none;">
         <h2 id="status-title">游戏开始</h2>
         <p id="status-message">请等待所有玩家准备</p>
       </div>
     </main>
 
-    <!-- 房主专属面板 -->
-    <div id="host-panel" class="host-panel" style="display: none;">
-      <h3>房主控制面板</h3>
-      <div class="host-btn-row">
-        <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
-        <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
-        <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
-        <button id="settle-game-btn" class="btn btn-host settle-btn" style="display: none;">结算牌局</button>
+    <div id="action-panel" class="action-panel">
+      <h3>下注操作</h3>
+      <div class="action-buttons-vertical">
+        <button id="fold-btn" class="btn action-btn fold-btn">弃牌</button>
+        <button id="check-btn" class="btn action-btn check-btn">过牌</button>
+        <button id="call-btn" class="btn action-btn call-btn">跟注 <span id="call-amount">0</span></button>
+        <button id="raise-btn" class="btn action-btn raise-btn">加注</button>
+        <button id="all-in-btn" class="btn action-btn all-in-btn">全押</button>
       </div>
-      <div class="host-grid">
-        <div class="host-col">
-          <div class="host-control">
-            <label for="small-blind-input">小盲注 (SB)</label>
-            <input type="number" id="small-blind-input" min="1" value="10">
-          </div>
-          <div class="host-control">
-            <label for="big-blind-input">大盲注 (BB)</label>
-            <input type="number" id="big-blind-input" min="2" value="20">
-          </div>
+      <div class="bet-control">
+        <label for="bet-amount">下注积分</label>
+        <div class="bet-input-row">
+          <input type="number" id="bet-amount" class="bet-amount" value="10" min="1">
+          <button type="button" id="clear-bet-btn" class="btn clear-btn">清空</button>
         </div>
-        <div class="host-col">
-          <div class="host-control">
-            <label for="initial-chips-input">初始积分</label>
-            <input type="number" id="initial-chips-input" min="100" value="1000">
-          </div>
+        <div class="pot-quick-buttons">
+          <button class="pot-quick-btn" data-fraction="0.33">⅓底池</button>
+          <button class="pot-quick-btn" data-fraction="0.5">½底池</button>
+          <button class="pot-quick-btn" data-fraction="1">1底池</button>
         </div>
       </div>
-      <div class="host-addon-section">
-        <h4>附加规则</h4>
-        <div class="host-addon-controls">
-          <div class="host-control host-control-toggle">
-            <label for="standup-game-toggle">站立游戏</label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="standup-game-toggle">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="host-control host-control-penalty" id="standup-penalty-control" style="display:none;">
-            <label for="standup-penalty-input">惩罚筹码</label>
-            <input type="number" id="standup-penalty-input" min="1" value="5000">
+      <div class="betting-extras">
+        <div class="game-speed-control">
+          <label for="game-speed-slider">游戏速度</label>
+          <div class="speed-slider-row">
+            <span class="speed-label-slow">慢</span>
+            <input type="range" id="game-speed-slider" class="speed-slider" min="1" max="5" value="3" step="1">
+            <span class="speed-label-fast">快</span>
           </div>
         </div>
-      </div>
-      <div class="host-chips-section">
-        <h4>玩家筹码管理</h4>
-        <div class="host-chips-controls">
-          <select id="player-select" class="player-select"></select>
-          <input type="number" id="chips-amount-input" class="chips-amount-input" min="0" value="1000" placeholder="筹码数量">
-          <button id="set-chips-btn" class="btn btn-host set-chips-btn">设定筹码</button>
-          <button id="add-chips-btn" class="btn btn-host add-chips-btn">追加筹码</button>
+        <div class="sound-control">
+          <button id="sound-toggle" class="btn sound-btn">🔊 音效: 开</button>
+        </div>
+        <div class="my-info">
+          <span>我的积分: <strong id="my-chips">1000</strong></span>
         </div>
       </div>
     </div>
 
-    <!-- 结算计分板弹窗 -->
+    <div id="personal-score-panel" class="personal-score-panel">
+      <button id="personal-score-toggle" class="btn personal-score-toggle">查看个人积分</button>
+      <div id="personal-score-body" class="personal-score-body" style="display:none">
+        <div class="chips-history">
+          <h4>积分历史</h4>
+          <div id="chips-history-list" class="chips-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="host-panel" class="host-panel" style="display: none;">
+      <div class="host-panel-overlay" id="host-panel-overlay"></div>
+      <div class="host-panel-content">
+        <div class="host-panel-header">
+          <h3>房主控制面板</h3>
+          <button id="host-panel-close" class="host-panel-close">✕</button>
+        </div>
+        <div class="host-btn-row">
+          <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
+          <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
+          <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
+          <button id="settle-game-btn" class="btn btn-host settle-btn" style="display: none;">结算牌局</button>
+        </div>
+        <div class="host-grid">
+          <div class="host-col">
+            <div class="host-control">
+              <label for="small-blind-input">小盲注 (SB)</label>
+              <input type="number" id="small-blind-input" min="1" value="10">
+            </div>
+            <div class="host-control">
+              <label for="big-blind-input">大盲注 (BB)</label>
+              <input type="number" id="big-blind-input" min="2" value="20">
+            </div>
+          </div>
+          <div class="host-col">
+            <div class="host-control">
+              <label for="initial-chips-input">初始积分</label>
+              <input type="number" id="initial-chips-input" min="100" value="1000">
+            </div>
+          </div>
+        </div>
+        <div class="host-addon-section">
+          <h4>附加规则</h4>
+          <div class="host-addon-controls">
+            <div class="host-control host-control-toggle">
+              <label for="standup-game-toggle">站立游戏</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="standup-game-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="host-control host-control-penalty" id="standup-penalty-control" style="display:none;">
+              <label for="standup-penalty-input">惩罚筹码</label>
+              <input type="number" id="standup-penalty-input" min="1" value="5000">
+            </div>
+          </div>
+        </div>
+        <div class="host-chips-section">
+          <h4>玩家筹码管理</h4>
+          <div class="host-chips-controls">
+            <select id="player-select" class="player-select"></select>
+            <input type="number" id="chips-amount-input" class="chips-amount-input" min="0" value="1000" placeholder="筹码数量">
+            <div class="host-chips-btn-row">
+              <button id="set-chips-btn" class="btn btn-host set-chips-btn">设定筹码</button>
+              <button id="add-chips-btn" class="btn btn-host add-chips-btn">追加筹码</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="settle-modal" class="settle-modal" style="display: none;">
       <div class="settle-modal-content">
         <h3>牌局结算</h3>
@@ -324,67 +391,9 @@
         <button id="settle-close-btn" class="btn btn-host settle-close-btn">关闭</button>
       </div>
     </div>
-
-    <!-- 下注操作面板 -->
-    <div id="action-panel" class="action-panel">
-      <h3>下注操作</h3>
-      <div class="action-buttons-vertical">
-        <button id="fold-btn" class="btn action-btn fold-btn">弃牌</button>
-        <button id="check-btn" class="btn action-btn check-btn">过牌</button>
-        <button id="call-btn" class="btn action-btn call-btn">跟注 <span id="call-amount">0</span></button>
-        <button id="raise-btn" class="btn action-btn raise-btn">加注</button>
-        <button id="all-in-btn" class="btn action-btn all-in-btn">全押</button>
-      </div>
-      <div class="bet-control">
-        <label for="bet-amount">下注积分</label>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <input type="number" id="bet-amount" class="bet-amount" value="10" min="1">
-          <button type="button" id="clear-bet-btn" class="btn clear-btn">清空</button>
-        </div>
-      </div>
-      <div class="chip-buttons">
-        <button class="chip-btn" data-amount="1">1</button>
-        <button class="chip-btn" data-amount="5">5</button>
-        <button class="chip-btn" data-amount="10">10</button>
-        <button class="chip-btn" data-amount="50">50</button>
-        <button class="chip-btn" data-amount="100">100</button>
-        <button class="chip-btn" data-amount="500">500</button>
-      </div>
-      <div class="pot-quick-buttons">
-        <button class="pot-quick-btn" data-fraction="0.33">⅓底池</button>
-        <button class="pot-quick-btn" data-fraction="0.5">½底池</button>
-        <button class="pot-quick-btn" data-fraction="1">1底池</button>
-      </div>
-      <div class="game-speed-control">
-        <label for="game-speed-slider">游戏速度</label>
-        <div class="speed-slider-row">
-          <span class="speed-label-slow">慢</span>
-          <input type="range" id="game-speed-slider" class="speed-slider" min="1" max="5" value="3" step="1">
-          <span class="speed-label-fast">快</span>
-        </div>
-      </div>
-      <div class="sound-control">
-        <button id="sound-toggle" class="btn sound-btn">🔊 音效: 开</button>
-      </div>
-      <div class="my-info">
-        <span>我的积分: <strong id="my-chips">1000</strong></span>
-      </div>
-      <div class="chips-history">
-        <h4>积分历史</h4>
-        <div id="chips-history-list" class="chips-history-list"></div>
-      </div>
-    </div>
-
-    <!-- 游戏进程复述面板 -->
-    <div id="game-log-panel" class="game-log-panel">
-      <h3>游戏进程</h3>
-      <div id="game-log-list" class="game-log-list"></div>
-    </div>
   </div>
 
-  <!-- Socket.io -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <!-- 声网SDK -->
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
   <script src="js/socket.js"></script>
@@ -395,43 +404,51 @@
   <script src="js/room/rules/texas.js"></script>
   <script src="js/room/rules/custom.js"></script>
 
-  <!-- 鼠标跟随式光晕按钮效果 -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const neonButtons = document.querySelectorAll('.btn, .action-btn, .chip-btn');
-      
-      neonButtons.forEach(btn => {
-        btn.addEventListener('mousemove', function(e) {
-          const rect = btn.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          this.style.setProperty('--x', `${x}px`);
-          this.style.setProperty('--y', `${y}px`);
-        });
-        
-        btn.addEventListener('mouseleave', function() {
-          this.style.setProperty('--x', '50%');
-          this.style.setProperty('--y', '50%');
-        });
-      });
-    });
-  </script>
-
-  <!-- 牌力规则按钮功能 -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const pokerPowerBtn = document.getElementById('poker-power-btn');
-      const pokerPowerModal = document.getElementById('poker-power-modal');
-      
-      if (pokerPowerBtn && pokerPowerModal) {
-        pokerPowerBtn.addEventListener('click', function() {
-          if (pokerPowerModal.style.display === 'none' || pokerPowerModal.style.display === '') {
-            pokerPowerModal.style.display = 'flex';
-          } else {
-            pokerPowerModal.style.display = 'none';
+      var gameLogToggle = document.getElementById('game-log-toggle');
+      var gameLogBody = document.getElementById('game-log-body');
+      var gameLogToggleIcon = document.getElementById('game-log-toggle-icon');
+      if (gameLogToggle && gameLogBody) {
+        gameLogToggle.addEventListener('click', function() {
+          var isExpanded = gameLogBody.style.display !== 'none';
+          gameLogBody.style.display = isExpanded ? 'none' : 'block';
+          if (gameLogToggleIcon) {
+            gameLogToggleIcon.textContent = isExpanded ? '▾' : '▴';
           }
         });
-        
+      }
+
+      var scoreToggle = document.getElementById('personal-score-toggle');
+      var scoreBody = document.getElementById('personal-score-body');
+      if (scoreToggle && scoreBody) {
+        scoreToggle.addEventListener('click', function() {
+          var isExpanded = scoreBody.style.display !== 'none';
+          scoreBody.style.display = isExpanded ? 'none' : 'block';
+          scoreToggle.textContent = isExpanded ? '查看个人积分' : '收起个人积分';
+        });
+      }
+
+      var hostPanelClose = document.getElementById('host-panel-close');
+      var hostPanel = document.getElementById('host-panel');
+      var hostPanelOverlay = document.getElementById('host-panel-overlay');
+      if (hostPanelClose && hostPanel) {
+        hostPanelClose.addEventListener('click', function() {
+          hostPanel.style.display = 'none';
+        });
+      }
+      if (hostPanelOverlay && hostPanel) {
+        hostPanelOverlay.addEventListener('click', function() {
+          hostPanel.style.display = 'none';
+        });
+      }
+
+      var pokerPowerBtn = document.getElementById('poker-power-btn');
+      var pokerPowerModal = document.getElementById('poker-power-modal');
+      if (pokerPowerBtn && pokerPowerModal) {
+        pokerPowerBtn.addEventListener('click', function() {
+          pokerPowerModal.style.display = pokerPowerModal.style.display === 'none' || !pokerPowerModal.style.display ? 'flex' : 'none';
+        });
         pokerPowerModal.addEventListener('click', function(e) {
           if (e.target === pokerPowerModal) {
             pokerPowerModal.style.display = 'none';
@@ -441,78 +458,29 @@
     });
   </script>
 
-  <!-- 移动端横屏等比例缩放 -->
   <script>
     (function() {
       function isMobile() {
         return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia('(hover: none) and (pointer: coarse)').matches);
       }
 
-      function isLandscape() {
-        return window.innerWidth > window.innerHeight;
-      }
-
       function applyScaling() {
         if (!isMobile()) return;
-
         var overlay = document.getElementById('portrait-overlay');
-        var container = document.querySelector('.room-container');
-        if (!container) return;
-
-        if (!isLandscape()) {
-          if (overlay) overlay.style.display = 'flex';
-          if (container.style.transform) {
-            container.style.transform = '';
-            container.style.transformOrigin = '';
-            container.style.width = '';
-            container.style.height = '';
-          }
-          return;
-        }
-
-        if (overlay) overlay.style.display = 'none';
-
-        var vh = window.innerHeight;
-        var vw = window.innerWidth;
-
-        if (vh < 500) {
-          var designHeight = 768;
-          var scale = vh / designHeight;
-          scale = Math.max(0.35, Math.min(1, scale));
-
-          container.style.transform = 'scale(' + scale + ')';
-          container.style.transformOrigin = 'top left';
-          container.style.width = (vw / scale) + 'px';
-          container.style.height = (designHeight) + 'px';
-          document.documentElement.style.overflow = 'hidden';
-          document.body.style.overflow = 'hidden';
-        } else {
-          container.style.transform = '';
-          container.style.transformOrigin = '';
-          container.style.width = '';
-          container.style.height = '';
-          document.documentElement.style.overflow = '';
-          document.body.style.overflow = '';
-        }
+        if (!overlay) return;
+        var isPortrait = window.innerHeight > window.innerWidth;
+        overlay.style.display = isPortrait ? 'flex' : 'none';
       }
 
       applyScaling();
-
       var resizeTimer;
       window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(applyScaling, 100);
       });
-
       window.addEventListener('orientationchange', function() {
         setTimeout(applyScaling, 300);
       });
-
-      if (screen.orientation) {
-        screen.orientation.addEventListener('change', function() {
-          setTimeout(applyScaling, 300);
-        });
-      }
     })();
   </script>
 </body>

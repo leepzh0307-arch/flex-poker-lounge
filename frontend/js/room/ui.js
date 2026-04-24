@@ -156,9 +156,11 @@ class RoomUI {
     this.gameSpeed = 3;
     this._prevPhase = 'WAITING';
     this._prevCommunityCardCount = 0;
+    this._activePlayers = [];
+    this._selfSeatIndex = -1;
 
     this.bindEvents();
-    
+    this._setupGameLogObserver();
     this.updateLanguage();
   }
 
@@ -445,39 +447,22 @@ class RoomUI {
       }
       labelEl.style.display = 'none';
 
-      seat.querySelector('.player-name-display').textContent = player.nickname;
+      seat.querySelector('.player-name').textContent = player.nickname;
       if (player.isAI) {
-        seat.querySelector('.player-name-display').classList.add('ai-player-name');
+        seat.querySelector('.player-name').classList.add('ai-player-name');
       } else {
-        seat.querySelector('.player-name-display').classList.remove('ai-player-name');
+        seat.querySelector('.player-name').classList.remove('ai-player-name');
       }
       seat.querySelector('.player-chips').textContent = player.chips || 0;
       seat.querySelector('.player-bet-total').textContent = `本局下注: ${handBet || 0}`;
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
-      cardsContainer.classList.add('fan-layout');
-      if (player.cards && player.cards.length > 0) {
-        cardsContainer.setAttribute('data-card-count', player.cards.length);
+      if (player.cards) {
         player.cards.forEach(card => {
           const cardElement = this.createCardElement(card);
           cardsContainer.appendChild(cardElement);
         });
-      } else {
-        cardsContainer.removeAttribute('data-card-count');
-      }
-
-      let chipBadge = cardsContainer.querySelector('.player-chip-badge');
-      if (!chipBadge) {
-        chipBadge = document.createElement('div');
-        chipBadge.className = 'player-chip-badge';
-        cardsContainer.appendChild(chipBadge);
-      }
-      chipBadge.textContent = player.chips || 0;
-      if (this.currentLanguage === 'en') {
-        chipBadge.classList.add('english-text');
-      } else {
-        chipBadge.classList.remove('english-text');
       }
 
       if (this.winnerPlayerIds.has(player.id)) {
@@ -513,6 +498,11 @@ class RoomUI {
           betEl.textContent = currentBet;
           betEl.style.display = 'flex';
 
+          // 根据座位号确定筹码偏移方向（朝牌桌中心方向）
+          // 座位1/9/10在底部 → 筹码向上（负Y）
+          // 座位2/3在左侧 → 筹码向右（正X）
+          // 座位4/5/6在顶部 → 筹码向下（正Y）
+          // 座位7/8在右侧 → 筹码向左（负X）
           const betOffsets = {
             1:  { dx: 0,  dy: -1 },
             2:  { dx: 1,  dy: 0 },
@@ -560,26 +550,19 @@ class RoomUI {
       }
 
       if (statusEl) {
-        statusEl.innerHTML = '';
         if (!player.isActive) {
           if (player.isEliminated) {
-            const badge = document.createElement('span');
-            badge.className = 'status-badge eliminated';
-            badge.textContent = '出局';
-            statusEl.appendChild(badge);
+            statusEl.textContent = '出局';
+            statusEl.className = 'player-status eliminated';
           } else {
-            const badge = document.createElement('span');
-            badge.className = 'status-badge folded';
-            badge.textContent = '已弃牌';
-            statusEl.appendChild(badge);
+            statusEl.textContent = '已弃牌';
+            statusEl.className = 'player-status folded';
           }
-          statusEl.style.display = 'flex';
+          statusEl.style.display = 'block';
         } else if (player.chips === 0) {
-          const badge = document.createElement('span');
-          badge.className = 'status-badge allin';
-          badge.textContent = 'ALL IN';
-          statusEl.appendChild(badge);
-          statusEl.style.display = 'flex';
+          statusEl.textContent = 'ALL IN';
+          statusEl.className = 'player-status allin';
+          statusEl.style.display = 'block';
         } else {
           statusEl.style.display = 'none';
         }
@@ -598,22 +581,19 @@ class RoomUI {
       labelEl.style.display = 'block';
 
       seat.querySelector('.player-bet-total').textContent = '下注: 0';
-      seat.querySelector('.player-name-display').textContent = '--';
+      seat.querySelector('.player-name').textContent = '--';
       seat.querySelector('.player-chips').textContent = '0';
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
-      cardsContainer.classList.remove('fan-layout');
-      cardsContainer.removeAttribute('data-card-count');
 
       seat.classList.remove('active', 'turn');
       if (badge) badge.style.display = 'none';
       if (betEl) betEl.style.display = 'none';
-      if (statusEl) {
-        statusEl.innerHTML = '';
-        statusEl.style.display = 'none';
-      }
+      if (statusEl) statusEl.style.display = 'none';
     }
+
+    this.repositionSeats();
   }
 
   showWinnerBadge(playerId) {
@@ -909,16 +889,13 @@ class RoomUI {
   }
 
   showHostPanel() {
-    this.elements.hostPanel.style.display = 'block';
-    document.getElementById('start-game').style.display = 'block';
-    document.getElementById('reset-game').style.display = 'block';
+    this.elements.hostPanel.style.display = 'flex';
+    document.getElementById('start-game').style.display = 'inline-block';
+    document.getElementById('reset-game').style.display = 'inline-block';
   }
 
   hideHostPanel() {
     this.elements.hostPanel.style.display = 'none';
-    document.getElementById('start-game').style.display = 'none';
-    document.getElementById('next-hand-btn').style.display = 'none';
-    document.getElementById('reset-game').style.display = 'none';
   }
 
   updateVoiceButton(enabled) {
@@ -993,24 +970,100 @@ class RoomUI {
     this.myPlayerId = playerId;
   }
 
+  repositionSeats() {
+    const area = document.querySelector('.players-area');
+    if (!area) return;
+
+    const activeSeats = [];
+    let selfSeatIdx = -1;
+
+    for (let i = 0; i < 10; i++) {
+      const seat = this.elements.playerSeats[i];
+      if (seat && seat._playerData) {
+        activeSeats.push(i);
+        if (this.myPlayerId && seat._playerData.id === this.myPlayerId) {
+          selfSeatIdx = i;
+        }
+      }
+    }
+
+    if (selfSeatIdx === -1 || activeSeats.length === 0) {
+      for (let i = 0; i < 10; i++) {
+        const seat = this.elements.playerSeats[i];
+        if (seat && seat._playerData) {
+          seat.style.left = '';
+          seat.style.top = '';
+        }
+      }
+      return;
+    }
+
+    const sortedSeats = [...activeSeats].sort((a, b) => a - b);
+    const selfPosInList = sortedSeats.indexOf(selfSeatIdx);
+    const numPlayers = sortedSeats.length;
+
+    const startAngle = 180;
+    const angleStep = 360 / numPlayers;
+
+    const rx = 42;
+    const ry = 40;
+    const cx = 50;
+    const cy = 50;
+
+    sortedSeats.forEach((seatIdx, listIdx) => {
+      const relativePos = (listIdx - selfPosInList + numPlayers) % numPlayers;
+      const angle = startAngle + relativePos * angleStep;
+      const rad = angle * Math.PI / 180;
+
+      const x = cx + rx * Math.sin(rad);
+      const y = cy - ry * Math.cos(rad);
+
+      const seat = this.elements.playerSeats[seatIdx];
+      if (seat) {
+        seat.style.left = x + '%';
+        seat.style.top = y + '%';
+      }
+
+      const betEl = this.elements.playerBets[seatIdx];
+      if (betEl) {
+        const betRad = rad;
+        const betDist = 12;
+        const bx = cx + (rx + betDist) * Math.sin(betRad);
+        const by = cy - (ry + betDist) * Math.cos(betRad);
+        betEl.style.left = bx + '%';
+        betEl.style.top = by + '%';
+      }
+    });
+  }
+
+  _setupGameLogObserver() {
+    const logList = document.getElementById('game-log-list');
+    const summaryEl = document.getElementById('game-log-summary');
+    if (!logList || !summaryEl) return;
+
+    const observer = new MutationObserver(() => {
+      const entries = logList.querySelectorAll('.log-entry');
+      if (entries.length > 0) {
+        const lastEntry = entries[entries.length - 1];
+        summaryEl.textContent = lastEntry.textContent;
+      }
+    });
+
+    observer.observe(logList, { childList: true });
+  }
+
   switchTableBackground() {
     const tableArea = document.querySelector('.players-area');
-    const bgVideo = document.querySelector('.bg-video');
-    if (!tableArea || !bgVideo) return;
+    if (!tableArea) return;
 
     this.currentBgTheme = this.currentBgTheme === 1 ? 2 : 1;
 
-    // 切换牌桌背景
     if (this.currentBgTheme === 2) {
       tableArea.classList.add('bg-theme-2');
-      bgVideo.src = 'css/images/game-bg2.mp4';
     } else {
       tableArea.classList.remove('bg-theme-2');
-      bgVideo.src = 'css/images/game-bg1.mp4';
     }
-    bgVideo.load();
 
-    // 切换扑克牌背
     const allBackCards = document.querySelectorAll('.poker-card.back');
     allBackCards.forEach(card => {
       if (this.currentBgTheme === 2) {
@@ -1155,7 +1208,7 @@ class RoomUI {
     }
 
     // 更新房主面板
-    const hostPanelTitle = document.querySelector('.host-panel h3');
+    const hostPanelTitle = document.querySelector('.host-panel-header h3');
     if (hostPanelTitle) {
       hostPanelTitle.textContent = t['host-panel-title'];
       // 为英文文本添加特殊字体
@@ -1288,25 +1341,9 @@ class RoomUI {
     }
 
     // 更新房间号标签
-    const roomInfo = document.querySelector('.room-info');
-    if (roomInfo) {
-      roomInfo.innerHTML = `${t['room-number']}: <span id="room-id" class="room-id">${this.elements.roomId?.textContent || '--'}</span>
-        <button id="copy-room-id" class="btn copy-btn header-btn">${t['copy']}</button>`;
-      this.elements.roomId = document.getElementById('room-id');
-      // 为英文文本添加特殊字体
-      if (this.currentLanguage === 'en') {
-        roomInfo.classList.add('english-text');
-        const newCopyBtn = document.getElementById('copy-room-id');
-        if (newCopyBtn) {
-          newCopyBtn.classList.add('english-text');
-        }
-      } else {
-        roomInfo.classList.remove('english-text');
-        const newCopyBtn = document.getElementById('copy-room-id');
-        if (newCopyBtn) {
-          newCopyBtn.classList.remove('english-text');
-        }
-      }
+    const roomLabel = document.querySelector('.room-label');
+    if (roomLabel) {
+      roomLabel.textContent = t['room-number'];
     }
 
     // 更新下注操作标题
@@ -1370,7 +1407,7 @@ class RoomUI {
     }
 
     // 更新游戏进程标题
-    const gameLogTitle = document.querySelector('.game-log-panel h3');
+    const gameLogTitle = document.querySelector('.game-log-title');
     if (gameLogTitle) {
       gameLogTitle.textContent = t['game-log-title'];
       // 为英文文本添加特殊字体
@@ -1382,7 +1419,7 @@ class RoomUI {
     }
 
     // 更新玩家姓名
-    document.querySelectorAll('.player-name-display').forEach(name => {
+    document.querySelectorAll('.player-name').forEach(name => {
       if (this.currentLanguage === 'en') {
         name.classList.add('english-text');
       } else {

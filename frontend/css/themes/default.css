@@ -1,59 +1,51 @@
 :root {
-  /* 颜色变量 */
-  --bg-primary: #1a2a1a;
-  --bg-secondary: #2a3a2a;
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
   --bg-card: #ffffff;
-  --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --accent-primary: #ff6b35;
-  --accent-secondary: #4ecdc4;
-  --border-color: #3a4a3a;
-  --button-bg: #ff6b35;
-  --button-hover: #ff8a5a;
-  --button-active: #ff551a;
-  --chip-color: #E6D296;
+  --text-primary: #F0EDE6;
+  --text-secondary: #9A968E;
+  --accent-primary: #D4AF37;
+  --accent-secondary: #1ABC9C;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --button-bg: rgba(212, 175, 55, 0.15);
+  --button-hover: rgba(212, 175, 55, 0.25);
+  --button-active: rgba(212, 175, 55, 0.35);
+  --chip-color: #D4AF37;
   --card-back: #1e3a8a;
-  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  
-  /* 字体变量 */
-  --font-family: 'Arial', sans-serif;
+  --card-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+
+  --font-family: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
   --font-size-small: 14px;
   --font-size-medium: 16px;
   --font-size-large: 20px;
   --font-size-xl: 24px;
   --font-weight-normal: 400;
   --font-weight-bold: 700;
-  
-  /* 间距变量 */
+
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
-  
-  /* 圆角变量 */
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
+
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 16px;
   --border-radius-full: 50%;
-  
-  /* 动画变量 */
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-  
-  /* 布局变量 */
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+
   --max-width: 1200px;
-  --header-height: 60px;
+  --header-height: 48px;
   --footer-height: 80px;
-  
-  /* 扑克牌变量 */
+
   --card-width: 80px;
   --card-height: 120px;
   --card-margin: 8px;
 }
 
-/* 响应式变量 */
 @media (max-width: 768px) {
   :root {
     --font-size-small: 12px;

@@ -426,39 +426,22 @@ class OmahaRoomUI {
       }
       labelEl.style.display = 'none';
 
-      seat.querySelector('.player-name-display').textContent = player.nickname;
+      seat.querySelector('.player-name').textContent = player.nickname;
       if (player.isAI) {
-        seat.querySelector('.player-name-display').classList.add('ai-player-name');
+        seat.querySelector('.player-name').classList.add('ai-player-name');
       } else {
-        seat.querySelector('.player-name-display').classList.remove('ai-player-name');
+        seat.querySelector('.player-name').classList.remove('ai-player-name');
       }
       seat.querySelector('.player-chips').textContent = player.chips || 0;
       seat.querySelector('.player-bet-total').textContent = `本局下注: ${handBet || 0}`;
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
-      cardsContainer.classList.add('fan-layout');
-      if (player.cards && player.cards.length > 0) {
-        cardsContainer.setAttribute('data-card-count', player.cards.length);
+      if (player.cards) {
         player.cards.forEach(card => {
           const cardElement = this.createCardElement(card);
           cardsContainer.appendChild(cardElement);
         });
-      } else {
-        cardsContainer.removeAttribute('data-card-count');
-      }
-
-      let chipBadge = cardsContainer.querySelector('.player-chip-badge');
-      if (!chipBadge) {
-        chipBadge = document.createElement('div');
-        chipBadge.className = 'player-chip-badge';
-        cardsContainer.appendChild(chipBadge);
-      }
-      chipBadge.textContent = player.chips || 0;
-      if (this.currentLanguage === 'en') {
-        chipBadge.classList.add('english-text');
-      } else {
-        chipBadge.classList.remove('english-text');
       }
 
       if (this.winnerPlayerIds.has(player.id)) {
@@ -541,26 +524,19 @@ class OmahaRoomUI {
       }
 
       if (statusEl) {
-        statusEl.innerHTML = '';
         if (!player.isActive) {
           if (player.isEliminated) {
-            const badge = document.createElement('span');
-            badge.className = 'status-badge eliminated';
-            badge.textContent = '出局';
-            statusEl.appendChild(badge);
+            statusEl.textContent = '出局';
+            statusEl.className = 'player-status eliminated';
           } else {
-            const badge = document.createElement('span');
-            badge.className = 'status-badge folded';
-            badge.textContent = '已弃牌';
-            statusEl.appendChild(badge);
+            statusEl.textContent = '已弃牌';
+            statusEl.className = 'player-status folded';
           }
-          statusEl.style.display = 'flex';
+          statusEl.style.display = 'block';
         } else if (player.chips === 0) {
-          const badge = document.createElement('span');
-          badge.className = 'status-badge allin';
-          badge.textContent = 'ALL IN';
-          statusEl.appendChild(badge);
-          statusEl.style.display = 'flex';
+          statusEl.textContent = 'ALL IN';
+          statusEl.className = 'player-status allin';
+          statusEl.style.display = 'block';
         } else {
           statusEl.style.display = 'none';
         }
@@ -579,21 +555,16 @@ class OmahaRoomUI {
       labelEl.style.display = 'block';
 
       seat.querySelector('.player-bet-total').textContent = '下注: 0';
-      seat.querySelector('.player-name-display').textContent = '--';
+      seat.querySelector('.player-name').textContent = '--';
       seat.querySelector('.player-chips').textContent = '0';
 
       const cardsContainer = seat.querySelector('.player-cards');
       cardsContainer.innerHTML = '';
-      cardsContainer.classList.remove('fan-layout');
-      cardsContainer.removeAttribute('data-card-count');
 
       seat.classList.remove('active', 'turn');
       if (badge) badge.style.display = 'none';
       if (betEl) betEl.style.display = 'none';
-      if (statusEl) {
-        statusEl.innerHTML = '';
-        statusEl.style.display = 'none';
-      }
+      if (statusEl) statusEl.style.display = 'none';
     }
   }
 
@@ -1226,7 +1197,7 @@ class OmahaRoomUI {
       potLimitBadge.textContent = t['pot-limit'];
     }
 
-    document.querySelectorAll('.player-name-display').forEach(name => {
+    document.querySelectorAll('.player-name').forEach(name => {
       if (this.currentLanguage === 'en') name.classList.add('english-text');
       else name.classList.remove('english-text');
     });
