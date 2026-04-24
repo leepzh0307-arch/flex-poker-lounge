@@ -14,6 +14,7 @@ class RoomUI {
       statusTitle: document.getElementById('status-title'),
       statusMessage: document.getElementById('status-message'),
       hostPanel: document.getElementById('host-panel'),
+      hostBtnWrapper: document.getElementById('host-btn-wrapper'),
       voiceToggle: document.getElementById('voice-toggle'),
       languageToggle: document.getElementById('language-toggle'),
       exitRoom: document.getElementById('exit-room'),
@@ -344,6 +345,20 @@ class RoomUI {
       const amount = parseInt(input?.value) || 0;
       if (playerId && amount > 0 && window.gameManager) {
         window.gameManager.sendGameAction('addPlayerChips', { playerId, amount });
+      }
+    });
+
+    bindEvent(document.getElementById('game-add-chips-btn'), () => {
+      const gameModal = document.getElementById('host-game-modal');
+      if (gameModal) {
+        const select = document.getElementById('player-select');
+        const input = document.getElementById('chips-amount-input');
+        const playerId = select?.value;
+        const amount = parseInt(input?.value) || 0;
+        if (playerId && amount > 0 && window.gameManager) {
+          window.gameManager.sendGameAction('addPlayerChips', { playerId, amount });
+          gameModal.style.display = 'none';
+        }
       }
     });
 
@@ -889,13 +904,43 @@ class RoomUI {
   }
 
   showHostPanel() {
-    this.elements.hostPanel.style.display = 'flex';
-    document.getElementById('start-game').style.display = 'inline-block';
-    document.getElementById('reset-game').style.display = 'inline-block';
+    const gameStarted = this.elements.hostBtnWrapper && this.elements.hostBtnWrapper.style.display !== 'none';
+    if (gameStarted) {
+      const modal = document.getElementById('host-game-modal');
+      if (modal) modal.style.display = 'flex';
+    } else {
+      const modal = document.getElementById('host-setup-modal');
+      if (modal) modal.style.display = 'flex';
+    }
   }
 
   hideHostPanel() {
-    this.elements.hostPanel.style.display = 'none';
+    const setupModal = document.getElementById('host-setup-modal');
+    const gameModal = document.getElementById('host-game-modal');
+    if (setupModal) setupModal.style.display = 'none';
+    if (gameModal) gameModal.style.display = 'none';
+  }
+
+  showHostSetupModal() {
+    const modal = document.getElementById('host-setup-modal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  hideHostSetupModal() {
+    const modal = document.getElementById('host-setup-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  showHostGameBtn() {
+    if (this.elements.hostBtnWrapper) {
+      this.elements.hostBtnWrapper.style.display = 'block';
+    }
+  }
+
+  hideHostGameBtn() {
+    if (this.elements.hostBtnWrapper) {
+      this.elements.hostBtnWrapper.style.display = 'none';
+    }
   }
 
   updateVoiceButton(enabled) {
