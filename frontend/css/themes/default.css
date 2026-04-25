@@ -1,71 +1,55 @@
 :root {
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-card: #ffffff;
-  --text-primary: #F0EDE6;
-  --text-secondary: #9A968E;
-  --accent-primary: #D4AF37;
-  --accent-secondary: #1ABC9C;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --button-bg: rgba(212, 175, 55, 0.15);
-  --button-hover: rgba(212, 175, 55, 0.25);
-  --button-active: rgba(212, 175, 55, 0.35);
-  --chip-color: #D4AF37;
-  --card-back: #1e3a8a;
-  --card-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+  --bg-deep: #F9F8F4;
+  --bg-primary: #F9F8F4;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F2F0EB;
+  --bg-card: #FFFFFF;
+  --bg-overlay: rgba(249, 248, 244, 0.9);
 
-  --font-family: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
-  --font-size-small: 14px;
-  --font-size-medium: 16px;
-  --font-size-large: 20px;
-  --font-size-xl: 24px;
-  --font-weight-normal: 400;
-  --font-weight-bold: 700;
+  --gold: #8C9A84;
+  --gold-light: #A3B49A;
+  --gold-dim: #6B7D63;
+  --gold-glow: rgba(140, 154, 132, 0.15);
 
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --felt: #8C9A84;
+  --felt-dark: #6B7D63;
+  --felt-border: #A3B49A;
 
-  --border-radius-sm: 6px;
-  --border-radius-md: 10px;
-  --border-radius-lg: 16px;
-  --border-radius-full: 50%;
+  --text-primary: #2D3A31;
+  --text-secondary: #5A6B5E;
+  --text-muted: #8C9A84;
+  --text-dark: #2D3A31;
 
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
-  --transition-slow: 0.4s ease;
+  --accent-red: #C27B66;
+  --accent-green: #8C9A84;
+  --accent-blue: #5B7A9D;
+  --accent-teal: #6B8F71;
+  --accent-purple: #7A6B8A;
 
-  --max-width: 1200px;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Source Sans 3', -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-sm: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
+  --shadow-lg: 0 20px 40px -10px rgba(45, 58, 49, 0.05);
+  --shadow-gold: 0 0 20px rgba(140, 154, 132, 0.15);
+
   --header-height: 48px;
-  --footer-height: 80px;
+  --table-max-w: 400px;
+  --table-aspect: 1.25;
 
-  --card-width: 80px;
-  --card-height: 120px;
-  --card-margin: 8px;
-}
+  --transition-fast: 300ms ease;
+  --transition-normal: 500ms ease;
+  --transition-slow: 700ms ease;
 
-@media (max-width: 768px) {
-  :root {
-    --font-size-small: 12px;
-    --font-size-medium: 14px;
-    --font-size-large: 18px;
-    --font-size-xl: 20px;
-    --card-width: 50px;
-    --card-height: 71px;
-    --card-margin: 4px;
-    --spacing-md: 12px;
-    --spacing-lg: 16px;
-    --spacing-xl: 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --card-width: 40px;
-    --card-height: 57px;
-    --font-size-large: 16px;
-    --font-size-xl: 18px;
-  }
+  --suit-hearts: #C0392B;
+  --suit-diamonds: #2980B9;
+  --suit-spades: #1a1a1a;
+  --suit-clubs: #FFFFFF;
 }

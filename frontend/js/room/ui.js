@@ -654,14 +654,26 @@ class RoomUI {
     }
 
     const suitSymbol = this.getSuitSymbol(card.suit);
-    const suitColor = (card.suit === 'hearts' || card.suit === 'diamonds') ? '#d32f2f' : '#212121';
+    const suitColor = this.getSuitColor(card.suit);
+
+    const suitClass = card.suit ? `suit-${card.suit}` : '';
 
     cardElement.innerHTML = `
-      <div class="card-value top" style="color: ${suitColor};">${card.value}<br>${suitSymbol}</div>
-      <div class="card-suit center" style="color: ${suitColor};">${suitSymbol}</div>
-      <div class="card-value bottom" style="color: ${suitColor};">${suitSymbol}<br>${card.value}</div>
+      <div class="card-value top ${suitClass}" style="color: ${suitColor};">${card.value}<br>${suitSymbol}</div>
+      <div class="card-suit center ${suitClass}" style="color: ${suitColor};">${suitSymbol}</div>
+      <div class="card-value bottom ${suitClass}" style="color: ${suitColor};">${suitSymbol}<br>${card.value}</div>
     `;
     return cardElement;
+  }
+
+  getSuitColor(suit) {
+    const map = {
+      hearts: '#C0392B',
+      diamonds: '#2980B9',
+      spades: '#1a1a1a',
+      clubs: '#FFFFFF'
+    };
+    return map[suit] || '#1a1a1a';
   }
 
   getSuitSymbol(suit) {
@@ -1038,6 +1050,7 @@ class RoomUI {
         if (seat && seat._playerData) {
           seat.style.left = '';
           seat.style.top = '';
+          seat.style.transform = '';
         }
       }
       return;
@@ -1050,8 +1063,8 @@ class RoomUI {
     const startAngle = 180;
     const angleStep = 360 / numPlayers;
 
-    const rx = 42;
-    const ry = 40;
+    const rx = 43;
+    const ry = 44;
     const cx = 50;
     const cy = 50;
 
@@ -1063,17 +1076,22 @@ class RoomUI {
       const x = cx + rx * Math.sin(rad);
       const y = cy - ry * Math.cos(rad);
 
+      const normalizedAngle = ((angle % 360) + 360) % 360;
+      const distFromBottom = Math.abs(normalizedAngle - 180);
+      const maxDist = 180;
+      const perspectiveScale = 0.65 + 0.35 * (1 - distFromBottom / maxDist);
+      const perspectiveOpacity = 0.6 + 0.4 * (1 - distFromBottom / maxDist);
+
       const seat = this.elements.playerSeats[seatIdx];
       if (seat) {
         seat.style.left = x + '%';
         seat.style.top = y + '%';
-
-        const scaleMin = 0.6;
-        const scaleMax = 1.0;
-        const depthFactor = (y - 5) / 90;
-        const scale = scaleMin + (scaleMax - scaleMin) * Math.pow(depthFactor, 0.8);
-        const translateZ = (depthFactor - 0.5) * 100;
-        seat.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)}) translateZ(${translateZ.toFixed(0)}px)`;
+        if (seat.classList.contains('seat-self')) {
+          seat.style.transform = 'translate(-50%, -50%)';
+        } else {
+          seat.style.transform = `translate(-50%, -50%) scale(${perspectiveScale.toFixed(3)})`;
+          seat.style.opacity = perspectiveOpacity.toFixed(2);
+        }
       }
 
       const betEl = this.elements.playerBets[seatIdx];

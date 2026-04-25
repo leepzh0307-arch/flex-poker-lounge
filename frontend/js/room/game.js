@@ -171,7 +171,7 @@ class GameManager {
 
     // 优化玩家座位更新：只更新变化的玩家
     if (updates.players) {
-      for (let i = 1; i <= 9; i++) {
+      for (let i = 1; i <= 10; i++) {
         const player = gameState.players.find(p => p.seat === i);
         const roundBet = (player && gameState.roundBets && gameState.roundBets[player.id]) || 0;
         const handBet = (player && gameState.handBets && gameState.handBets[player.id]) || 0;
