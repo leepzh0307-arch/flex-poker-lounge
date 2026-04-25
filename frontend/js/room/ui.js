@@ -389,6 +389,7 @@ class RoomUI {
 
     if (newCount > prevCount && newCount > 0) {
       const dealDelay = Math.round(200 * speedMultiplier);
+      const animDuration = 300;
 
       for (let i = 0; i < 5; i++) {
         if (cards && cards[i]) {
@@ -397,15 +398,16 @@ class RoomUI {
             cardElement.classList.add('dealing');
             cardElement.style.animationDelay = `${(i - prevCount) * dealDelay}ms`;
             cardElement.style.opacity = '0';
+            const delay = (i - prevCount) * dealDelay + animDuration;
             setTimeout(() => {
+              cardElement.style.opacity = '';
               if (window.pokerSoundManager) pokerSoundManager.dealCard();
-            }, (i - prevCount) * dealDelay);
+            }, delay);
           }
           this.elements.communityCards.appendChild(cardElement);
         } else {
           const placeholder = document.createElement('div');
-          placeholder.className = 'poker-card back';
-          placeholder.style.opacity = '0.3';
+          placeholder.className = 'poker-card empty-slot';
           this.elements.communityCards.appendChild(placeholder);
         }
       }
@@ -423,8 +425,7 @@ class RoomUI {
           this.elements.communityCards.appendChild(this.createCardElement(cards[i]));
         } else {
           const placeholder = document.createElement('div');
-          placeholder.className = 'poker-card back';
-          placeholder.style.opacity = '0.3';
+          placeholder.className = 'poker-card empty-slot';
           this.elements.communityCards.appendChild(placeholder);
         }
       }
@@ -669,9 +670,9 @@ class RoomUI {
   getSuitColor(suit) {
     const map = {
       hearts: '#C0392B',
-      diamonds: '#2980B9',
+      diamonds: '#C0392B',
       spades: '#1a1a1a',
-      clubs: '#FFFFFF'
+      clubs: '#1a1a1a'
     };
     return map[suit] || '#1a1a1a';
   }
@@ -682,7 +683,11 @@ class RoomUI {
   }
 
   updateMyChips(chips) {
-    this.elements.myChips.textContent = chips;
+    const el = document.getElementById('my-chips');
+    if (el) this.elements.myChips = el;
+    if (this.elements.myChips) {
+      this.elements.myChips.textContent = chips;
+    }
   }
 
   addChipsHistoryEntry(amount, isWin) {
@@ -1064,9 +1069,9 @@ class RoomUI {
     const angleStep = 360 / numPlayers;
 
     const rx = 43;
-    const ry = 44;
+    const ry = 34;
     const cx = 50;
-    const cy = 50;
+    const cy = 45;
 
     sortedSeats.forEach((seatIdx, listIdx) => {
       const relativePos = (listIdx - selfPosInList + numPlayers) % numPlayers;
@@ -1080,7 +1085,6 @@ class RoomUI {
       const distFromBottom = Math.abs(normalizedAngle - 180);
       const maxDist = 180;
       const perspectiveScale = 0.65 + 0.35 * (1 - distFromBottom / maxDist);
-      const perspectiveOpacity = 0.6 + 0.4 * (1 - distFromBottom / maxDist);
 
       const seat = this.elements.playerSeats[seatIdx];
       if (seat) {
@@ -1090,8 +1094,8 @@ class RoomUI {
           seat.style.transform = 'translate(-50%, -50%)';
         } else {
           seat.style.transform = `translate(-50%, -50%) scale(${perspectiveScale.toFixed(3)})`;
-          seat.style.opacity = perspectiveOpacity.toFixed(2);
         }
+        seat.style.opacity = '';
       }
 
       const betEl = this.elements.playerBets[seatIdx];
@@ -1213,18 +1217,6 @@ class RoomUI {
         betControlLabel.classList.add('english-text');
       } else {
         betControlLabel.classList.remove('english-text');
-      }
-    }
-
-    const myInfo = document.querySelector('.my-info');
-    if (myInfo) {
-      myInfo.innerHTML = `<span>${t['my-chips']}: <strong id="my-chips">${this.elements.myChips?.textContent || 0}</strong></span>`;
-      this.elements.myChips = document.getElementById('my-chips');
-      // 为英文文本添加特殊字体
-      if (this.currentLanguage === 'en') {
-        myInfo.classList.add('english-text');
-      } else {
-        myInfo.classList.remove('english-text');
       }
     }
 

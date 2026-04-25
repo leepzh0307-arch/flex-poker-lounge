@@ -49,7 +49,7 @@
   --transition-slow: 700ms ease;
 
   --suit-hearts: #C0392B;
-  --suit-diamonds: #2980B9;
+  --suit-diamonds: #C0392B;
   --suit-spades: #1a1a1a;
-  --suit-clubs: #FFFFFF;
+  --suit-clubs: #1a1a1a;
 }

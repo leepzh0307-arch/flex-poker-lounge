@@ -236,14 +236,6 @@ h2 {
   font-size: 28px;
 }
 
-.poker-card .suit-clubs {
-  text-shadow:
-    -0.5px -0.5px 0 rgba(45, 58, 49, 0.35),
-    0.5px -0.5px 0 rgba(45, 58, 49, 0.35),
-    -0.5px 0.5px 0 rgba(45, 58, 49, 0.35),
-    0.5px 0.5px 0 rgba(45, 58, 49, 0.35);
-}
-
 /* 筹码样式 */
 .chip {
   display: inline-block;

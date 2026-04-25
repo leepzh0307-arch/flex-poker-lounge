@@ -297,19 +297,6 @@
         <div class="sound-control">
           <button id="sound-toggle" class="btn sound-btn">🔊 音效: 开</button>
         </div>
-        <div class="my-info">
-          <span>我的积分: <strong id="my-chips">1000</strong></span>
-        </div>
-      </div>
-    </div>
-
-    <div id="personal-score-panel" class="personal-score-panel">
-      <button id="personal-score-toggle" class="btn personal-score-toggle">查看个人积分</button>
-      <div id="personal-score-body" class="personal-score-body" style="display:none">
-        <div class="chips-history">
-          <h4>积分历史</h4>
-          <div id="chips-history-list" class="chips-history-list"></div>
-        </div>
       </div>
     </div>
 
@@ -430,16 +417,6 @@
           if (gameLogToggleIcon) {
             gameLogToggleIcon.textContent = isExpanded ? '▾' : '▴';
           }
-        });
-      }
-
-      var scoreToggle = document.getElementById('personal-score-toggle');
-      var scoreBody = document.getElementById('personal-score-body');
-      if (scoreToggle && scoreBody) {
-        scoreToggle.addEventListener('click', function() {
-          var isExpanded = scoreBody.style.display !== 'none';
-          scoreBody.style.display = isExpanded ? 'none' : 'block';
-          scoreToggle.textContent = isExpanded ? '查看个人积分' : '收起个人积分';
         });
       }
 
