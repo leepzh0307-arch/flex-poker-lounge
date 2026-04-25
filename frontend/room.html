@@ -52,10 +52,14 @@
         <button id="copy-room-id" class="btn header-btn copy-btn">复制</button>
       </div>
       <div class="header-center">
-        <span id="connection-status" class="connection-status disconnected">未连接</span>
+        <span id="connection-status" class="connection-status disconnected" title="未连接">
+          <img src="hyperlink-broken.svg" alt="未连接" class="status-icon">
+        </span>
       </div>
       <div class="header-right">
-        <button id="voice-toggle" class="btn header-btn voice-btn">语音: 开启</button>
+        <button id="voice-toggle" class="btn header-btn voice-btn" title="语音: 开启">
+          <img src="microphone.svg" alt="语音开启" class="voice-icon">
+        </button>
         <button id="language-toggle" class="btn header-btn language-btn">中文</button>
         <button id="switch-table-bg" class="btn header-btn switch-bg-btn">切换主题</button>
         <button id="poker-power-btn" class="btn header-btn poker-power-btn">牌力规则</button>
@@ -63,18 +67,18 @@
       </div>
     </header>
 
-    <div id="game-log-panel" class="game-log-panel">
-      <div class="game-log-header" id="game-log-toggle">
-        <span class="game-log-title">游戏进程</span>
-        <span class="game-log-summary" id="game-log-summary"></span>
-        <span class="game-log-toggle-icon" id="game-log-toggle-icon">▾</span>
+    <div class="info-bar">
+      <div id="game-log-panel" class="game-log-panel">
+        <div class="game-log-header" id="game-log-toggle">
+          <span class="game-log-title">游戏进程</span>
+          <span class="game-log-summary" id="game-log-summary"></span>
+          <span class="game-log-toggle-icon" id="game-log-toggle-icon">▾</span>
+        </div>
+        <div class="game-log-body" id="game-log-body" style="display:none">
+          <div id="game-log-list" class="game-log-list"></div>
+        </div>
       </div>
-      <div class="game-log-body" id="game-log-body" style="display:none">
-        <div id="game-log-list" class="game-log-list"></div>
-      </div>
-    </div>
 
-    <main class="game-area">
       <div class="phase-indicator-wrapper">
         <div class="phase-indicator" id="phase-indicator">
           <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
@@ -86,7 +90,9 @@
           <div class="phase-step" data-phase="SHOWDOWN"><span class="phase-dot"></span><span class="phase-label">摊牌</span></div>
         </div>
       </div>
+    </div>
 
+    <main class="game-area">
       <div id="poker-power-modal" class="poker-power-modal" style="display: none;">
         <div class="poker-power-content">
           <img src="css/images/poker-power.webp" alt="牌力规则" class="poker-power-image">
@@ -95,7 +101,8 @@
 
       <div class="players-area">
         <div class="community-cards-section">
-          <div class="community-cards" id="community-cards"></div>
+          <div class="community-cards-row" id="community-cards-flop"></div>
+          <div class="community-cards-row" id="community-cards-turn-river"></div>
         </div>
 
         <div class="pot-info">
@@ -295,7 +302,9 @@
           </div>
         </div>
         <div class="sound-control">
-          <button id="sound-toggle" class="btn sound-btn">🔊 音效: 开</button>
+          <button id="sound-toggle" class="btn sound-btn" title="音效: 开">
+            <img src="volume-raised.svg" alt="音效开" class="sound-icon">
+          </button>
         </div>
       </div>
     </div>

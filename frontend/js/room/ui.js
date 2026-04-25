@@ -3,7 +3,8 @@ class RoomUI {
   constructor() {
     this.elements = {
       roomId: document.getElementById('room-id'),
-      communityCards: document.getElementById('community-cards'),
+      communityCardsFlop: document.getElementById('community-cards-flop'),
+      communityCardsTurnRiver: document.getElementById('community-cards-turn-river'),
       playerSeats: [],
       positionBadges: [],
       playerBets: [],
@@ -63,14 +64,14 @@ class RoomUI {
         'seat-label': '座位',
         'folded': '已弃牌',
         'all-in': 'ALL IN',
-        'voice-enabled': '🔊 语音: 开启',
-        'voice-disabled': '🔇 语音: 关闭',
+        'voice-enabled': '语音: 开启',
+        'voice-disabled': '语音: 关闭',
         'exit-room': '退出房间',
         'switch-bg': '切换主题',
         'room-number': '房间号',
         'copy': '复制',
-        'connected': '🟢 已连接',
-        'disconnected': '🔴 未连接',
+        'connected': '已连接',
+        'disconnected': '未连接',
         'copy-success': '复制成功',
         'copy-message': '房间号已复制到剪贴板',
         'confirm-exit': '确定要退出房间吗？',
@@ -83,8 +84,8 @@ class RoomUI {
         'game-speed': '游戏速度',
         'speed-slow': '慢',
         'speed-fast': '快',
-        'sound-on': '🔊 音效: 开',
-        'sound-off': '🔇 音效: 关'
+        'sound-on': '音效: 开',
+        'sound-off': '音效: 关'
       },
       en: {
         'language-button': '🌐 English',
@@ -115,14 +116,14 @@ class RoomUI {
         'seat-label': 'Seat',
         'folded': 'Folded',
         'all-in': 'ALL IN',
-        'voice-enabled': '🔊 Voice: On',
-        'voice-disabled': '🔇 Voice: Off',
+        'voice-enabled': 'Voice: On',
+        'voice-disabled': 'Voice: Off',
         'exit-room': 'Exit Room',
         'switch-bg': 'Switch Theme',
         'room-number': 'Room Number',
         'copy': 'Copy',
-        'connected': '🟢 Connected',
-        'disconnected': '🔴 Disconnected',
+        'connected': 'Connected',
+        'disconnected': 'Disconnected',
         'copy-success': 'Copied',
         'copy-message': 'Room number copied to clipboard',
         'confirm-exit': 'Are you sure you want to exit the room?',
@@ -135,8 +136,8 @@ class RoomUI {
         'game-speed': 'Speed',
         'speed-slow': 'Slow',
         'speed-fast': 'Fast',
-        'sound-on': '🔊 Sound: On',
-        'sound-off': '🔇 Sound: Off'
+        'sound-on': 'Sound: On',
+        'sound-off': 'Sound: Off'
       }
     };
 
@@ -256,7 +257,12 @@ class RoomUI {
           pokerSoundManager.init();
           const isEnabled = pokerSoundManager.enabled;
           pokerSoundManager.setEnabled(!isEnabled);
-          soundToggle.textContent = !isEnabled ? '🔊 音效: 开' : '🔇 音效: 关';
+          const icon = soundToggle.querySelector('img');
+          if (icon) {
+            icon.src = !isEnabled ? 'volume-raised.svg' : 'volume-mute-1.svg';
+            icon.alt = !isEnabled ? '音效开' : '音效关';
+          }
+          soundToggle.title = !isEnabled ? '音效: 开' : '音效: 关';
           soundToggle.classList.toggle('muted', isEnabled);
         }
       });
@@ -385,31 +391,42 @@ class RoomUI {
     const newCards = cards ? cards.filter(c => c && !c.hidden) : [];
     const newCount = newCards.length;
 
-    this.elements.communityCards.innerHTML = '';
+    this.elements.communityCardsFlop.innerHTML = '';
+    this.elements.communityCardsTurnRiver.innerHTML = '';
+
+    const createPlaceholder = () => {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'poker-card empty-slot';
+      return placeholder;
+    };
+
+    const addCardToRow = (card, rowIndex, container, isAnimated, animDelay) => {
+      if (card) {
+        const cardElement = this.createCardElement(card);
+        if (isAnimated) {
+          cardElement.classList.add('dealing');
+          cardElement.style.animationDelay = `${animDelay}ms`;
+          cardElement.style.opacity = '0';
+          const animDuration = 300;
+          setTimeout(() => {
+            cardElement.style.opacity = '';
+            if (window.pokerSoundManager) pokerSoundManager.dealCard();
+          }, animDelay + animDuration);
+        }
+        container.appendChild(cardElement);
+      } else {
+        container.appendChild(createPlaceholder());
+      }
+    };
 
     if (newCount > prevCount && newCount > 0) {
       const dealDelay = Math.round(200 * speedMultiplier);
-      const animDuration = 300;
 
       for (let i = 0; i < 5; i++) {
-        if (cards && cards[i]) {
-          const cardElement = this.createCardElement(cards[i]);
-          if (i >= prevCount && i < newCount) {
-            cardElement.classList.add('dealing');
-            cardElement.style.animationDelay = `${(i - prevCount) * dealDelay}ms`;
-            cardElement.style.opacity = '0';
-            const delay = (i - prevCount) * dealDelay + animDuration;
-            setTimeout(() => {
-              cardElement.style.opacity = '';
-              if (window.pokerSoundManager) pokerSoundManager.dealCard();
-            }, delay);
-          }
-          this.elements.communityCards.appendChild(cardElement);
-        } else {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'poker-card empty-slot';
-          this.elements.communityCards.appendChild(placeholder);
-        }
+        const container = i < 3 ? this.elements.communityCardsFlop : this.elements.communityCardsTurnRiver;
+        const isAnimated = i >= prevCount && i < newCount;
+        const animDelay = isAnimated ? (i - prevCount) * dealDelay : 0;
+        addCardToRow(cards && cards[i] ? cards[i] : null, i, container, isAnimated, animDelay);
       }
 
       if (newCount === 3 && prevCount < 3 && window.pokerSoundManager) {
@@ -421,13 +438,8 @@ class RoomUI {
       }
     } else {
       for (let i = 0; i < 5; i++) {
-        if (cards && cards[i]) {
-          this.elements.communityCards.appendChild(this.createCardElement(cards[i]));
-        } else {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'poker-card empty-slot';
-          this.elements.communityCards.appendChild(placeholder);
-        }
+        const container = i < 3 ? this.elements.communityCardsFlop : this.elements.communityCardsTurnRiver;
+        addCardToRow(cards && cards[i] ? cards[i] : null, i, container, false, 0);
       }
     }
 
@@ -621,14 +633,24 @@ class RoomUI {
     this.elements.playerSeats.forEach(seat => {
       const player = seat._playerData;
       if (player && player.id === playerId) {
-        const cardsContainer = seat.querySelector('.player-cards');
-        if (cardsContainer && !cardsContainer.querySelector('.winner-badge')) {
-          const badge = document.createElement('div');
-          badge.className = 'winner-badge';
-          badge.innerHTML = '👑';
-          cardsContainer.appendChild(badge);
-        }
         seat.classList.add('winner-seat');
+        if (!seat.querySelector('.confetti-container')) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti-container';
+          for (let i = 0; i < 30; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.setProperty('--confetti-x', (Math.random() - 0.5) * 200 + 'px');
+            piece.style.setProperty('--confetti-y', -(Math.random() * 150 + 50) + 'px');
+            piece.style.setProperty('--confetti-r', Math.random() * 720 - 360 + 'deg');
+            piece.style.setProperty('--confetti-delay', Math.random() * 0.3 + 's');
+            piece.style.backgroundColor = ['#C27B66', '#8C9A84', '#A3B49A', '#5B7A9D', '#7A6B8A', '#D4AF37', '#E8D5B7'][Math.floor(Math.random() * 7)];
+            piece.style.width = (Math.random() * 6 + 4) + 'px';
+            piece.style.height = (Math.random() * 6 + 4) + 'px';
+            confetti.appendChild(piece);
+          }
+          seat.appendChild(confetti);
+        }
       }
     });
   }
@@ -636,8 +658,8 @@ class RoomUI {
   clearWinnerBadges() {
     this.winnerPlayerIds.clear();
     this.elements.playerSeats.forEach(seat => {
-      const badge = seat.querySelector('.winner-badge');
-      if (badge) badge.remove();
+      const confetti = seat.querySelector('.confetti-container');
+      if (confetti) confetti.remove();
       seat.classList.remove('winner-seat');
     });
   }
@@ -961,17 +983,31 @@ class RoomUI {
   }
 
   updateVoiceButton(enabled) {
-    this.elements.voiceToggle.textContent = enabled ? '🔊 语音: 开启' : '🔇 语音: 关闭';
+    const icon = this.elements.voiceToggle.querySelector('img');
+    if (icon) {
+      icon.src = enabled ? 'microphone.svg' : 'microphone-off.svg';
+      icon.alt = enabled ? '语音开启' : '语音关闭';
+    }
+    this.elements.voiceToggle.title = enabled ? '语音: 开启' : '语音: 关闭';
     this.elements.voiceToggle.classList.toggle('active', enabled);
   }
 
   updateConnectionStatus(connected) {
     if (!this.elements.connectionStatus) return;
+    const icon = this.elements.connectionStatus.querySelector('img');
     if (connected) {
-      this.elements.connectionStatus.textContent = '🟢 已连接';
+      if (icon) {
+        icon.src = 'hyperlink-3.svg';
+        icon.alt = '已连接';
+      }
+      this.elements.connectionStatus.title = '已连接';
       this.elements.connectionStatus.className = 'connection-status connected';
     } else {
-      this.elements.connectionStatus.textContent = '🔴 未连接';
+      if (icon) {
+        icon.src = 'hyperlink-broken.svg';
+        icon.alt = '未连接';
+      }
+      this.elements.connectionStatus.title = '未连接';
       this.elements.connectionStatus.className = 'connection-status disconnected';
     }
   }
@@ -1068,10 +1104,10 @@ class RoomUI {
     const startAngle = 180;
     const angleStep = 360 / numPlayers;
 
-    const rx = 43;
-    const ry = 34;
+    const rx = 46;
+    const ry = 36;
     const cx = 50;
-    const cy = 45;
+    const cy = 46;
 
     sortedSeats.forEach((seatIdx, listIdx) => {
       const relativePos = (listIdx - selfPosInList + numPlayers) % numPlayers;
@@ -1084,7 +1120,7 @@ class RoomUI {
       const normalizedAngle = ((angle % 360) + 360) % 360;
       const distFromBottom = Math.abs(normalizedAngle - 180);
       const maxDist = 180;
-      const perspectiveScale = 0.65 + 0.35 * (1 - distFromBottom / maxDist);
+      const perspectiveScale = 0.55 + 0.45 * (1 - distFromBottom / maxDist);
 
       const seat = this.elements.playerSeats[seatIdx];
       if (seat) {
@@ -1540,7 +1576,12 @@ class RoomUI {
 
     const soundToggle = document.getElementById('sound-toggle');
     if (soundToggle && window.pokerSoundManager) {
-      soundToggle.textContent = pokerSoundManager.enabled ? t['sound-on'] : t['sound-off'];
+      const icon = soundToggle.querySelector('img');
+      if (icon) {
+        icon.src = pokerSoundManager.enabled ? 'volume-raised.svg' : 'volume-mute-1.svg';
+        icon.alt = pokerSoundManager.enabled ? '音效开' : '音效关';
+      }
+      soundToggle.title = pokerSoundManager.enabled ? t['sound-on'] : t['sound-off'];
       soundToggle.classList.toggle('muted', !pokerSoundManager.enabled);
     }
   }
