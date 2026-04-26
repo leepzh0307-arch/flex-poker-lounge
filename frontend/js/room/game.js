@@ -156,6 +156,8 @@ class GameManager {
     // 更新当前状态
     this.gameState = { ...this.gameState, ...gameState };
 
+    roomUI.currentGameState = this.gameState;
+
     const phase = gameState.gamePhase || 'WAITING';
     const sb = gameState.smallBlindAmount || 10;
     const bb = gameState.bigBlindAmount || 20;

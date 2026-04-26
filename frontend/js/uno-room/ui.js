@@ -6,6 +6,7 @@ class UnoRoomUI {
     this.isHost = false;
     this.hostPanelVisible = false;
     this.notificationTimeout = null;
+    this._prevTopCardId = null;
   }
 
   init() {
@@ -160,12 +161,22 @@ class UnoRoomUI {
 
     if (state.topCard) {
       this.elements.emptyDiscard.style.display = 'none';
+      var prevTopCardId = this._prevTopCardId;
+      var topCardChanged = state.topCard.id !== prevTopCardId;
+      this._prevTopCardId = state.topCard.id;
+
       const existingCards = this.elements.discardPile.querySelectorAll('.uno-card');
       existingCards.forEach(c => c.remove());
 
       const cardEl = this.createCardElement(state.topCard, false);
       cardEl.style.cursor = 'default';
       cardEl.classList.remove('playable', 'not-playable');
+
+      if (topCardChanged && prevTopCardId !== null) {
+        cardEl.classList.add('card-fly-in');
+        this._animateCardFromPlayer(cardEl, state);
+      }
+
       this.elements.discardPile.appendChild(cardEl);
     } else {
       this.elements.emptyDiscard.style.display = 'block';
@@ -185,6 +196,53 @@ class UnoRoomUI {
       this.elements.colorChooser.classList.add('visible');
     } else {
       this.elements.colorChooser.classList.remove('visible');
+    }
+  }
+
+  _animateCardFromPlayer(cardEl, state) {
+    var lastAction = null;
+    if (state.actionLog && state.actionLog.length > 0) {
+      lastAction = state.actionLog[state.actionLog.length - 1];
+    }
+
+    if (!lastAction || lastAction.action !== 'play') return;
+
+    var playedBy = lastAction.player;
+    var isMyPlay = false;
+    if (this.myPlayerId) {
+      var me = state.players.find(function(p) { return p.id === this.myPlayerId; }.bind(this));
+      if (me && me.nickname === playedBy) {
+        isMyPlay = true;
+      }
+    }
+
+    if (isMyPlay) {
+      cardEl.style.setProperty('--fly-from-x', '0px');
+      cardEl.style.setProperty('--fly-from-y', '120px');
+      cardEl.style.setProperty('--fly-from-scale', '0.6');
+    } else {
+      var opponentSeats = this.elements.opponentsArea.querySelectorAll('.opponent-seat');
+      var sourceSeat = null;
+      opponentSeats.forEach(function(seat) {
+        var nameEl = seat.querySelector('.nickname');
+        if (nameEl && nameEl.textContent === playedBy) {
+          sourceSeat = seat;
+        }
+      });
+
+      if (sourceSeat) {
+        var discardRect = this.elements.discardPile.getBoundingClientRect();
+        var seatRect = sourceSeat.getBoundingClientRect();
+        var dx = seatRect.left + seatRect.width / 2 - (discardRect.left + discardRect.width / 2);
+        var dy = seatRect.top + seatRect.height / 2 - (discardRect.top + discardRect.height / 2);
+        cardEl.style.setProperty('--fly-from-x', dx + 'px');
+        cardEl.style.setProperty('--fly-from-y', dy + 'px');
+        cardEl.style.setProperty('--fly-from-scale', '0.5');
+      } else {
+        cardEl.style.setProperty('--fly-from-x', '0px');
+        cardEl.style.setProperty('--fly-from-y', '-80px');
+        cardEl.style.setProperty('--fly-from-scale', '0.5');
+      }
     }
   }
 

@@ -112,6 +112,7 @@ function omahaSendUpdate(room, roomId, io, additionalMessage) {
       dealerButton: room.dealerButton,
       smallBlindAmount: room.smallBlindAmount || 10,
       bigBlindAmount: room.bigBlindAmount || 20,
+      initialChips: room.config?.initialChips || 1000,
       roundBets: Object.assign({}, room.gameState.roundBets),
       handBets: Object.assign({}, room.gameState.handBets),
       potLimitRaise: maxRaiseInfo,

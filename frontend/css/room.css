@@ -459,12 +459,12 @@ body {
 .players-area {
   position: relative;
   flex: 1 1 auto;
-  aspect-ratio: 7 / 7;
-  max-width: var(--table-max-w);
+  aspect-ratio: 5 / 7;
+  max-width: calc(var(--table-max-w) * 0.72);
   min-height: 240px;
   margin: 0 auto;
   padding-bottom: 60px;
-  border-radius: 48% 48% 44% 44% / 42% 42% 52% 52%;
+  border-radius: 44% 44% 48% 48% / 42% 42% 52% 52%;
   background:
     radial-gradient(ellipse at 50% 55%, var(--felt) 0%, var(--felt-dark) 80%);
   border: 2px solid var(--felt-border);
@@ -481,7 +481,7 @@ body {
   content: '';
   position: absolute;
   inset: 6px;
-  border-radius: 48% 48% 44% 44% / 42% 42% 52% 52%;
+  border-radius: 44% 44% 48% 48% / 42% 42% 52% 52%;
   border: 1px solid rgba(140, 154, 132, 0.2);
   pointer-events: none;
   z-index: 1;
@@ -491,7 +491,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 48% 48% 44% 44% / 42% 42% 52% 52%;
+  border-radius: 44% 44% 48% 48% / 42% 42% 52% 52%;
   background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.06) 0%, transparent 60%);
   pointer-events: none;
   z-index: 1;
@@ -850,19 +850,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, var(--gold), var(--gold-dim));
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(45, 58, 49, 0.15);
   z-index: 3;
   transition: all var(--transition-normal);
   pointer-events: none;
   white-space: nowrap;
-  padding: 0 4px;
+  background: none;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  min-width: auto;
+  height: auto;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .player-cards {
@@ -2444,14 +2445,14 @@ body {
 
 
 .poker-card.back {
-  background-image: url('images/poker-back1.webp');
+  background-image: url('../images/Cards/card_back.png');
   background-size: cover;
   color: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .poker-card.back.theme-2 {
-  background-image: url('images/poker-back2.webp');
+  background-image: url('../images/Cards/card_back2.svg');
 }
 
 .poker-card .card-value {

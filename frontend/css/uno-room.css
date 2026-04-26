@@ -154,7 +154,20 @@ body {
   color: rgba(255,255,255,0.3);
   transition: transform 0.5s;
 }
-.direction-indicator.ccw { transform: scaleX(-1); }
+.direction-indicator.ccw {
+  animation: spinCCW 3s linear infinite;
+}
+.direction-indicator:not(.ccw) {
+  animation: spinCW 3s linear infinite;
+}
+@keyframes spinCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes spinCCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
 
 .play-area {
   display: flex;
@@ -345,6 +358,28 @@ body {
 .uno-card.color-green { background: var(--uno-green); }
 .uno-card.color-yellow { background: var(--uno-yellow); }
 .uno-card.color-wild { background: var(--uno-wild); }
+
+.uno-card.card-fly-in {
+  animation: cardFlyIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes cardFlyIn {
+  0% {
+    transform: translate(var(--fly-from-x, 0px), var(--fly-from-y, -80px)) scale(var(--fly-from-scale, 0.5)) rotate(calc(var(--fly-from-x, 0px) * -0.15deg));
+    opacity: 0.3;
+  }
+  60% {
+    transform: translate(0, -8px) scale(1.08) rotate(-2deg);
+    opacity: 1;
+  }
+  80% {
+    transform: translate(0, 3px) scale(0.98) rotate(1deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
 
 .game-notification {
   position: fixed;

@@ -535,7 +535,17 @@ class RoomUI {
         this.previousBets[player.id] = currentBet;
 
         if (currentBet > 0 && player.isActive) {
-          betEl.textContent = currentBet;
+          const initialChips = this._getInitialChips();
+          const existingChip = betEl.querySelector('.chip-display');
+
+          if (existingChip) {
+            ChipDisplay.updateChipElement(existingChip, currentBet, initialChips);
+          } else {
+            betEl.innerHTML = '';
+            const chipEl = ChipDisplay.createChipElement(currentBet, initialChips);
+            chipEl.classList.add('chip-display--small');
+            betEl.appendChild(chipEl);
+          }
           betEl.style.display = 'flex';
 
           // 根据座位号确定筹码偏移方向（朝牌桌中心方向）
@@ -728,6 +738,16 @@ class RoomUI {
     if (this.elements.myChips) {
       this.elements.myChips.textContent = chips;
     }
+  }
+
+  _getInitialChips() {
+    if (this.currentGameState) {
+      const myPlayer = this.currentGameState.players?.find(p => p.id === this.myPlayerId);
+      if (myPlayer && this.currentGameState.initialChips) {
+        return this.currentGameState.initialChips;
+      }
+    }
+    return 1000;
   }
 
   addChipsHistoryEntry(amount, isWin) {
@@ -1122,10 +1142,10 @@ class RoomUI {
     const startAngle = 180;
     const angleStep = 360 / numPlayers;
 
-    const rx = 46;
-    const ry = 36;
+    const rx = 34;
+    const ry = 40;
     const cx = 50;
-    const cy = 46;
+    const cy = 48;
 
     sortedSeats.forEach((seatIdx, listIdx) => {
       const relativePos = (listIdx - selfPosInList + numPlayers) % numPlayers;

@@ -1,0 +1,71 @@
+.chip-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.chip-img {
+  width: 48px;
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.chip-amount {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+.chip-display--small .chip-img {
+  width: 32px;
+}
+
+.chip-display--small .chip-amount {
+  font-size: 11px;
+}
+
+.chip-display--large .chip-img {
+  width: 64px;
+}
+
+.chip-display--large .chip-amount {
+  font-size: 18px;
+}
+
+.chip-series-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip-series-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.chip-series-btn:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  transform: scale(1.1);
+}
+
+.chip-series-btn.active {
+  border-color: #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.chip-series-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

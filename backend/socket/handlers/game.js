@@ -127,6 +127,7 @@ function sendGameUpdateWithCards(room, roomId, io, additionalMessage = null) {
       dealerButton: room.dealerButton,
       smallBlindAmount: room.smallBlindAmount || 10,
       bigBlindAmount: room.bigBlindAmount || 20,
+      initialChips: room.config?.initialChips || 1000,
       roundBets: { ...room.gameState.roundBets },
       handBets: { ...room.gameState.handBets },
       standupGame: StandUpGame.getStatusForFrontend(room),

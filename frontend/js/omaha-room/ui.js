@@ -149,6 +149,7 @@ class OmahaRoomUI {
     this.gameSpeed = 3;
     this._prevPhase = 'WAITING';
     this._prevCommunityCardCount = 0;
+    this.currentGameState = null;
 
     this.bindEvents();
     this.updateLanguage();
@@ -486,7 +487,17 @@ class OmahaRoomUI {
         this.previousBets[player.id] = currentBet;
 
         if (currentBet > 0 && player.isActive) {
-          betEl.textContent = currentBet;
+          const initialChips = this._getInitialChips();
+          const existingChip = betEl.querySelector('.chip-display');
+
+          if (existingChip) {
+            ChipDisplay.updateChipElement(existingChip, currentBet, initialChips);
+          } else {
+            betEl.innerHTML = '';
+            const chipEl = ChipDisplay.createChipElement(currentBet, initialChips);
+            chipEl.classList.add('chip-display--small');
+            betEl.appendChild(chipEl);
+          }
           betEl.style.display = 'flex';
 
           const betOffsets = {
@@ -644,6 +655,15 @@ class OmahaRoomUI {
   getSuitSymbol(suit) {
     const map = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
     return map[suit] || '';
+  }
+
+  _getInitialChips() {
+    if (this.currentGameState) {
+      if (this.currentGameState.initialChips) {
+        return this.currentGameState.initialChips;
+      }
+    }
+    return 1000;
   }
 
   updateMyChips(chips) {

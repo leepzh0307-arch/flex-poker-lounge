@@ -152,6 +152,8 @@ class OmahaGameManager {
 
     this.gameState = { ...this.gameState, ...gameState };
 
+    omahaRoomUI.currentGameState = this.gameState;
+
     const phase = gameState.gamePhase || 'WAITING';
     const sb = gameState.smallBlindAmount || 10;
     const bb = gameState.bigBlindAmount || 20;
