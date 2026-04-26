@@ -259,7 +259,7 @@ class RoomUI {
           pokerSoundManager.setEnabled(!isEnabled);
           const icon = soundToggle.querySelector('img');
           if (icon) {
-            icon.src = !isEnabled ? 'volume-raised.svg' : 'volume-mute-1.svg';
+            icon.src = !isEnabled ? 'images/icons/volume-raised.svg' : 'images/icons/volume-mute-1.svg';
             icon.alt = !isEnabled ? '音效开' : '音效关';
           }
           soundToggle.title = !isEnabled ? '音效: 开' : '音效: 关';
@@ -481,6 +481,18 @@ class RoomUI {
       } else {
         seat.querySelector('.player-name').classList.remove('ai-player-name');
       }
+
+      const playerInfo = seat.querySelector('.player-info');
+      let avatarEl = playerInfo.querySelector('.player-avatar');
+      if (!avatarEl) {
+        avatarEl = document.createElement('img');
+        avatarEl.className = 'player-avatar';
+        playerInfo.insertBefore(avatarEl, playerInfo.firstChild);
+      }
+      const avatarName = player.avatar || 'froggy';
+      avatarEl.src = 'images/avatars/' + avatarName + '.gif';
+      avatarEl.alt = avatarName;
+
       seat.querySelector('.player-chips').textContent = player.chips || 0;
       seat.querySelector('.player-bet-total').textContent = `本局下注: ${handBet || 0}`;
 
@@ -673,19 +685,25 @@ class RoomUI {
       if (this.currentBgTheme === 2) {
         cardElement.classList.add('theme-2');
       }
+      const backImg = document.createElement('img');
+      backImg.src = 'images/Cards/card_back.png';
+      backImg.alt = 'card back';
+      backImg.className = 'card-face-img';
+      cardElement.appendChild(backImg);
       return cardElement;
     }
 
-    const suitSymbol = this.getSuitSymbol(card.suit);
-    const suitColor = this.getSuitColor(card.suit);
+    const rank = card.value.length === 1 && !isNaN(card.value)
+      ? '0' + card.value
+      : card.value;
+    const imgSrc = `images/Cards/card_${card.suit}_${rank}.png`;
 
-    const suitClass = card.suit ? `suit-${card.suit}` : '';
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.alt = `${card.value} of ${card.suit}`;
+    img.className = 'card-face-img';
+    cardElement.appendChild(img);
 
-    cardElement.innerHTML = `
-      <div class="card-value top ${suitClass}" style="color: ${suitColor};">${card.value}<br>${suitSymbol}</div>
-      <div class="card-suit center ${suitClass}" style="color: ${suitColor};">${suitSymbol}</div>
-      <div class="card-value bottom ${suitClass}" style="color: ${suitColor};">${suitSymbol}<br>${card.value}</div>
-    `;
     return cardElement;
   }
 
@@ -985,7 +1003,7 @@ class RoomUI {
   updateVoiceButton(enabled) {
     const icon = this.elements.voiceToggle.querySelector('img');
     if (icon) {
-      icon.src = enabled ? 'microphone.svg' : 'microphone-off.svg';
+      icon.src = enabled ? 'images/icons/microphone.svg' : 'images/icons/microphone-off.svg';
       icon.alt = enabled ? '语音开启' : '语音关闭';
     }
     this.elements.voiceToggle.title = enabled ? '语音: 开启' : '语音: 关闭';
@@ -997,14 +1015,14 @@ class RoomUI {
     const icon = this.elements.connectionStatus.querySelector('img');
     if (connected) {
       if (icon) {
-        icon.src = 'hyperlink-3.svg';
+        icon.src = 'images/icons/hyperlink-3.svg';
         icon.alt = '已连接';
       }
       this.elements.connectionStatus.title = '已连接';
       this.elements.connectionStatus.className = 'connection-status connected';
     } else {
       if (icon) {
-        icon.src = 'hyperlink-broken.svg';
+        icon.src = 'images/icons/hyperlink-broken.svg';
         icon.alt = '未连接';
       }
       this.elements.connectionStatus.title = '未连接';
@@ -1578,7 +1596,7 @@ class RoomUI {
     if (soundToggle && window.pokerSoundManager) {
       const icon = soundToggle.querySelector('img');
       if (icon) {
-        icon.src = pokerSoundManager.enabled ? 'volume-raised.svg' : 'volume-mute-1.svg';
+        icon.src = pokerSoundManager.enabled ? 'images/icons/volume-raised.svg' : 'images/icons/volume-mute-1.svg';
         icon.alt = pokerSoundManager.enabled ? '音效开' : '音效关';
       }
       soundToggle.title = pokerSoundManager.enabled ? t['sound-on'] : t['sound-off'];

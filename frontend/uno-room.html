@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Flex Poker - UNO</title>
+  <link rel="stylesheet" href="css/themes/default.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/uno-room.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="game-header">
+    <div class="header-left">
+      <span class="room-label">房间号:</span>
+      <span id="room-id" class="room-id">------</span>
+      <button id="copy-room" class="btn-icon" title="复制">复制</button>
+    </div>
+    <div class="header-center">
+      <span class="game-type-badge">UNO</span>
+    </div>
+    <div class="header-right">
+      <span id="connection-status" class="connection-status">
+        <img src="images/icons/hyperlink-3.svg" alt="已连接" class="icon-sm">
+      </span>
+      <button id="voice-toggle" class="btn-icon" title="语音">
+        <img src="images/icons/microphone.svg" alt="语音开启" class="icon-sm">
+      </button>
+      <button id="exit-room" class="btn-icon btn-danger" title="退出房间">退出</button>
+    </div>
+  </header>
+
+  <main class="uno-game-area">
+    <div class="opponents-area" id="opponents-area"></div>
+
+    <div class="table-center">
+      <div class="direction-indicator" id="direction-indicator">↻</div>
+      <div class="play-area">
+        <div class="deck-pile" id="deck-pile" title="点击抽牌">
+          <img src="images/UNO/back.png" alt="牌堆" class="deck-img">
+          <span class="deck-count" id="deck-count">0</span>
+        </div>
+        <div class="discard-pile" id="discard-pile">
+          <div class="empty-slot" id="empty-discard"></div>
+        </div>
+      </div>
+      <div class="current-color-indicator" id="current-color-indicator"></div>
+      <div class="color-chooser" id="color-chooser">
+        <div class="color-option" data-color="red" style="background:#E74C3C"></div>
+        <div class="color-option" data-color="blue" style="background:#3498DB"></div>
+        <div class="color-option" data-color="green" style="background:#27AE60"></div>
+        <div class="color-option" data-color="yellow" style="background:#F1C40F"></div>
+      </div>
+    </div>
+
+    <div class="my-area">
+      <div class="my-info">
+        <img id="my-avatar" src="" alt="" class="avatar-img">
+        <span id="my-nickname" class="nickname"></span>
+        <button id="uno-btn" class="uno-button" style="display:none">UNO!</button>
+        <button id="pass-btn" class="pass-button" style="display:none">跳过</button>
+      </div>
+      <div class="my-hand" id="my-hand"></div>
+    </div>
+  </main>
+
+  <div class="game-notification" id="game-notification" style="display:none">
+    <span id="notification-text"></span>
+  </div>
+
+  <div class="host-panel" id="host-panel" style="display:none">
+    <h3>房主设置</h3>
+    <button id="start-game" class="btn btn-primary">开始游戏</button>
+    <button id="reset-game" class="btn">重置游戏</button>
+  </div>
+  <button id="host-btn" class="btn-icon host-toggle" style="display:none">房主</button>
+
+  <div class="game-end-overlay" id="game-end-overlay" style="display:none">
+    <div class="game-end-content">
+      <h2 id="game-end-title"></h2>
+      <button id="play-again-btn" class="btn btn-primary">再来一局</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/agora.js"></script>
+  <script src="js/sounds.js"></script>
+  <script src="js/uno-room/ui.js"></script>
+  <script src="js/uno-room/game.js"></script>
+</body>
+</html>

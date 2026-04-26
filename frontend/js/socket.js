@@ -154,7 +154,7 @@ class SocketClient {
     }
   }
 
-  createRoom(nickname) {
+  createRoom(nickname, avatar) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         reject(new Error('未连接到服务器'));
@@ -165,7 +165,7 @@ class SocketClient {
         reject(new Error('创建房间超时，服务器未响应'));
       }, 15000);
 
-      this.socket.emit('createRoom', { nickname }, (response) => {
+      this.socket.emit('createRoom', { nickname, avatar }, (response) => {
         clearTimeout(timeout);
         if (response && response.success) {
           resolve({ roomId: response.roomId, playerId: response.playerId });
@@ -176,7 +176,7 @@ class SocketClient {
     });
   }
 
-  createAiRoom(nickname, aiCount, aiDifficulty, initialChips) {
+  createAiRoom(nickname, aiCount, aiDifficulty, initialChips, avatar) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         reject(new Error('未连接到服务器'));
@@ -187,7 +187,7 @@ class SocketClient {
         reject(new Error('创建AI房间超时，服务器未响应'));
       }, 15000);
 
-      this.socket.emit('createAiRoom', { nickname, aiCount, aiDifficulty, initialChips }, (response) => {
+      this.socket.emit('createAiRoom', { nickname, aiCount, aiDifficulty, initialChips, avatar }, (response) => {
         clearTimeout(timeout);
         if (response && response.success) {
           resolve({ roomId: response.roomId, playerId: response.playerId });
@@ -198,7 +198,7 @@ class SocketClient {
     });
   }
 
-  joinRoom(roomId, nickname, playerId = null) {
+  joinRoom(roomId, nickname, playerId = null, avatar) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         reject(new Error('未连接到服务器'));
@@ -209,7 +209,7 @@ class SocketClient {
         reject(new Error('加入房间超时，服务器未响应'));
       }, 15000);
 
-      this.socket.emit('joinRoom', { roomId, nickname, playerId }, (response) => {
+      this.socket.emit('joinRoom', { roomId, nickname, playerId, avatar }, (response) => {
         clearTimeout(timeout);
         if (response && response.success) {
           resolve(response);
@@ -220,7 +220,7 @@ class SocketClient {
     });
   }
 
-  createOmahaRoom(nickname) {
+  createOmahaRoom(nickname, avatar) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         reject(new Error('未连接到服务器'));
@@ -231,7 +231,7 @@ class SocketClient {
         reject(new Error('创建奥马哈房间超时，服务器未响应'));
       }, 15000);
 
-      this.socket.emit('createOmahaRoom', { nickname }, (response) => {
+      this.socket.emit('createOmahaRoom', { nickname, avatar }, (response) => {
         clearTimeout(timeout);
         if (response && response.success) {
           resolve({ roomId: response.roomId, playerId: response.playerId });
@@ -242,7 +242,7 @@ class SocketClient {
     });
   }
 
-  createOmahaAiRoom(nickname, aiCount, aiDifficulty, initialChips) {
+  createOmahaAiRoom(nickname, aiCount, aiDifficulty, initialChips, avatar) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         reject(new Error('未连接到服务器'));
@@ -253,7 +253,7 @@ class SocketClient {
         reject(new Error('创建奥马哈AI房间超时，服务器未响应'));
       }, 15000);
 
-      this.socket.emit('createOmahaAiRoom', { nickname, aiCount, aiDifficulty, initialChips }, (response) => {
+      this.socket.emit('createOmahaAiRoom', { nickname, aiCount, aiDifficulty, initialChips, avatar }, (response) => {
         clearTimeout(timeout);
         if (response && response.success) {
           resolve({ roomId: response.roomId, playerId: response.playerId });
@@ -264,7 +264,7 @@ class SocketClient {
     });
   }
 
-  joinOmahaRoom(roomId, nickname, playerId = null) {
+  joinOmahaRoom(roomId, nickname, playerId = null, avatar) {
     return new Promise((resolve, reject) => {
       if (!this.isConnected || !this.socket) {
         reject(new Error('未连接到服务器'));
@@ -275,7 +275,7 @@ class SocketClient {
         reject(new Error('加入奥马哈房间超时，服务器未响应'));
       }, 15000);
 
-      this.socket.emit('joinRoom', { roomId, nickname, playerId }, (response) => {
+      this.socket.emit('joinRoom', { roomId, nickname, playerId, avatar }, (response) => {
         clearTimeout(timeout);
         if (response && response.success) {
           resolve(response);
@@ -290,6 +290,49 @@ class SocketClient {
     if (this.isConnected && this.socket) {
       console.log(`[Socket] 发送奥马哈游戏操作: ${action}`, data);
       this.socket.emit('omahaAction', { action, data });
+    } else {
+      console.warn(`[Socket] 未连接，操作未发送: ${action}`);
+    }
+  }
+
+  createUnoRoom(nickname, avatar) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+      this.socket.emit('createUnoRoom', { nickname, avatar }, (response) => {
+        if (response.success) {
+          console.log(`[Socket] UNO房间创建成功: ${response.roomId}`);
+          resolve(response);
+        } else {
+          reject(new Error(response.error || '创建UNO房间失败'));
+        }
+      });
+    });
+  }
+
+  createUnoAiRoom(nickname, aiCount, aiDifficulty, avatar) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+      this.socket.emit('createUnoAiRoom', { nickname, aiCount, aiDifficulty, avatar }, (response) => {
+        if (response.success) {
+          console.log(`[Socket] UNO AI房间创建成功: ${response.roomId}`);
+          resolve(response);
+        } else {
+          reject(new Error(response.error || '创建UNO AI房间失败'));
+        }
+      });
+    });
+  }
+
+  sendUnoAction(action, data) {
+    if (this.isConnected && this.socket) {
+      console.log(`[Socket] 发送UNO游戏操作: ${action}`, data);
+      this.socket.emit('unoAction', { action, data });
     } else {
       console.warn(`[Socket] 未连接，操作未发送: ${action}`);
     }

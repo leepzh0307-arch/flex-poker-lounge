@@ -82,6 +82,7 @@ class GameManager {
 
     const params = new URLSearchParams(window.location.search);
     const nickname = params.get('nickname');
+    const avatar = params.get('avatar') || 'froggy';
     const isCreating = params.get('isCreating') === 'true';
 
     if (isCreating) {
@@ -91,9 +92,9 @@ class GameManager {
           const aiCount = parseInt(params.get('aiCount') || '3', 10);
           const aiDifficulty = params.get('aiDifficulty') || 'medium';
           const initialChips = parseInt(params.get('initialChips') || '1000', 10);
-          result = await socketClient.createAiRoom(nickname, aiCount, aiDifficulty, initialChips);
+          result = await socketClient.createAiRoom(nickname, aiCount, aiDifficulty, initialChips, avatar);
         } else {
-          result = await socketClient.createRoom(nickname);
+          result = await socketClient.createRoom(nickname, avatar);
         }
         this.gameState.roomId = result.roomId;
         this.gameState.playerId = result.playerId;
@@ -111,7 +112,7 @@ class GameManager {
         window.history.replaceState({}, '', url);
       } else {
         const playerId = this.gameState.playerId || null;
-        const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId);
+        const response = await socketClient.joinRoom(this.gameState.roomId, nickname, playerId, avatar);
         
         if (response.playerId) {
           this.gameState.playerId = response.playerId;

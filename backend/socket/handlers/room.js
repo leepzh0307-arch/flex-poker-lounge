@@ -108,7 +108,7 @@ function broadcastOmahaGameUpdate(room, io, message) {
 module.exports = (socket, rooms, io) => {
   
   // 创建房间
-  socket.on('createRoom', ({ nickname }, callback) => {
+  socket.on('createRoom', ({ nickname, avatar }, callback) => {
     try {
       const roomId = generateRoomId();
       const playerId = generatePlayerId();
@@ -122,6 +122,7 @@ module.exports = (socket, rooms, io) => {
             id: socket.id,
             playerId: playerId,
             nickname: nickname,
+            avatar: avatar || 'froggy',
             chips: 1000,
             seat: 1,
             isActive: true,
@@ -167,7 +168,7 @@ module.exports = (socket, rooms, io) => {
   });
 
   // 创建人机对战房间
-  socket.on('createAiRoom', ({ nickname, aiCount, aiDifficulty, initialChips }, callback) => {
+  socket.on('createAiRoom', ({ nickname, aiCount, aiDifficulty, initialChips, avatar }, callback) => {
     try {
       const roomId = generateRoomId();
       const playerId = generatePlayerId();
@@ -178,6 +179,7 @@ module.exports = (socket, rooms, io) => {
       const existingNames = [nickname];
       const aiPlayers = [];
       const allPersonalities = Object.keys(AI_PERSONALITIES);
+      const aiAvatars = ['kitty', 'bones', 'bear', 'knight', 'zombie', 'piggy', 'ghost', 'burger', 'bread'];
       for (let i = 0; i < count; i++) {
         const aiName = `BOT${i + 1}`;
         existingNames.push(aiName);
@@ -187,6 +189,7 @@ module.exports = (socket, rooms, io) => {
           id: aiId,
           playerId: aiId,
           nickname: aiName,
+          avatar: aiAvatars[i % aiAvatars.length],
           personality: personality,
           chips: chips,
           seat: i + 2,
@@ -210,6 +213,7 @@ module.exports = (socket, rooms, io) => {
             id: socket.id,
             playerId: playerId,
             nickname: nickname,
+            avatar: avatar || 'froggy',
             chips: chips,
             seat: 1,
             isActive: true,
@@ -255,7 +259,7 @@ module.exports = (socket, rooms, io) => {
     }
   });
 
-  socket.on('createOmahaRoom', ({ nickname }, callback) => {
+  socket.on('createOmahaRoom', ({ nickname, avatar }, callback) => {
     try {
       const roomId = generateRoomId();
       const playerId = generatePlayerId();
@@ -270,6 +274,7 @@ module.exports = (socket, rooms, io) => {
             id: socket.id,
             playerId: playerId,
             nickname: nickname,
+            avatar: avatar || 'froggy',
             chips: 1000,
             seat: 1,
             isActive: true,
@@ -314,7 +319,7 @@ module.exports = (socket, rooms, io) => {
     }
   });
 
-  socket.on('createOmahaAiRoom', ({ nickname, aiCount, aiDifficulty, initialChips }, callback) => {
+  socket.on('createOmahaAiRoom', ({ nickname, aiCount, aiDifficulty, initialChips, avatar }, callback) => {
     try {
       const roomId = generateRoomId();
       const playerId = generatePlayerId();
@@ -324,6 +329,7 @@ module.exports = (socket, rooms, io) => {
 
       const aiPlayers = [];
       const allPersonalities = Object.keys(AI_PERSONALITIES);
+      const aiAvatars = ['kitty', 'bones', 'bear', 'knight', 'zombie', 'piggy', 'ghost', 'burger', 'bread'];
       for (let i = 0; i < count; i++) {
         const aiName = `BOT${i + 1}`;
         const aiId = generateAiPlayerId();
@@ -332,6 +338,7 @@ module.exports = (socket, rooms, io) => {
           id: aiId,
           playerId: aiId,
           nickname: aiName,
+          avatar: aiAvatars[i % aiAvatars.length],
           personality: personality,
           chips: chips,
           seat: i + 2,
@@ -356,6 +363,7 @@ module.exports = (socket, rooms, io) => {
             id: socket.id,
             playerId: playerId,
             nickname: nickname,
+            avatar: avatar || 'froggy',
             chips: chips,
             seat: 1,
             isActive: true,
@@ -400,9 +408,186 @@ module.exports = (socket, rooms, io) => {
       callback({ success: false, error: error.message });
     }
   });
+
+  socket.on('createUnoRoom', ({ nickname, avatar }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        gameType: 'uno',
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            avatar: avatar || 'froggy',
+            chips: 0,
+            seat: 1,
+            isActive: true,
+            isTurn: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          }
+        ],
+        gameState: {
+          phase: 'WAITING',
+          deck: [],
+          discardPile: [],
+          playerCards: {},
+          playerOrder: [],
+          currentPlayerIndex: 0,
+          direction: 1,
+          currentColor: null,
+          topCard: null,
+          drawCount: 0,
+          hasDrawnThisTurn: false,
+          pendingColorChoice: false,
+          winner: null,
+          actionLog: [],
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log(`[UNO房间] ${roomId} 创建成功，房主: ${nickname}`);
+        io.to(socket.id).emit('unoUpdate', {
+          phase: 'WAITING',
+          players: room.players.map(p => ({
+            id: p.id,
+            nickname: p.nickname,
+            avatar: p.avatar,
+            chips: p.chips,
+            isAI: p.isAI,
+            isOnline: true,
+          })),
+          isMyTurn: false,
+          myHand: [],
+          otherPlayers: {},
+          playerOrder: [],
+          message: `UNO房间 ${roomId} 创建成功，您是房主`,
+        });
+      }, 0);
+
+    } catch (error) {
+      console.error('创建UNO房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
+
+  socket.on('createUnoAiRoom', ({ nickname, aiCount, aiDifficulty, avatar }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+      const difficulty = aiDifficulty || 'medium';
+      const count = Math.min(Math.max(aiCount || 3, 1), 9);
+
+      const aiPlayers = [];
+      const aiAvatars = ['kitty', 'bones', 'bear', 'knight', 'zombie', 'piggy', 'ghost', 'burger', 'bread'];
+      for (let i = 0; i < count; i++) {
+        const aiName = `BOT${i + 1}`;
+        const aiId = generateAiPlayerId();
+        aiPlayers.push({
+          id: aiId,
+          playerId: aiId,
+          nickname: aiName,
+          avatar: aiAvatars[i % aiAvatars.length],
+          chips: 0,
+          seat: i + 2,
+          isActive: true,
+          isTurn: false,
+          isOnline: true,
+          isAI: true,
+          aiDifficulty: difficulty,
+          joinedAt: Date.now()
+        });
+      }
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        isAiRoom: true,
+        gameType: 'uno',
+        aiDifficulty: difficulty,
+        aiThinkDelay: difficulty === 'easy' ? 2500 : difficulty === 'hard' ? 800 : 1500,
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            avatar: avatar || 'froggy',
+            chips: 0,
+            seat: 1,
+            isActive: true,
+            isTurn: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          },
+          ...aiPlayers
+        ],
+        gameState: {
+          phase: 'WAITING',
+          deck: [],
+          discardPile: [],
+          playerCards: {},
+          playerOrder: [],
+          currentPlayerIndex: 0,
+          direction: 1,
+          currentColor: null,
+          topCard: null,
+          drawCount: 0,
+          hasDrawnThisTurn: false,
+          pendingColorChoice: false,
+          winner: null,
+          actionLog: [],
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log(`[UNO AI房间] ${roomId} 创建成功，房主: ${nickname}, AI数量: ${count}`);
+        io.to(socket.id).emit('unoUpdate', {
+          phase: 'WAITING',
+          players: room.players.map(p => ({
+            id: p.id,
+            nickname: p.nickname,
+            avatar: p.avatar,
+            chips: p.chips,
+            isAI: p.isAI,
+            isOnline: true,
+          })),
+          isMyTurn: false,
+          myHand: [],
+          otherPlayers: {},
+          playerOrder: [],
+          message: `UNO人机对战房间已创建，${count}个AI对手`,
+        });
+      }, 0);
+
+    } catch (error) {
+      console.error('创建UNO AI房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
   
   // 加入房间
-  socket.on('joinRoom', ({ roomId, nickname, playerId: existingPlayerId }, callback) => {
+  socket.on('joinRoom', ({ roomId, nickname, playerId: existingPlayerId, avatar }, callback) => {
     try {
       const room = rooms.get(roomId);
       if (!room) {
@@ -456,7 +641,8 @@ module.exports = (socket, rooms, io) => {
           id: socket.id,
           playerId: newPlayerId,
           nickname: nickname,
-          chips: 1000,
+          avatar: avatar || 'froggy',
+          chips: room.gameType === 'uno' ? 0 : 1000,
           seat: seat,
           isActive: true,
           isTurn: false,
@@ -474,12 +660,57 @@ module.exports = (socket, rooms, io) => {
         success: true, 
         playerId: player.playerId,
         isReconnect: isReconnect,
-        gameState: room.gameType === 'omaha' ? buildOmahaGameUpdateForPlayer(room, socket.id) : buildGameUpdateForPlayer(room, socket.id),
+        gameType: room.gameType || 'poker',
+        gameState: room.gameType === 'omaha' ? buildOmahaGameUpdateForPlayer(room, socket.id) : room.gameType === 'uno' ? {} : buildGameUpdateForPlayer(room, socket.id),
       });
       
       setTimeout(() => {
         if (room.gameType === 'omaha') {
           broadcastOmahaGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
+        } else if (room.gameType === 'uno') {
+          const gs = room.gameState;
+          room.players.forEach(p => {
+            const isCurrentPlayer = gs.playerOrder[gs.currentPlayerIndex] === p.id;
+            const playerHand = gs.playerCards[p.id] || [];
+            const otherPlayers = {};
+            gs.playerOrder.forEach(pid => {
+              if (pid !== p.id) {
+                const otherHand = gs.playerCards[pid] || [];
+                otherPlayers[pid] = {
+                  cardCount: otherHand.length,
+                  cards: otherHand.map(c => ({ hidden: true })),
+                  calledUno: room.players.find(op => op.id === pid)?.calledUno || false,
+                };
+              }
+            });
+            io.to(p.id).emit('unoUpdate', {
+              phase: gs.phase,
+              currentPlayerId: gs.playerOrder[gs.currentPlayerIndex],
+              direction: gs.direction,
+              currentColor: gs.currentColor,
+              topCard: gs.topCard,
+              discardPileCount: gs.discardPile.length,
+              deckCount: gs.deck.length,
+              myHand: playerHand,
+              otherPlayers: otherPlayers,
+              playerOrder: gs.playerOrder,
+              hasDrawnThisTurn: gs.hasDrawnThisTurn && isCurrentPlayer,
+              pendingColorChoice: gs.pendingColorChoice && isCurrentPlayer,
+              winner: gs.winner,
+              actionLog: gs.actionLog.slice(-20),
+              players: room.players.map(op => ({
+                id: op.id,
+                nickname: op.nickname,
+                avatar: op.avatar,
+                chips: op.chips,
+                isAI: op.isAI,
+                isOnline: op.isOnline !== false,
+                calledUno: op.calledUno || false,
+              })),
+              isMyTurn: isCurrentPlayer,
+              message: isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`,
+            });
+          });
         } else {
           broadcastGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
         }

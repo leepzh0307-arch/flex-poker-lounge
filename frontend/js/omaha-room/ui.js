@@ -432,6 +432,18 @@ class OmahaRoomUI {
       } else {
         seat.querySelector('.player-name').classList.remove('ai-player-name');
       }
+
+      const playerInfo = seat.querySelector('.player-info');
+      let avatarEl = playerInfo.querySelector('.player-avatar');
+      if (!avatarEl) {
+        avatarEl = document.createElement('img');
+        avatarEl.className = 'player-avatar';
+        playerInfo.insertBefore(avatarEl, playerInfo.firstChild);
+      }
+      const avatarName = player.avatar || 'froggy';
+      avatarEl.src = 'images/avatars/' + avatarName + '.gif';
+      avatarEl.alt = avatarName;
+
       seat.querySelector('.player-chips').textContent = player.chips || 0;
       seat.querySelector('.player-bet-total').textContent = `本局下注: ${handBet || 0}`;
 
@@ -607,17 +619,25 @@ class OmahaRoomUI {
       if (this.currentBgTheme === 2) {
         cardElement.classList.add('theme-2');
       }
+      const backImg = document.createElement('img');
+      backImg.src = 'images/Cards/card_back.png';
+      backImg.alt = 'card back';
+      backImg.className = 'card-face-img';
+      cardElement.appendChild(backImg);
       return cardElement;
     }
 
-    const suitSymbol = this.getSuitSymbol(card.suit);
-    const suitColor = (card.suit === 'hearts' || card.suit === 'diamonds') ? '#d32f2f' : '#212121';
+    const rank = card.value.length === 1 && !isNaN(card.value)
+      ? '0' + card.value
+      : card.value;
+    const imgSrc = `images/Cards/card_${card.suit}_${rank}.png`;
 
-    cardElement.innerHTML = `
-      <div class="card-value top" style="color: ${suitColor};">${card.value}<br>${suitSymbol}</div>
-      <div class="card-suit center" style="color: ${suitColor};">${suitSymbol}</div>
-      <div class="card-value bottom" style="color: ${suitColor};">${suitSymbol}<br>${card.value}</div>
-    `;
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.alt = `${card.value} of ${card.suit}`;
+    img.className = 'card-face-img';
+    cardElement.appendChild(img);
+
     return cardElement;
   }
 

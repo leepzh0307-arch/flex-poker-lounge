@@ -771,6 +771,23 @@ body {
   transition: all var(--transition-normal);
   min-width: 80px;
   box-shadow: 0 2px 8px rgba(45, 58, 49, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.player-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.seat-self .player-avatar {
+  width: 36px;
+  height: 36px;
 }
 
 .seat-self .player-info {

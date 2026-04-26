@@ -1126,6 +1126,20 @@
   border: 0px solid rgba(255, 255, 255, 0);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0);
   transition: all 0.3s ease;
+  gap: 2px;
+}
+
+.player-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.player-seat.seat-self .player-avatar {
+  width: 36px;
+  height: 36px;
 }
 
 .player-seat.seat-self .player-info {

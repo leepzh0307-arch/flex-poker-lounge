@@ -756,6 +756,44 @@ body {
   color: var(--fg);
 }
 
+.avatar-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avatar-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+}
+
+.avatar-option:hover {
+  border-color: var(--primary);
+  transform: scale(1.08);
+}
+
+.avatar-option.selected {
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(140, 154, 132, 0.25);
+}
+
+.avatar-option img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
 .form-actions {
   display: flex;
   gap: 12px;

@@ -171,9 +171,10 @@ h2 {
   background-color: #FFFFFF;
   color: #000;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 4px 5px;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+  overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.08);
   transition: transform 0.5s ease, opacity 0.5s ease, box-shadow 0.5s ease;
   position: relative;
@@ -192,16 +193,22 @@ h2 {
   transform: scale(0.96);
 }
 
+.poker-card .card-face-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
 .poker-card.back {
-  background-image: url('images/poker-back1.webp');
-  background-size: cover;
-  background-position: center;
+  background-color: transparent;
   color: transparent;
   border: 1px solid rgba(45, 58, 49, 0.1);
 }
 
 .poker-card.back.theme-2 {
-  background-image: url('images/poker-back2.webp');
+  background-color: transparent;
 }
 
 .poker-card .card-value {

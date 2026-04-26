@@ -47,6 +47,8 @@
       else if (mode === 'pvc') openModal('pvc-modal');
       else if (mode === 'omaha-pvc') openModal('omaha-pvc-modal');
       else if (mode === 'omaha-pvp') openModal('omaha-pvp-modal');
+      else if (mode === 'uno-pvc') openModal('uno-pvc-modal');
+      else if (mode === 'uno-pvp') openModal('uno-pvp-modal');
     });
   });
 
@@ -136,7 +138,7 @@
     var nickname = validateNickname(nicknamePvp);
     if (!nickname) return;
 
-    var targetUrl = 'room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true';
+    var targetUrl = 'room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&avatar=' + getAvatar('pvp');
     closeAllModals();
     setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
@@ -152,7 +154,7 @@
       return;
     }
 
-    var targetUrl = 'room.html?roomId=' + roomId + '&nickname=' + encodeURIComponent(nickname) + '&isHost=false';
+    var targetUrl = 'room.html?roomId=' + roomId + '&nickname=' + encodeURIComponent(nickname) + '&isHost=false&avatar=' + getAvatar('pvp');
     closeAllModals();
     setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
@@ -164,7 +166,7 @@
     var aiDifficulty = aiDifficultySelect ? aiDifficultySelect.value : 'medium';
     var aiCount = aiCountSelect ? aiCountSelect.value : '3';
 
-    var targetUrl = 'room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&isAiRoom=true&aiDifficulty=' + aiDifficulty + '&aiCount=' + aiCount;
+    var targetUrl = 'room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&isAiRoom=true&aiDifficulty=' + aiDifficulty + '&aiCount=' + aiCount + '&avatar=' + getAvatar('pvc');
     closeAllModals();
     setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
@@ -197,7 +199,7 @@
     var aiCount = omahaAiCountSelect ? omahaAiCountSelect.value : '3';
     var initialChips = omahaInitialChipsInput ? omahaInitialChipsInput.value : '1000';
 
-    var targetUrl = 'omaha-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&isAiRoom=true&aiDifficulty=' + aiDifficulty + '&aiCount=' + aiCount + '&initialChips=' + initialChips;
+    var targetUrl = 'omaha-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&isAiRoom=true&aiDifficulty=' + aiDifficulty + '&aiCount=' + aiCount + '&initialChips=' + initialChips + '&avatar=' + getAvatar('omaha-pvc');
     closeAllModals();
     setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
@@ -216,7 +218,7 @@
       if (omahaPvpNickname) omahaPvpNickname.focus();
       return;
     }
-    var targetUrl = 'omaha-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&gameType=omaha';
+    var targetUrl = 'omaha-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isCreating=true&gameType=omaha&avatar=' + getAvatar('omaha-pvp');
     closeAllModals();
     setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
@@ -234,7 +236,7 @@
       if (omahaPvpRoomId) omahaPvpRoomId.focus();
       return;
     }
-    var targetUrl = 'omaha-room.html?roomId=' + roomId + '&nickname=' + encodeURIComponent(nickname) + '&isHost=false&gameType=omaha';
+    var targetUrl = 'omaha-room.html?roomId=' + roomId + '&nickname=' + encodeURIComponent(nickname) + '&isHost=false&gameType=omaha&avatar=' + getAvatar('omaha-pvp');
     closeAllModals();
     setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
@@ -263,6 +265,86 @@
     });
   }
 
+  var createUnoRoomBtn = document.getElementById('create-uno-room');
+  var joinUnoRoomBtn = document.getElementById('join-uno-room');
+  var unoPvpNickname = document.getElementById('uno-pvp-nickname');
+  var unoPvpRoomId = document.getElementById('uno-pvp-room');
+
+  function createUnoRoom() {
+    var nickname = unoPvpNickname ? unoPvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (unoPvpNickname) unoPvpNickname.focus();
+      return;
+    }
+    var targetUrl = 'uno-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&gameType=uno&avatar=' + getAvatar('uno-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  function joinUnoRoom() {
+    var nickname = unoPvpNickname ? unoPvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (unoPvpNickname) unoPvpNickname.focus();
+      return;
+    }
+    var roomId = unoPvpRoomId ? unoPvpRoomId.value.trim() : '';
+    if (!roomId) {
+      showToast('请输入房间号');
+      if (unoPvpRoomId) unoPvpRoomId.focus();
+      return;
+    }
+    var targetUrl = 'uno-room.html?roomId=' + roomId + '&nickname=' + encodeURIComponent(nickname) + '&isHost=false&gameType=uno&avatar=' + getAvatar('uno-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  bindEvent(createUnoRoomBtn, createUnoRoom);
+  bindEvent(joinUnoRoomBtn, joinUnoRoom);
+
+  var createUnoAiRoomBtn = document.getElementById('create-uno-ai-room');
+  var unoPvcNickname = document.getElementById('uno-pvc-nickname');
+  var unoAiDifficultySelect = document.getElementById('uno-ai-difficulty');
+  var unoAiCountSelect = document.getElementById('uno-ai-count');
+
+  function createUnoAiRoom() {
+    var nickname = unoPvcNickname ? unoPvcNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (unoPvcNickname) unoPvcNickname.focus();
+      return;
+    }
+    var aiDifficulty = unoAiDifficultySelect ? unoAiDifficultySelect.value : 'medium';
+    var aiCount = unoAiCountSelect ? unoAiCountSelect.value : '3';
+    var targetUrl = 'uno-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isAiRoom=true&aiDifficulty=' + aiDifficulty + '&aiCount=' + aiCount + '&gameType=uno&avatar=' + getAvatar('uno-pvc');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  bindEvent(createUnoAiRoomBtn, createUnoAiRoom);
+
+  if (unoPvpNickname) {
+    unoPvpNickname.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        if (unoPvpRoomId && unoPvpRoomId.value.trim()) joinUnoRoom();
+        else createUnoRoom();
+      }
+    });
+  }
+
+  if (unoPvpRoomId) {
+    unoPvpRoomId.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') joinUnoRoom();
+    });
+  }
+
+  if (unoPvcNickname) {
+    unoPvcNickname.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') createUnoAiRoom();
+    });
+  }
+
   if (nicknamePvp) {
     nicknamePvp.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -285,6 +367,35 @@
   }
 
   var SCROLL_EASE = 0.07;
+
+  var selectedAvatars = {
+    pvp: 'froggy',
+    pvc: 'froggy',
+    'omaha-pvp': 'froggy',
+    'omaha-pvc': 'froggy',
+    'uno-pvp': 'froggy',
+    'uno-pvc': 'froggy'
+  };
+
+  document.querySelectorAll('.avatar-picker').forEach(function(picker) {
+    var target = picker.getAttribute('data-avatar-target');
+    picker.querySelectorAll('.avatar-option').forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        picker.querySelectorAll('.avatar-option').forEach(function(o) {
+          o.classList.remove('selected');
+        });
+        opt.classList.add('selected');
+        if (target) {
+          selectedAvatars[target] = opt.getAttribute('data-avatar');
+        }
+      });
+    });
+  });
+
+  function getAvatar(target) {
+    return selectedAvatars[target] || 'froggy';
+  }
+
   var SCROLL_THRESHOLD = 0.08;
   var scrollElements = [];
   var scrollRafId = null;

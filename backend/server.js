@@ -47,6 +47,10 @@ app.get('/omaha-room.html', (req, res) => {
   res.sendFile(path.join(frontendPath, 'omaha-room.html'));
 });
 
+app.get('/uno-room.html', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'uno-room.html'));
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`服务器运行在 http://localhost:${PORT}`);
