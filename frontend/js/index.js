@@ -638,9 +638,9 @@
     scrollObserver.observe(el);
   });
 
-  var heroEl = document.getElementById('hero');
-  if (heroEl && typeof PixelBlast !== 'undefined') {
-    PixelBlast.create(heroEl, {
+  var pageMain = document.getElementById('page-main');
+  if (pageMain && typeof PixelBlast !== 'undefined') {
+    PixelBlast.create(pageMain, {
       variant: 'diamond',
       pixelSize: 6,
       color: '#8C9A84',
@@ -657,41 +657,13 @@
     });
   }
 
-  var pageBody = document.querySelector('main') || document.body;
-  if (pageBody && typeof PixelBlast !== 'undefined') {
-    var gamesSection = document.getElementById('games');
-    if (gamesSection) {
-      PixelBlast.create(gamesSection, {
-        variant: 'diamond',
-        pixelSize: 8,
-        color: '#8C9A84',
-        patternScale: 2.5,
-        patternDensity: 0.6,
-        pixelSizeJitter: 0.6,
-        enableRipples: false,
-        speed: 0.8,
-        edgeFade: 0.1,
-        transparent: true,
-      });
-    }
-  }
-
-  var galleryEl = document.getElementById('circular-gallery');
-  if (galleryEl && typeof CircularGallery !== 'undefined') {
-    CircularGallery.create(galleryEl, {
-      items: [
-        { image: 'https://picsum.photos/seed/texas/800/600?grayscale', text: 'Texas Hold\'em' },
-        { image: 'https://picsum.photos/seed/omaha/800/600?grayscale', text: 'Omaha' },
-        { image: 'https://picsum.photos/seed/uno/800/600?grayscale', text: 'UNO' },
-        { image: 'https://picsum.photos/seed/dice/800/600?grayscale', text: 'Dice' },
-        { image: 'https://picsum.photos/seed/poker5/800/600?grayscale', text: 'Strategy' },
-        { image: 'https://picsum.photos/seed/poker6/800/600?grayscale', text: 'Elegance' },
-      ],
-      bend: 3,
-      textColor: '#2D3A31',
-      borderRadius: 0.08,
-      scrollSpeed: 1.2,
-      scrollEase: 0.03,
+  var galleryEl = document.getElementById('gallery-3d');
+  if (galleryEl && typeof Gallery3D !== 'undefined') {
+    Gallery3D.create(galleryEl, {
+      radius: 420,
+      cardWidth: 260,
+      cardHeight: 380,
+      dragSpeed: 0.35,
     });
   }
 })();
