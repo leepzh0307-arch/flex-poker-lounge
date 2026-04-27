@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#F9F8F4">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="format-detection" content="telephone=no">
   <title>Flex Poker - Omaha PLO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/chipDisplay.css">
@@ -20,20 +20,16 @@
     @view-transition {
       navigation: auto;
     }
-
     ::view-transition-old(root) {
       animation: fade-out 2.5s ease-in-out;
     }
-
     ::view-transition-new(root) {
       animation: fade-in 2.5s ease-in-out;
     }
-
     @keyframes fade-out {
       from { opacity: 1; }
       to { opacity: 0; }
     }
-
     @keyframes fade-in {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -41,72 +37,50 @@
   </style>
 </head>
 <body>
-  <div id="portrait-overlay" class="portrait-overlay" style="display:flex">
+  <div id="portrait-overlay" class="portrait-overlay" style="display:none">
     <div class="portrait-content">
       <div class="rotate-icon">📱</div>
-      <h2>请旋转设备</h2>
-      <p>横屏模式下体验更佳</p>
-      <p class="portrait-sub">Rotate your device for the best experience</p>
+      <span>横屏体验更佳</span>
     </div>
   </div>
-  <video class="bg-video" preload="auto" autoplay muted loop playsinline>
-    <source src="css/images/game-bg1.mp4" type="video/mp4">
-  </video>
-  <div class="mist-layer"></div>
+
+  <div class="game-bg"></div>
+
   <div class="room-container">
-    <!-- 顶部信息栏 -->
     <header class="room-header">
-      <div class="logo-container">
-        <img src="css/images/LOGO.webp" alt="Logo" class="logo">
-        <div class="room-info">
-          房间号: <span id="room-id" class="room-id">--</span>
-          <button id="copy-room-id" class="btn copy-btn header-btn">复制</button>
-        </div>
+      <div class="header-left">
+        <span class="room-label">房间号</span>
+        <span id="room-id" class="room-id">--</span>
+        <button id="copy-room-id" class="btn header-btn copy-btn">复制</button>
       </div>
-      <div class="header-actions">
-        <span id="connection-status" class="connection-status disconnected">未连接</span>
-        <button id="language-toggle" class="btn language-btn header-btn">中文</button>
-        <button id="voice-toggle" class="btn voice-btn header-btn">语音: 开启</button>
-        <button id="exit-room" class="btn exit-btn header-btn">退出房间</button>
-        <button id="switch-table-bg" class="btn switch-bg-btn header-btn">切换牌桌背景</button>
+      <div class="header-center">
+        <span id="connection-status" class="connection-status disconnected" title="未连接">
+          <img src="images/icons/hyperlink-broken.svg" alt="未连接" class="status-icon">
+        </span>
+      </div>
+      <div class="header-right">
+        <button id="voice-toggle" class="btn header-btn voice-btn" title="语音: 开启">
+          <img src="images/icons/microphone.svg" alt="语音开启" class="voice-icon">
+        </button>
+        <button id="language-toggle" class="btn header-btn language-btn">中文</button>
+        <button id="switch-table-bg" class="btn header-btn switch-bg-btn">切换主题</button>
         <button id="poker-power-btn" class="btn header-btn poker-power-btn">牌力规则</button>
+        <button id="exit-room" class="btn header-btn exit-btn">退出房间</button>
       </div>
     </header>
 
-    <!-- 游戏主区域 -->
-    <main class="game-area">
-      <div id="poker-power-modal" class="poker-power-modal" style="display: none;">
-        <div class="poker-power-content">
-          <img src="css/images/poker-power.webp" alt="牌力规则" class="poker-power-image">
-          <div class="poker-power-text">
-            <h3>奥马哈与德州扑克的规则区别</h3>
-            <div class="rule-diff-item">
-              <h4>1. 手牌使用方式</h4>
-              <p>德州扑克：从2张手牌和5张公共牌中<strong>任意选择5张</strong>组成最佳牌型。</p>
-              <p>奥马哈：必须<strong>恰好使用2张手牌</strong>和<strong>恰好3张公共牌</strong>组成最佳牌型。不能只用1张或0张手牌，也不能用4张或5张公共牌。</p>
-            </div>
-            <div class="rule-diff-item">
-              <h4>2. 手牌数量</h4>
-              <p>德州扑克：每位玩家发<strong>2张</strong>底牌。</p>
-              <p>奥马哈：每位玩家发<strong>4张</strong>底牌。</p>
-            </div>
-            <div class="rule-diff-item">
-              <h4>3. 下注规则</h4>
-              <p>德州扑克：通常为<strong>无限注（No-Limit）</strong>，可随时全押。</p>
-              <p>奥马哈：通常为<strong>底池限注（Pot-Limit）</strong>，加注上限为当前底池大小。</p>
-            </div>
-            <div class="rule-diff-item">
-              <h4>4. 常见误区</h4>
-              <p>手中有4张同花并不意味着成牌——你必须恰好使用2张手牌。例如手牌A♠K♠5♥7♥，公共牌Q♠J♠2♦3♣，你只能用A♠K♠加Q♠J♠2♦组成同花，而不能同时使用5♥7♥。</p>
-            </div>
-            <div class="rule-diff-item">
-              <h4>5. 牌力比较</h4>
-              <p>牌型排名与德州扑克完全相同（皇家同花顺 > 同花顺 > 四条 > 葫芦 > 同花 > 顺子 > 三条 > 两对 > 一对 > 高牌），但由于必须使用2+3规则，奥马哈中成牌往往更强。</p>
-            </div>
-          </div>
+    <div class="info-bar">
+      <div id="game-log-panel" class="game-log-panel">
+        <div class="game-log-header" id="game-log-toggle">
+          <span class="game-log-title">游戏进程</span>
+          <span class="game-log-summary" id="game-log-summary"></span>
+          <span class="game-log-toggle-icon" id="game-log-toggle-icon">▾</span>
+        </div>
+        <div class="game-log-body" id="game-log-body" style="display:none">
+          <div id="game-log-list" class="game-log-list"></div>
         </div>
       </div>
-      <!-- 阶段指示器 -->
+
       <div class="phase-indicator-wrapper">
         <div class="phase-indicator" id="phase-indicator">
           <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
@@ -118,20 +92,52 @@
           <div class="phase-step" data-phase="SHOWDOWN"><span class="phase-dot"></span><span class="phase-label">摊牌</span></div>
         </div>
       </div>
+    </div>
 
-      <!-- 玩家座位区域 -->
+    <main class="game-area">
+      <div id="poker-power-modal" class="poker-power-modal" style="display: none;">
+        <div class="poker-power-content">
+          <img src="css/images/poker-power.webp" alt="牌力规则" class="poker-power-image">
+          <div class="poker-power-text">
+            <h3>奥马哈与德州扑克的规则区别</h3>
+            <div class="rule-diff-item">
+              <h4>1. 手牌使用方式</h4>
+              <p>德州扑克：从2张手牌和5张公共牌中<strong>任意选择5张</strong>组成最佳牌型。</p>
+              <p>奥马哈：必须<strong>恰好使用2张手牌</strong>和<strong>恰好3张公共牌</strong>组成最佳牌型。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>2. 手牌数量</h4>
+              <p>德州扑克：每位玩家发<strong>2张</strong>底牌。</p>
+              <p>奥马哈：每位玩家发<strong>4张</strong>底牌。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>3. 下注规则</h4>
+              <p>德州扑克：通常为<strong>无限注（No-Limit）</strong>。</p>
+              <p>奥马哈：通常为<strong>底池限注（Pot-Limit）</strong>，加注上限为当前底池大小。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>4. 常见误区</h4>
+              <p>手中有4张同花并不意味着成牌——你必须恰好使用2张手牌。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>5. 牌力比较</h4>
+              <p>牌型排名与德州扑克完全相同，但由于必须使用2+3规则，奥马哈中成牌往往更强。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="players-area">
         <div class="card-pile" id="card-pile">
           <img class="card-pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
           <span class="card-pile-count" id="card-pile-count"></span>
         </div>
 
-        <!-- 公共牌区域 -->
         <div class="community-cards-section">
-          <div class="community-cards" id="community-cards"></div>
+          <div class="community-cards-row" id="community-cards-flop"></div>
+          <div class="community-cards-row" id="community-cards-turn-river"></div>
         </div>
 
-        <!-- 底池信息 -->
         <div class="pot-info">
           <div class="pot-main">底池: <span id="pot-amount">0</span></div>
           <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
@@ -140,7 +146,6 @@
 
         <div class="table-chip-area" id="table-chip-area"></div>
 
-        <!-- 10个玩家座位 -->
         <div class="player-seat seat-1" id="player-1">
           <div class="position-badge" id="pos-1"></div>
           <div class="player-info">
@@ -281,58 +286,115 @@
           <div class="player-cards"></div>
           <div class="player-status" id="status-10"></div>
         </div>
-        <!-- 继续游戏按钮 -->
+
         <div id="continue-game-container" class="continue-game-container" style="display: none;">
           <button id="continue-game-btn" class="btn continue-game-btn">继续游戏</button>
         </div>
       </div>
 
-      <!-- 游戏状态提示 -->
       <div id="game-status" class="game-status" style="display: none;">
         <h2 id="status-title">游戏开始</h2>
         <p id="status-message">请等待所有玩家准备</p>
       </div>
     </main>
 
-    <!-- 房主专属面板 -->
-    <div id="host-panel" class="host-panel" style="display: none;">
-      <h3>房主控制面板</h3>
-      <div class="host-btn-row">
-        <button id="start-game" class="btn btn-primary btn-host" style="display: none;">开始游戏</button>
-        <button id="next-hand-btn" class="btn btn-success btn-host" style="display: none;">下一局</button>
-        <button id="reset-game" class="btn btn-danger btn-host" style="display: none;">重置游戏</button>
-        <button id="settle-game-btn" class="btn btn-host settle-btn" style="display: none;">结算牌局</button>
+    <div id="action-panel" class="action-panel">
+      <h3>下注操作</h3>
+      <div class="action-buttons-vertical">
+        <button id="fold-btn" class="btn action-btn fold-btn">弃牌</button>
+        <button id="check-btn" class="btn action-btn check-btn">过牌</button>
+        <button id="call-btn" class="btn action-btn call-btn">跟注 <span id="call-amount">0</span></button>
+        <button id="raise-btn" class="btn action-btn raise-btn">加注</button>
+        <button id="all-in-btn" class="btn action-btn all-in-btn">全押</button>
       </div>
-      <div class="host-grid">
-        <div class="host-col">
-          <div class="host-control">
-            <label for="small-blind-input">小盲注 (SB)</label>
-            <input type="number" id="small-blind-input" min="1" value="10">
-          </div>
-          <div class="host-control">
-            <label for="big-blind-input">大盲注 (BB)</label>
-            <input type="number" id="big-blind-input" min="2" value="20">
-          </div>
+      <div class="bet-control">
+        <label for="bet-amount">下注积分</label>
+        <div class="bet-input-row">
+          <input type="number" id="bet-amount" class="bet-amount" value="10" min="1">
+          <button type="button" id="clear-bet-btn" class="btn clear-btn">清空</button>
         </div>
-        <div class="host-col">
-          <div class="host-control">
-            <label for="initial-chips-input">初始积分</label>
-            <input type="number" id="initial-chips-input" min="100" value="1000">
-          </div>
+        <div class="pot-quick-buttons">
+          <button class="pot-quick-btn" data-fraction="0.33">⅓底池</button>
+          <button class="pot-quick-btn" data-fraction="0.5">½底池</button>
+          <button class="pot-quick-btn" data-fraction="1">1底池</button>
         </div>
       </div>
-      <div class="host-chips-section">
-        <h4>玩家筹码管理</h4>
-        <div class="host-chips-controls">
-          <select id="player-select" class="player-select"></select>
-          <input type="number" id="chips-amount-input" class="chips-amount-input" min="0" value="1000" placeholder="筹码数量">
-          <button id="set-chips-btn" class="btn btn-host set-chips-btn">设定筹码</button>
-          <button id="add-chips-btn" class="btn btn-host add-chips-btn">追加筹码</button>
+      <div class="betting-extras">
+        <div class="game-speed-control">
+          <label for="game-speed-slider">游戏速度</label>
+          <div class="speed-slider-row">
+            <span class="speed-label-slow">慢</span>
+            <input type="range" id="game-speed-slider" class="speed-slider" min="1" max="5" value="3" step="1">
+            <span class="speed-label-fast">快</span>
+          </div>
+        </div>
+        <div class="sound-control">
+          <button id="sound-toggle" class="btn sound-btn" title="音效: 开">
+            <img src="images/icons/volume-raised.svg" alt="音效开" class="sound-icon">
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- 结算计分板弹窗 -->
+    <div id="host-setup-modal" class="host-setup-modal" style="display: none;">
+      <div class="host-setup-overlay" id="host-setup-overlay"></div>
+      <div class="host-setup-content">
+        <div class="host-setup-header">
+          <h3>房主设置</h3>
+        </div>
+        <div class="host-setup-grid">
+          <div class="host-setup-col">
+            <div class="host-control">
+              <label for="small-blind-input">小盲注 (SB)</label>
+              <input type="number" id="small-blind-input" min="1" value="10">
+            </div>
+            <div class="host-control">
+              <label for="big-blind-input">大盲注 (BB)</label>
+              <input type="number" id="big-blind-input" min="2" value="20">
+            </div>
+          </div>
+          <div class="host-setup-col">
+            <div class="host-control">
+              <label for="initial-chips-input">初始积分</label>
+              <input type="number" id="initial-chips-input" min="100" value="1000">
+            </div>
+          </div>
+        </div>
+        <div class="host-setup-footer">
+          <button id="start-game" class="btn btn-host-start">开始游戏</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="host-game-modal" class="host-game-modal" style="display: none;">
+      <div class="host-game-overlay" id="host-game-overlay"></div>
+      <div class="host-game-content">
+        <div class="host-game-header">
+          <h3>房主设置</h3>
+          <button id="host-game-close" class="host-game-close">✕</button>
+        </div>
+        <div class="host-game-btn-row">
+          <button id="game-add-chips-btn" class="btn btn-host-action">追加筹码</button>
+          <button id="reset-game" class="btn btn-host-action btn-danger">重置牌局</button>
+        </div>
+        <div class="host-chips-section">
+          <h4>玩家筹码管理</h4>
+          <div class="host-chips-controls">
+            <select id="player-select" class="player-select"></select>
+            <input type="number" id="chips-amount-input" class="chips-amount-input" min="0" value="1000" placeholder="筹码数量">
+            <div class="host-chips-btn-row">
+              <button id="set-chips-btn" class="btn btn-host set-chips-btn">设定筹码</button>
+              <button id="add-chips-btn" class="btn btn-host add-chips-btn">追加筹码</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="host-btn-wrapper" class="host-btn-wrapper" style="display: none;">
+      <button id="host-btn-toggle" class="btn host-btn-toggle">房主设置</button>
+    </div>
+
     <div id="settle-modal" class="settle-modal" style="display: none;">
       <div class="settle-modal-content">
         <h3>牌局结算</h3>
@@ -350,67 +412,9 @@
         <button id="settle-close-btn" class="btn btn-host settle-close-btn">关闭</button>
       </div>
     </div>
-
-    <!-- 下注操作面板 -->
-    <div id="action-panel" class="action-panel">
-      <h3>下注操作</h3>
-      <div class="action-buttons-vertical">
-        <button id="fold-btn" class="btn action-btn fold-btn">弃牌</button>
-        <button id="check-btn" class="btn action-btn check-btn">过牌</button>
-        <button id="call-btn" class="btn action-btn call-btn">跟注 <span id="call-amount">0</span></button>
-        <button id="raise-btn" class="btn action-btn raise-btn">加注</button>
-        <button id="all-in-btn" class="btn action-btn all-in-btn">全押</button>
-      </div>
-      <div class="bet-control">
-        <label for="bet-amount">下注积分</label>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <input type="number" id="bet-amount" class="bet-amount" value="10" min="1">
-          <button type="button" id="clear-bet-btn" class="btn clear-btn">清空</button>
-        </div>
-      </div>
-      <div class="chip-buttons">
-        <button class="chip-btn" data-amount="1">1</button>
-        <button class="chip-btn" data-amount="5">5</button>
-        <button class="chip-btn" data-amount="10">10</button>
-        <button class="chip-btn" data-amount="50">50</button>
-        <button class="chip-btn" data-amount="100">100</button>
-        <button class="chip-btn" data-amount="500">500</button>
-      </div>
-      <div class="pot-quick-buttons">
-        <button class="pot-quick-btn" data-fraction="0.33">⅓底池</button>
-        <button class="pot-quick-btn" data-fraction="0.5">½底池</button>
-        <button class="pot-quick-btn" data-fraction="1">1底池</button>
-      </div>
-      <div class="game-speed-control">
-        <label for="game-speed-slider">游戏速度</label>
-        <div class="speed-slider-row">
-          <span class="speed-label-slow">慢</span>
-          <input type="range" id="game-speed-slider" class="speed-slider" min="1" max="5" value="3" step="1">
-          <span class="speed-label-fast">快</span>
-        </div>
-      </div>
-      <div class="sound-control">
-        <button id="sound-toggle" class="btn sound-btn">🔊 音效: 开</button>
-      </div>
-      <div class="my-info">
-        <span>我的积分: <strong id="my-chips">1000</strong></span>
-      </div>
-      <div class="chips-history">
-        <h4>积分历史</h4>
-        <div id="chips-history-list" class="chips-history-list"></div>
-      </div>
-    </div>
-
-    <!-- 游戏进程复述面板 -->
-    <div id="game-log-panel" class="game-log-panel">
-      <h3>游戏进程</h3>
-      <div id="game-log-list" class="game-log-list"></div>
-    </div>
   </div>
 
-  <!-- Socket.io -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <!-- 声网SDK -->
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
   <script src="js/chipDisplay.js"></script>
@@ -422,25 +426,62 @@
   <script src="js/omaha-room/ui.js"></script>
   <script src="js/omaha-room/game.js"></script>
 
-  <!-- 鼠标跟随式光晕按钮效果 -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const neonButtons = document.querySelectorAll('.btn, .action-btn, .chip-btn');
-
-      neonButtons.forEach(btn => {
-        btn.addEventListener('mousemove', function(e) {
-          const rect = btn.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          this.style.setProperty('--x', `${x}px`);
-          this.style.setProperty('--y', `${y}px`);
+      var gameLogToggle = document.getElementById('game-log-toggle');
+      var gameLogBody = document.getElementById('game-log-body');
+      var gameLogToggleIcon = document.getElementById('game-log-toggle-icon');
+      if (gameLogToggle && gameLogBody) {
+        gameLogToggle.addEventListener('click', function() {
+          var isExpanded = gameLogBody.style.display !== 'none';
+          gameLogBody.style.display = isExpanded ? 'none' : 'block';
+          if (gameLogToggleIcon) {
+            gameLogToggleIcon.textContent = isExpanded ? '▾' : '▴';
+          }
         });
+      }
 
-        btn.addEventListener('mouseleave', function() {
-          this.style.setProperty('--x', '50%');
-          this.style.setProperty('--y', '50%');
+      var hostGameClose = document.getElementById('host-game-close');
+      var hostGameModal = document.getElementById('host-game-modal');
+      var hostGameOverlay = document.getElementById('host-game-overlay');
+      if (hostGameClose && hostGameModal) {
+        hostGameClose.addEventListener('click', function() {
+          hostGameModal.style.display = 'none';
         });
-      });
+      }
+      if (hostGameOverlay && hostGameModal) {
+        hostGameOverlay.addEventListener('click', function() {
+          hostGameModal.style.display = 'none';
+        });
+      }
+
+      var hostSetupOverlay = document.getElementById('host-setup-overlay');
+      var hostSetupModal = document.getElementById('host-setup-modal');
+      if (hostSetupOverlay && hostSetupModal) {
+        hostSetupOverlay.addEventListener('click', function() {
+          hostSetupModal.style.display = 'none';
+        });
+      }
+
+      var hostBtnToggle = document.getElementById('host-btn-toggle');
+      if (hostBtnToggle && hostGameModal) {
+        hostBtnToggle.addEventListener('click', function() {
+          hostGameModal.style.display = 'flex';
+        });
+      }
+
+      var startGameBtn = document.getElementById('start-game');
+      var hostSetupModalEl = document.getElementById('host-setup-modal');
+      var hostBtnWrapper = document.getElementById('host-btn-wrapper');
+      if (startGameBtn && hostSetupModalEl && hostBtnWrapper) {
+        startGameBtn.addEventListener('click', function() {
+          hostSetupModalEl.style.display = 'none';
+          hostBtnWrapper.style.display = 'block';
+          if (window.omahaGame) {
+            omahaGame.onStartGame();
+          }
+        });
+      }
 
       var pokerPowerBtn = document.getElementById('poker-power-btn');
       var pokerPowerModal = document.getElementById('poker-power-modal');
@@ -457,77 +498,43 @@
     });
   </script>
 
-  <!-- 移动端横屏等比例缩放 -->
   <script>
     (function() {
       function isMobile() {
         return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia('(hover: none) and (pointer: coarse)').matches);
       }
 
-      function isLandscape() {
-        return window.innerWidth > window.innerHeight;
-      }
-
       function applyScaling() {
         if (!isMobile()) return;
-
         var overlay = document.getElementById('portrait-overlay');
-        var container = document.querySelector('.room-container');
-        if (!container) return;
-
-        if (!isLandscape()) {
-          if (overlay) overlay.style.display = 'flex';
-          if (container.style.transform) {
-            container.style.transform = '';
-            container.style.transformOrigin = '';
-            container.style.width = '';
-            container.style.height = '';
-          }
-          return;
-        }
-
-        if (overlay) overlay.style.display = 'none';
-
-        var vh = window.innerHeight;
-        var vw = window.innerWidth;
-
-        if (vh < 500) {
-          var designHeight = 768;
-          var scale = vh / designHeight;
-          scale = Math.max(0.35, Math.min(1, scale));
-
-          container.style.transform = 'scale(' + scale + ')';
-          container.style.transformOrigin = 'top left';
-          container.style.width = (vw / scale) + 'px';
-          container.style.height = (designHeight) + 'px';
-          document.documentElement.style.overflow = 'hidden';
-          document.body.style.overflow = 'hidden';
-        } else {
-          container.style.transform = '';
-          container.style.transformOrigin = '';
-          container.style.width = '';
-          container.style.height = '';
-          document.documentElement.style.overflow = '';
-          document.body.style.overflow = '';
-        }
+        if (!overlay) return;
+        var isPortrait = window.innerHeight > window.innerWidth;
+        overlay.style.display = isPortrait ? 'flex' : 'none';
       }
 
       applyScaling();
-
       var resizeTimer;
       window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(applyScaling, 100);
       });
-
       window.addEventListener('orientationchange', function() {
         setTimeout(applyScaling, 300);
       });
+    })();
+  </script>
 
-      if (screen.orientation) {
-        screen.orientation.addEventListener('change', function() {
-          setTimeout(applyScaling, 300);
-        });
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var isHost = params.get('isHost') === 'true';
+      var isCreating = params.get('isCreating') === 'true';
+
+      if (isHost || isCreating) {
+        var hostSetupModal = document.getElementById('host-setup-modal');
+        if (hostSetupModal) {
+          hostSetupModal.style.display = 'flex';
+        }
       }
     })();
   </script>

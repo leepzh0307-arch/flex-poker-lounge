@@ -1,8 +1,9 @@
 var Gallery3D = (function () {
   function create(container, opts) {
     opts = opts || {};
-    var scrollSpeed = opts.scrollSpeed || 1.2;
-    var scrollEase = opts.scrollEase || 0.03;
+    var dragSensitivity = opts.dragSensitivity || 1.0;
+    var lerpSpeed = opts.lerpSpeed || 0.1;
+    var snapDuration = opts.snapDuration || 500;
     var gap = opts.gap || 20;
 
     var track = container.querySelector('.gallery-3d-track');
@@ -15,17 +16,29 @@ var Gallery3D = (function () {
     var itemWidth = 0;
     var totalWidth = 0;
 
-    var scroll = { current: 0, target: 0, last: 0, position: 0 };
+    var scroll = { current: 0, target: 0, last: 0 };
     var extras = [];
     for (var e = 0; e < count; e++) extras.push(0);
 
     var isDown = false;
     var startX = 0;
+    var scrollStart = 0;
+    var velocity = 0;
+    var lastX = 0;
+    var lastTime = 0;
     var raf = 0;
-    var checkTimeout = null;
+
+    var isSnapping = false;
+    var snapStart = 0;
+    var snapFrom = 0;
+    var snapTo = 0;
 
     function lerp(a, b, t) {
       return a + (b - a) * t;
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
     }
 
     function calculateSizes() {
@@ -95,44 +108,67 @@ var Gallery3D = (function () {
     }
 
     function animate() {
-      scroll.current = lerp(scroll.current, scroll.target, scrollEase);
+      if (isSnapping) {
+        var elapsed = Date.now() - snapStart;
+        var t = Math.min(elapsed / snapDuration, 1);
+        scroll.current = snapFrom + (snapTo - snapFrom) * easeOutCubic(t);
+        if (t >= 1) {
+          isSnapping = false;
+          scroll.current = snapTo;
+        }
+      } else if (!isDown) {
+        velocity *= 0.92;
+        scroll.target += velocity;
+        if (Math.abs(velocity) < 0.05) velocity = 0;
+        scroll.current = lerp(scroll.current, scroll.target, lerpSpeed);
+      } else {
+        scroll.current = lerp(scroll.current, scroll.target, lerpSpeed);
+      }
+
       updateCards();
       scroll.last = scroll.current;
       raf = requestAnimationFrame(animate);
     }
 
-    function onCheck() {
+    function snapToNearest() {
       if (count === 0 || itemWidth === 0) return;
+      isSnapping = true;
+      snapStart = Date.now();
+      snapFrom = scroll.current;
       var itemIndex = Math.round(Math.abs(scroll.target) / itemWidth);
       var item = itemWidth * itemIndex;
-      scroll.target = scroll.target < 0 ? -item : item;
+      snapTo = scroll.target < 0 ? -item : item;
     }
 
     function onPointerDown(e) {
       isDown = true;
-      scroll.position = scroll.current;
+      isSnapping = false;
+      velocity = 0;
+      scrollStart = scroll.target;
       startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      lastX = startX;
+      lastTime = Date.now();
     }
 
     function onPointerMove(e) {
       if (!isDown) return;
       var x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      var distance = (startX - x) * (scrollSpeed * 0.025);
-      scroll.target = scroll.position + distance;
+      var dx = startX - x;
+      scroll.target = scrollStart + dx * dragSensitivity;
+
+      var now = Date.now();
+      var dt = now - lastTime;
+      if (dt > 0) {
+        velocity = (lastX - x) * dragSensitivity / dt * 16;
+      }
+      lastX = x;
+      lastTime = now;
     }
 
     function onPointerUp() {
       if (!isDown) return;
       isDown = false;
-      onCheck();
-    }
-
-    function onWheel(e) {
-      e.preventDefault();
-      var delta = e.deltaY || e.wheelDelta || e.detail;
-      scroll.target += (delta > 0 ? scrollSpeed : -scrollSpeed) * 0.2;
-      clearTimeout(checkTimeout);
-      checkTimeout = setTimeout(onCheck, 200);
+      snapToNearest();
     }
 
     function onResize() {
@@ -145,7 +181,6 @@ var Gallery3D = (function () {
     container.addEventListener('touchstart', onPointerDown, { passive: true });
     window.addEventListener('touchmove', onPointerMove, { passive: true });
     window.addEventListener('touchend', onPointerUp);
-    container.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('resize', onResize);
 
     calculateSizes();
@@ -154,14 +189,12 @@ var Gallery3D = (function () {
     return {
       destroy: function () {
         cancelAnimationFrame(raf);
-        clearTimeout(checkTimeout);
         container.removeEventListener('mousedown', onPointerDown);
         window.removeEventListener('mousemove', onPointerMove);
         window.removeEventListener('mouseup', onPointerUp);
         container.removeEventListener('touchstart', onPointerDown);
         window.removeEventListener('touchmove', onPointerMove);
         window.removeEventListener('touchend', onPointerUp);
-        container.removeEventListener('wheel', onWheel);
         window.removeEventListener('resize', onResize);
       },
     };

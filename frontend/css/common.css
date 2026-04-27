@@ -3,6 +3,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  cursor: var(--cursor-default, auto);
+}
+
+button, a, [role="button"], input[type="checkbox"], input[type="radio"], select, .btn, .mode-btn {
+  cursor: var(--cursor-pointer, pointer);
 }
 
 body {
@@ -180,7 +185,7 @@ h2 {
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
-  border: 1px solid rgba(45, 58, 49, 0.06);
+  border: none;
 }
 
 .poker-card:hover {
@@ -201,10 +206,15 @@ h2 {
   pointer-events: none;
 }
 
+.poker-card.back .card-face-img {
+  object-fit: contain;
+}
+
 .poker-card.back {
+  aspect-ratio: 49 / 65;
   background-color: transparent;
   color: transparent;
-  border: 1px solid rgba(45, 58, 49, 0.1);
+  border: none;
 }
 
 .poker-card.back.theme-2 {

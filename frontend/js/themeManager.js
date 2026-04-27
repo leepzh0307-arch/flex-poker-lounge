@@ -1,6 +1,5 @@
 var ThemeManager = (function () {
   var CARD_BACKS = [
-    { id: 1, name: '经典', back: 'images/Cards/card_back.png', pile: 'images/Cards/card_pile2.svg' },
     { id: 2, name: '风格2', back: 'images/Cards/card_back2.svg', pile: 'images/Cards/card_pile2.svg' },
     { id: 3, name: '风格3', back: 'images/Cards/card_back3.svg', pile: 'images/Cards/card_pile3.svg' },
     { id: 4, name: '风格4', back: 'images/Cards/card_back4.svg', pile: 'images/Cards/card_pile4.svg' },
@@ -23,7 +22,7 @@ var ThemeManager = (function () {
 
   var state = {
     tableTheme: 1,
-    cardBackId: 1,
+    cardBackId: 2,
     chipSeries: 1,
   };
 
@@ -99,12 +98,18 @@ var ThemeManager = (function () {
 
   function applyCardBackTheme() {
     var backCards = document.querySelectorAll('.poker-card.back');
-    var src = getCardBackSrc();
+    var backSrc = getCardBackSrc();
     backCards.forEach(function (card) {
       var img = card.querySelector('.card-face-img');
       if (img && img.alt === 'card back') {
-        img.src = src;
+        img.src = backSrc;
       }
+    });
+
+    var pileSrc = getCardPileSrc();
+    var pileImgs = document.querySelectorAll('.card-pile-img');
+    pileImgs.forEach(function (img) {
+      img.src = pileSrc;
     });
   }
 

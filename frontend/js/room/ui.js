@@ -712,7 +712,7 @@ class RoomUI {
     if (card.hidden) {
       cardElement.classList.add('back');
       const backImg = document.createElement('img');
-      backImg.src = typeof ThemeManager !== 'undefined' ? ThemeManager.getCardBackSrc() : 'images/Cards/card_back.png';
+      backImg.src = typeof ThemeManager !== 'undefined' ? ThemeManager.getCardBackSrc() : 'images/Cards/card_back2.svg';
       backImg.alt = 'card back';
       backImg.className = 'card-face-img';
       cardElement.appendChild(backImg);

@@ -666,8 +666,9 @@
   var galleryEl = document.getElementById('gallery-3d');
   if (galleryEl && typeof Gallery3D !== 'undefined') {
     Gallery3D.create(galleryEl, {
-      scrollSpeed: 1.2,
-      scrollEase: 0.03,
+      dragSensitivity: 1.0,
+      lerpSpeed: 0.1,
+      snapDuration: 500,
       gap: 20,
     });
   }

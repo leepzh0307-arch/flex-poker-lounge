@@ -108,6 +108,7 @@ function handleStartGame(room, roomId, io) {
 
   sendUnoUpdate(room, roomId, io);
   broadcastAction(roomId, io, 'gameStart', { message: '游戏开始！' });
+  scheduleAiAction(room, roomId, io);
 }
 
 function handlePlayCard(room, roomId, io, socket, data) {

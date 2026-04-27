@@ -52,4 +52,7 @@
   --suit-diamonds: #C0392B;
   --suit-spades: #1a1a1a;
   --suit-clubs: #1a1a1a;
+
+  --cursor-default: url('images/cursors/cursor.cur'), auto;
+  --cursor-pointer: url('images/cursors/pointer.cur'), pointer;
 }
