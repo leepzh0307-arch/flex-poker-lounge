@@ -642,15 +642,15 @@
   if (pageMain && typeof PixelBlast !== 'undefined') {
     PixelBlast.create(pageMain, {
       variant: 'diamond',
-      pixelSize: 6,
+      pixelSize: 10,
       color: '#8C9A84',
       patternScale: 3,
-      patternDensity: 0.85,
-      pixelSizeJitter: 0.8,
+      patternDensity: 0.6,
+      pixelSizeJitter: 0.6,
       enableRipples: true,
-      rippleSpeed: 0.4,
-      rippleThickness: 0.12,
-      rippleIntensityScale: 1.5,
+      rippleSpeed: 0.25,
+      rippleThickness: 0.08,
+      rippleIntensityScale: 0.8,
       speed: 1.2,
       edgeFade: 0,
       transparent: true,
@@ -660,7 +660,7 @@
   var galleryEl = document.getElementById('gallery-3d');
   if (galleryEl && typeof Gallery3D !== 'undefined') {
     Gallery3D.create(galleryEl, {
-      radius: 420,
+      radius: 1260,
       cardWidth: 260,
       cardHeight: 380,
       dragSpeed: 0.35,
