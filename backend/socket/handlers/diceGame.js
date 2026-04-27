@@ -219,9 +219,8 @@ function handleResetGame(room, roomId, io) {
   sendDiceUpdate(roomId, io, room);
 }
 
-module.exports = function (io, rooms) {
-  io.on('connection', function (socket) {
-    socket.on('createDiceRoom', function (data, callback) {
+module.exports = function (socket, rooms, io) {
+  socket.on('createDiceRoom', function (data, callback) {
       try {
         var roomId = generateRoomId();
         var playerId = socket.id;
@@ -387,5 +386,4 @@ module.exports = function (io, rooms) {
         }
       }
     });
-  });
-};
+  };

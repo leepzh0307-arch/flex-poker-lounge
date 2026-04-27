@@ -1,4 +1,10 @@
 (function() {
+  if (typeof socketClient !== 'undefined' && socketClient.connect) {
+    socketClient.connect().catch(function(err) {
+      console.warn('[Index] Socket连接失败:', err);
+    });
+  }
+
   var toastEl = document.getElementById('toast');
   var toastTimer = null;
 
@@ -642,15 +648,15 @@
   if (pageMain && typeof PixelBlast !== 'undefined') {
     PixelBlast.create(pageMain, {
       variant: 'diamond',
-      pixelSize: 10,
+      pixelSize: 4,
       color: '#8C9A84',
       patternScale: 3,
-      patternDensity: 0.6,
-      pixelSizeJitter: 0.6,
+      patternDensity: 0.55,
+      pixelSizeJitter: 0.5,
       enableRipples: true,
-      rippleSpeed: 0.25,
-      rippleThickness: 0.08,
-      rippleIntensityScale: 0.8,
+      rippleSpeed: 0.15,
+      rippleThickness: 0.05,
+      rippleIntensityScale: 0.35,
       speed: 1.2,
       edgeFade: 0,
       transparent: true,
@@ -660,10 +666,9 @@
   var galleryEl = document.getElementById('gallery-3d');
   if (galleryEl && typeof Gallery3D !== 'undefined') {
     Gallery3D.create(galleryEl, {
-      radius: 1260,
-      cardWidth: 260,
-      cardHeight: 380,
-      dragSpeed: 0.35,
+      scrollSpeed: 1.2,
+      scrollEase: 0.03,
+      gap: 20,
     });
   }
 })();
