@@ -28,6 +28,9 @@ class RoomUI {
       phaseIndicator: document.getElementById('phase-indicator'),
       potAmount: document.getElementById('pot-amount'),
       blindInfo: document.getElementById('blind-info'),
+      cardPile: document.getElementById('card-pile'),
+      cardPileImg: document.querySelector('.card-pile-img'),
+      cardPileCount: document.getElementById('card-pile-count'),
       nextHandBtn: document.getElementById('next-hand-btn'),
       startGameBtn: document.getElementById('start-game'),
       connectionStatus: document.getElementById('connection-status'),
@@ -164,6 +167,17 @@ class RoomUI {
     this.bindEvents();
     this._setupGameLogObserver();
     this.updateLanguage();
+    this._applyInitialTheme();
+  }
+
+  _applyInitialTheme() {
+    if (typeof ThemeManager !== 'undefined') {
+      ThemeManager.applyAll();
+      this.applyTableTheme(ThemeManager.getTableTheme());
+      if (this.elements.cardPileImg) {
+        this.elements.cardPileImg.src = ThemeManager.getCardPileSrc();
+      }
+    }
   }
 
   bindEvents() {
@@ -205,7 +219,7 @@ class RoomUI {
 
     const switchBgBtn = document.getElementById('switch-table-bg');
     bindEvent(switchBgBtn, () => {
-      this.switchTableBackground();
+      this.showThemePopup();
     });
 
     bindEvent(this.elements.languageToggle, () => {
@@ -407,7 +421,8 @@ class RoomUI {
           cardElement.classList.add('dealing');
           cardElement.style.animationDelay = `${animDelay}ms`;
           cardElement.style.opacity = '0';
-          const animDuration = 300;
+          this._setDealFromPile(cardElement);
+          const animDuration = 400;
           setTimeout(() => {
             cardElement.style.opacity = '';
             if (window.pokerSoundManager) pokerSoundManager.dealCard();
@@ -547,6 +562,10 @@ class RoomUI {
             betEl.appendChild(chipEl);
           }
           betEl.style.display = 'flex';
+
+          if (betChanged) {
+            this._animateChipToTable(seatEl, betEl, currentBet, initialChips);
+          }
 
           // 根据座位号确定筹码偏移方向（朝牌桌中心方向）
           // 座位1/9/10在底部 → 筹码向上（负Y）
@@ -692,11 +711,8 @@ class RoomUI {
 
     if (card.hidden) {
       cardElement.classList.add('back');
-      if (this.currentBgTheme === 2) {
-        cardElement.classList.add('theme-2');
-      }
       const backImg = document.createElement('img');
-      backImg.src = 'images/Cards/card_back.png';
+      backImg.src = typeof ThemeManager !== 'undefined' ? ThemeManager.getCardBackSrc() : 'images/Cards/card_back.png';
       backImg.alt = 'card back';
       backImg.className = 'card-face-img';
       cardElement.appendChild(backImg);
@@ -738,6 +754,58 @@ class RoomUI {
     if (this.elements.myChips) {
       this.elements.myChips.textContent = chips;
     }
+  }
+
+  _animateChipToTable(seatEl, betEl, amount, initialChips) {
+    var chipArea = document.getElementById('table-chip-area');
+    if (!chipArea) return;
+
+    var tableRect = document.querySelector('.players-area').getBoundingClientRect();
+    var betRect = betEl.getBoundingClientRect();
+    var areaRect = chipArea.getBoundingClientRect();
+
+    var fromX = betRect.left + betRect.width / 2 - tableRect.left;
+    var fromY = betRect.top + betRect.height / 2 - tableRect.top;
+    var toX = areaRect.left + areaRect.width / 2 - tableRect.left;
+    var toY = areaRect.top + areaRect.height / 2 - tableRect.top;
+
+    var flyEl = document.createElement('div');
+    flyEl.className = 'chip-fly-to-table';
+    flyEl.style.setProperty('--chip-from-x', fromX + 'px');
+    flyEl.style.setProperty('--chip-from-y', fromY + 'px');
+    flyEl.style.setProperty('--chip-to-x', toX + 'px');
+    flyEl.style.setProperty('--chip-to-y', toY + 'px');
+
+    var chipEl = ChipDisplay.createChipElement(amount, initialChips);
+    chipEl.classList.add('chip-display--small');
+    flyEl.appendChild(chipEl);
+
+    var tableArea = document.querySelector('.players-area');
+    tableArea.appendChild(flyEl);
+
+    setTimeout(function() {
+      flyEl.remove();
+    }, 600);
+  }
+
+  _setDealFromPile(cardElement) {
+    var pileEl = this.elements.cardPile;
+    if (!pileEl) return;
+    var tableArea = document.querySelector('.players-area');
+    if (!tableArea) return;
+    var tableRect = tableArea.getBoundingClientRect();
+    var pileRect = pileEl.getBoundingClientRect();
+    var pileCenterX = pileRect.left + pileRect.width / 2 - tableRect.left;
+    var pileCenterY = pileRect.top + pileRect.height / 2 - tableRect.top;
+    requestAnimationFrame(function() {
+      var cardRect = cardElement.getBoundingClientRect();
+      var cardCenterX = cardRect.left + cardRect.width / 2 - tableRect.left;
+      var cardCenterY = cardRect.top + cardRect.height / 2 - tableRect.top;
+      var dx = pileCenterX - cardCenterX;
+      var dy = pileCenterY - cardCenterY;
+      cardElement.style.setProperty('--deal-from-x', dx + 'px');
+      cardElement.style.setProperty('--deal-from-y', dy + 'px');
+    });
   }
 
   _getInitialChips() {
@@ -1142,10 +1210,10 @@ class RoomUI {
     const startAngle = 180;
     const angleStep = 360 / numPlayers;
 
-    const rx = 34;
-    const ry = 40;
+    const rx = 38;
+    const ry = 42;
     const cx = 50;
-    const cy = 48;
+    const cy = 50;
 
     sortedSeats.forEach((seatIdx, listIdx) => {
       const relativePos = (listIdx - selfPosInList + numPlayers) % numPlayers;
@@ -1200,26 +1268,74 @@ class RoomUI {
     observer.observe(logList, { childList: true });
   }
 
-  switchTableBackground() {
-    const tableArea = document.querySelector('.players-area');
+  showThemePopup() {
+    var self = this;
+    ThemePopup.show(function(type, id) {
+      if (type === 'table') {
+        self.applyTableTheme(id);
+      } else if (type === 'cardBack') {
+        self.applyCardBackTheme();
+      } else if (type === 'chip') {
+        self.refreshChipDisplays();
+      }
+    });
+  }
+
+  applyTableTheme(themeId) {
+    var tableArea = document.querySelector('.players-area');
     if (!tableArea) return;
+    this.currentBgTheme = themeId;
+    if (themeId === 2) {
+      tableArea.classList.add('bg-theme-2');
+    } else {
+      tableArea.classList.remove('bg-theme-2');
+    }
+  }
 
+  applyCardBackTheme() {
+    var src = ThemeManager.getCardBackSrc();
+    var allBackCards = document.querySelectorAll('.poker-card.back');
+    allBackCards.forEach(function(card) {
+      var img = card.querySelector('.card-face-img');
+      if (img && img.alt === 'card back') {
+        img.src = src;
+      }
+    });
+    var pileImg = document.querySelector('.card-pile-img');
+    if (pileImg) {
+      pileImg.src = ThemeManager.getCardPileSrc();
+    }
+  }
+
+  refreshChipDisplays() {
+    var self = this;
+    this.elements.playerBets.forEach(function(betEl) {
+      if (betEl && betEl.style.display === 'flex') {
+        var chipDisplay = betEl.querySelector('.chip-display');
+        if (chipDisplay) {
+          var label = chipDisplay.querySelector('.chip-amount');
+          var amount = label ? parseInt(label.textContent) || 0 : 0;
+          if (amount > 0) {
+            var initialChips = self._getInitialChips();
+            betEl.innerHTML = '';
+            var chipEl = ChipDisplay.createChipElement(amount, initialChips);
+            chipEl.classList.add('chip-display--small');
+            betEl.appendChild(chipEl);
+          }
+        }
+      }
+    });
+  }
+
+  switchTableBackground() {
+    var tableArea = document.querySelector('.players-area');
+    if (!tableArea) return;
     this.currentBgTheme = this.currentBgTheme === 1 ? 2 : 1;
-
     if (this.currentBgTheme === 2) {
       tableArea.classList.add('bg-theme-2');
     } else {
       tableArea.classList.remove('bg-theme-2');
     }
-
-    const allBackCards = document.querySelectorAll('.poker-card.back');
-    allBackCards.forEach(card => {
-      if (this.currentBgTheme === 2) {
-        card.classList.add('theme-2');
-      } else {
-        card.classList.remove('theme-2');
-      }
-    });
   }
 
   toggleLanguage() {

@@ -507,9 +507,35 @@ body {
   border-color: rgba(91, 122, 157, 0.3);
 }
 
+.card-pile {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.card-pile-img {
+  width: 52px;
+  height: auto;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.card-pile-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 .community-cards-section {
   position: absolute;
-  top: 38%;
+  top: 52%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 15;
@@ -569,28 +595,73 @@ body {
   opacity: 0.7;
 }
 
-.community-cards-row .poker-card.dealing {
-  animation: cardDeal 0.3s ease-out;
+.community-cards-row .poker-card.dealing,
+.player-cards .poker-card.dealing {
+  animation: cardDealFromPile 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
-@keyframes cardDeal {
-  from {
+@keyframes cardDealFromPile {
+  0% {
     opacity: 0;
-    transform: translateY(-20px) scale(0.8);
+    transform: translate(var(--deal-from-x, 0px), var(--deal-from-y, -60px)) scale(0.5) rotate(5deg);
   }
-  to {
+  50% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(0, -5px) scale(1.05) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0deg);
   }
 }
 
 .pot-info {
   position: absolute;
-  top: 18%;
+  top: 12%;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
   z-index: 3;
+}
+
+.table-chip-area {
+  position: absolute;
+  top: 62%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 13;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  max-width: 200px;
+  pointer-events: none;
+}
+
+.chip-fly-to-table {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  animation: chipFlyToTable 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes chipFlyToTable {
+  0% {
+    left: var(--chip-from-x);
+    top: var(--chip-from-y);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    left: var(--chip-to-x);
+    top: var(--chip-to-y);
+    transform: translate(-50%, -50%) scale(0.7);
+    opacity: 0;
+  }
 }
 
 .pot-main {
@@ -717,6 +788,43 @@ body {
 .player-seat.winner-seat .player-info {
   border-color: var(--gold) !important;
   box-shadow: 0 0 12px rgba(140, 154, 132, 0.25) !important;
+}
+
+.player-seat .player-info {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.player-seat.seat-self .player-info {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.seat-1 .player-info,
+.seat-2 .player-info,
+.seat-9 .player-info,
+.seat-10 .player-info {
+  bottom: 100%;
+  top: auto;
+}
+
+.seat-3 .player-info,
+.seat-4 .player-info,
+.seat-5 .player-info,
+.seat-6 .player-info,
+.seat-7 .player-info {
+  top: 100%;
+  bottom: auto;
+}
+
+.seat-8 .player-info {
+  top: 100%;
+  bottom: auto;
 }
 
 .position-badge {
@@ -2445,14 +2553,9 @@ body {
 
 
 .poker-card.back {
-  background-image: url('../images/Cards/card_back.png');
   background-size: cover;
   color: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.poker-card.back.theme-2 {
-  background-image: url('../images/Cards/card_back2.svg');
 }
 
 .poker-card .card-value {

@@ -49,6 +49,8 @@
       else if (mode === 'omaha-pvp') openModal('omaha-pvp-modal');
       else if (mode === 'uno-pvc') openModal('uno-pvc-modal');
       else if (mode === 'uno-pvp') openModal('uno-pvp-modal');
+      else if (mode === 'dice-pvp') openModal('dice-pvp-modal');
+      else if (mode === 'sim-pvp') openModal('sim-pvp-modal');
     });
   });
 
@@ -324,6 +326,94 @@
 
   bindEvent(createUnoAiRoomBtn, createUnoAiRoom);
 
+  var createDiceRoomBtn = document.getElementById('create-dice-room');
+  var joinDiceRoomBtn = document.getElementById('join-dice-room');
+  var dicePvpNickname = document.getElementById('dice-pvp-nickname');
+  var dicePvpRoomId = document.getElementById('dice-pvp-room');
+
+  function createDiceRoom() {
+    var nickname = dicePvpNickname ? dicePvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (dicePvpNickname) dicePvpNickname.focus();
+      return;
+    }
+    var targetUrl = 'dice-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&gameType=dice&avatar=' + getAvatar('dice-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  function joinDiceRoom() {
+    var nickname = dicePvpNickname ? dicePvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (dicePvpNickname) dicePvpNickname.focus();
+      return;
+    }
+    var roomId = dicePvpRoomId ? dicePvpRoomId.value.trim() : '';
+    if (!roomId) {
+      showToast('请输入房间号');
+      if (dicePvpRoomId) dicePvpRoomId.focus();
+      return;
+    }
+    var targetUrl = 'dice-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&gameType=dice&avatar=' + getAvatar('dice-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  bindEvent(createDiceRoomBtn, createDiceRoom);
+  bindEvent(joinDiceRoomBtn, joinDiceRoom);
+
+  var simPvpNickname = document.getElementById('sim-pvp-nickname');
+  var simPvpRoomId = document.getElementById('sim-pvp-room');
+
+  function createSimRoom() {
+    var nickname = simPvpNickname ? simPvpNickname.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (simPvpNickname) simPvpNickname.focus();
+      return;
+    }
+    socketClient.createPokerSimRoom(nickname, getAvatar('sim-pvp'), function(err, roomId) {
+      if (err) {
+        showToast('创建房间失败: ' + err);
+        return;
+      }
+      var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
+      closeAllModals();
+      setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+    });
+  }
+
+  function joinSimRoom() {
+    var nickname = simPvpNickname ? simPvpNickname.value.trim() : '';
+    var roomId = simPvpRoomId ? simPvpRoomId.value.trim() : '';
+    if (!nickname) {
+      showToast('请输入昵称');
+      if (simPvpNickname) simPvpNickname.focus();
+      return;
+    }
+    if (!roomId) {
+      showToast('请输入房间号');
+      if (simPvpRoomId) simPvpRoomId.focus();
+      return;
+    }
+    socketClient.joinPokerSimRoom(roomId, nickname, getAvatar('sim-pvp'), function(err) {
+      if (err) {
+        showToast('加入房间失败: ' + err);
+        return;
+      }
+      var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
+      closeAllModals();
+      setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+    });
+  }
+
+  var createSimRoomBtn = document.getElementById('create-sim-room');
+  var joinSimRoomBtn = document.getElementById('join-sim-room');
+  bindEvent(createSimRoomBtn, createSimRoom);
+  bindEvent(joinSimRoomBtn, joinSimRoom);
+
   if (unoPvpNickname) {
     unoPvpNickname.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -374,7 +464,9 @@
     'omaha-pvp': 'froggy',
     'omaha-pvc': 'froggy',
     'uno-pvp': 'froggy',
-    'uno-pvc': 'froggy'
+    'uno-pvc': 'froggy',
+    'dice-pvp': 'froggy',
+    'sim-pvp': 'bunny'
   };
 
   document.querySelectorAll('.avatar-picker').forEach(function(picker) {
@@ -545,4 +637,61 @@
     scrollElements.push(wrapper);
     scrollObserver.observe(el);
   });
+
+  var heroEl = document.getElementById('hero');
+  if (heroEl && typeof PixelBlast !== 'undefined') {
+    PixelBlast.create(heroEl, {
+      variant: 'diamond',
+      pixelSize: 6,
+      color: '#8C9A84',
+      patternScale: 3,
+      patternDensity: 0.85,
+      pixelSizeJitter: 0.8,
+      enableRipples: true,
+      rippleSpeed: 0.4,
+      rippleThickness: 0.12,
+      rippleIntensityScale: 1.5,
+      speed: 1.2,
+      edgeFade: 0,
+      transparent: true,
+    });
+  }
+
+  var pageBody = document.querySelector('main') || document.body;
+  if (pageBody && typeof PixelBlast !== 'undefined') {
+    var gamesSection = document.getElementById('games');
+    if (gamesSection) {
+      PixelBlast.create(gamesSection, {
+        variant: 'diamond',
+        pixelSize: 8,
+        color: '#8C9A84',
+        patternScale: 2.5,
+        patternDensity: 0.6,
+        pixelSizeJitter: 0.6,
+        enableRipples: false,
+        speed: 0.8,
+        edgeFade: 0.1,
+        transparent: true,
+      });
+    }
+  }
+
+  var galleryEl = document.getElementById('circular-gallery');
+  if (galleryEl && typeof CircularGallery !== 'undefined') {
+    CircularGallery.create(galleryEl, {
+      items: [
+        { image: 'https://picsum.photos/seed/texas/800/600?grayscale', text: 'Texas Hold\'em' },
+        { image: 'https://picsum.photos/seed/omaha/800/600?grayscale', text: 'Omaha' },
+        { image: 'https://picsum.photos/seed/uno/800/600?grayscale', text: 'UNO' },
+        { image: 'https://picsum.photos/seed/dice/800/600?grayscale', text: 'Dice' },
+        { image: 'https://picsum.photos/seed/poker5/800/600?grayscale', text: 'Strategy' },
+        { image: 'https://picsum.photos/seed/poker6/800/600?grayscale', text: 'Elegance' },
+      ],
+      bend: 3,
+      textColor: '#2D3A31',
+      borderRadius: 0.08,
+      scrollSpeed: 1.2,
+      scrollEase: 0.03,
+    });
+  }
 })();

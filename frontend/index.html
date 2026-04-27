@@ -47,6 +47,7 @@
 <section class="hero" id="hero">
   <div class="hero-container">
     <div class="hero-content" id="hero-content">
+      <div class="hero-content-backdrop"></div>
       <h1 class="hero-title">
         <span class="hero-title-line">Where Strategy</span>
         <span class="hero-title-line"><em>Meets</em> Elegance</span>
@@ -81,6 +82,8 @@
   <div class="games-container">
     <h2 class="section-title" data-scroll-reveal="fade-up">Choose Your <em>Arena</em></h2>
     <p class="section-subtitle" data-scroll-reveal="fade-up">Select a game and mode to begin your journey</p>
+
+    <div class="circular-gallery-wrapper" id="circular-gallery" data-scroll-reveal="fade-up"></div>
 
     <div class="games-grid">
       <article class="game-card" data-scroll-reveal>
@@ -149,6 +152,48 @@
             <button class="mode-btn mode-btn--pvc" data-mode="uno-pvc">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="m12 7-2 4"/><path d="m12 7 2 4"/><path d="M8 16h.01"/><path d="M16 16h.01"/></svg>
               <span>Player vs AI</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <article class="game-card game-card--staggered" data-scroll-reveal>
+        <div class="game-card-visual">
+          <div class="game-card-suits">
+            <span class="suit" style="color:#cc3333">⚀</span>
+            <span class="suit" style="color:#3366cc">⚁</span>
+            <span class="suit" style="color:#cc3333">⚂</span>
+            <span class="suit" style="color:#3366cc">⚃</span>
+          </div>
+        </div>
+        <div class="game-card-body">
+          <h3 class="game-card-title">Dice</h3>
+          <p class="game-card-desc">A 3D physics dice simulator — shake, reveal, add or remove dice in real-time multiplayer duels.</p>
+          <div class="game-card-modes">
+            <button class="mode-btn mode-btn--pvp" data-mode="dice-pvp">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Player vs Player</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <article class="game-card game-card--staggered" data-scroll-reveal>
+        <div class="game-card-visual">
+          <div class="game-card-suits">
+            <span class="suit suit--spade">♠</span>
+            <span class="suit suit--heart">♥</span>
+            <span class="suit suit--diamond">♦</span>
+            <span class="suit suit--club">♣</span>
+          </div>
+        </div>
+        <div class="game-card-body">
+          <h3 class="game-card-title">Card Simulator</h3>
+          <p class="game-card-desc">A true-to-life poker card simulator — the host deals by dragging from the deck. No rules, pure cards.</p>
+          <div class="game-card-modes">
+            <button class="mode-btn mode-btn--pvp" data-mode="sim-pvp">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Player vs Player</span>
             </button>
           </div>
         </div>
@@ -492,11 +537,74 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="dice-pvp-modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="dice-pvp-title" aria-modal="true">
+    <button class="modal-close" aria-label="关闭">&times;</button>
+    <div class="modal-header">
+      <div class="modal-icon modal-icon--pvp">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h2 id="dice-pvp-title">骰子对战</h2>
+    </div>
+    <form id="dice-pvp-form" class="modal-form">
+      <div class="form-group">
+        <label class="form-label">选择头像</label>
+        <div class="avatar-picker" id="dice-pvp-avatar-picker"></div>
+      </div>
+      <div class="form-group">
+        <label for="dice-pvp-nickname" class="form-label">昵称</label>
+        <input type="text" id="dice-pvp-nickname" class="form-input" placeholder="输入你的昵称" required autocomplete="off" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label for="dice-pvp-room" class="form-label">房间号 (加入已有房间)</label>
+        <input type="text" id="dice-pvp-room" class="form-input" placeholder="留空则创建新房间" autocomplete="off" maxlength="10">
+      </div>
+      <div class="form-actions">
+        <button type="button" id="create-dice-room" class="btn btn--primary">创建房间</button>
+        <button type="button" id="join-dice-room" class="btn btn--secondary">加入房间</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sim-pvp-modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="sim-pvp-title" aria-modal="true">
+    <button class="modal-close" aria-label="关闭">&times;</button>
+    <div class="modal-header">
+      <div class="modal-icon modal-icon--pvp">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h2 id="sim-pvp-title">全真扑克牌模拟</h2>
+    </div>
+    <form id="sim-pvp-form" class="modal-form">
+      <div class="form-group">
+        <label class="form-label">选择头像</label>
+        <div class="avatar-picker" id="sim-pvp-avatar-picker"></div>
+      </div>
+      <div class="form-group">
+        <label for="sim-pvp-nickname" class="form-label">昵称</label>
+        <input type="text" id="sim-pvp-nickname" class="form-input" placeholder="输入你的昵称" required autocomplete="off" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label for="sim-pvp-room" class="form-label">房间号 (加入已有房间)</label>
+        <input type="text" id="sim-pvp-room" class="form-input" placeholder="留空则创建新房间" autocomplete="off" maxlength="10">
+      </div>
+      <div class="form-actions">
+        <button type="button" id="create-sim-room" class="btn btn--primary">创建房间</button>
+        <button type="button" id="join-sim-room" class="btn btn--secondary">加入房间</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/socket.js"></script>
+<script src="js/pixelBlast.js"></script>
+<script src="js/circularGallery.js"></script>
 <script src="js/falling-text.js"></script>
 <script src="js/index.js"></script>
 </body>

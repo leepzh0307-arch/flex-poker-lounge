@@ -35,6 +35,8 @@ class UnoRoomUI {
       gameEndOverlay: document.getElementById('game-end-overlay'),
       gameEndTitle: document.getElementById('game-end-title'),
       playAgainBtn: document.getElementById('play-again-btn'),
+      continueGameBtn: document.getElementById('continue-game-btn'),
+      continueHint: document.getElementById('continue-hint'),
       exitRoom: document.getElementById('exit-room'),
       voiceToggle: document.getElementById('voice-toggle'),
       connectionStatus: document.getElementById('connection-status'),
@@ -71,6 +73,11 @@ class UnoRoomUI {
     this.elements.playAgainBtn.addEventListener('click', () => {
       this.elements.gameEndOverlay.style.display = 'none';
       if (this.onResetGame) this.onResetGame();
+    });
+
+    this.elements.continueGameBtn.addEventListener('click', () => {
+      this.elements.gameEndOverlay.style.display = 'none';
+      if (this.onContinueGame) this.onContinueGame();
     });
   }
 

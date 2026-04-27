@@ -3,6 +3,8 @@ const roomHandler = require('./handlers/room');
 const gameHandler = require('./handlers/game');
 const omahaGameHandler = require('./handlers/omahaGame');
 const unoGameHandler = require('./handlers/unoGame');
+const diceGameHandler = require('./handlers/diceGame');
+const pokerSimGameHandler = require('./handlers/pokerSimGame');
 const voiceHandler = require('./handlers/voice');
 const { clearRoomPersonality } = require('../utils/aiEngine');
 const StandUpGame = require('../utils/standupGame');
@@ -24,6 +26,10 @@ module.exports = (io) => {
     omahaGameHandler(socket, rooms, io);
     
     unoGameHandler(socket, rooms, io);
+    
+    diceGameHandler(socket, rooms, io);
+    
+    pokerSimGameHandler(socket, rooms, io);
     
     voiceHandler(socket, rooms, io);
     

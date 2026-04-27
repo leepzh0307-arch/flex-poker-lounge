@@ -19,6 +19,7 @@ function unoGameHandler(socket, rooms, io) {
       case 'catchUno': handleCatchUno(room, roomId, io, socket, data); break;
       case 'passTurn': handlePassTurn(room, roomId, io, socket); break;
       case 'resetGame': handleResetGame(room, roomId, io); break;
+      case 'continueGame': handleContinueGame(room, roomId, io); break;
       case 'setPlayerChips': handleSetPlayerChips(room, roomId, io, socket, data); break;
       case 'addPlayerChips': handleAddPlayerChips(room, roomId, io, socket, data); break;
       default: break;
@@ -328,6 +329,41 @@ function handleResetGame(room, roomId, io) {
   });
 
   sendUnoUpdate(room, roomId, io);
+}
+
+function handleContinueGame(room, roomId, io) {
+  const gs = room.gameState;
+  if (gs.phase !== 'GAME_END' || !gs.winner) return;
+
+  const winnerId = gs.winner;
+  const winner = room.players.find(p => p.id === winnerId);
+
+  const remainingPlayers = room.players.filter(p => p.id !== winnerId);
+
+  if (remainingPlayers.length < 2) {
+    io.to(winnerId).emit('unoAction', { type: 'continueFailed', message: '剩余玩家不足，无法继续' });
+    return;
+  }
+
+  if (room.host === winnerId && remainingPlayers.length > 0) {
+    room.host = remainingPlayers[0].id;
+    io.to(room.host).emit('unoAction', { type: 'becomeHost' });
+  }
+
+  io.to(winnerId).emit('unoAction', { type: 'removedFromGame', message: '你已胜出！剩余玩家继续对决' });
+
+  room.players = remainingPlayers;
+
+  room.players.forEach(p => {
+    p.isActive = true;
+    p.calledUno = false;
+  });
+
+  handleStartGame(room, roomId, io);
+
+  broadcastAction(roomId, io, 'continueInfo', {
+    message: (winner ? winner.nickname : '胜者') + ' 已胜出！剩余玩家继续对决',
+  });
 }
 
 function handleSetPlayerChips(room, roomId, io, socket, data) {

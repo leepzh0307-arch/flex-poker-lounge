@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a2a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Flex Poker - 全真扑克牌模拟</title>
+  <link rel="stylesheet" href="css/themes/default.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/poker-sim-room.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="game-header">
+    <div class="header-left">
+      <span class="room-label">房间号:</span>
+      <span id="room-id" class="room-id">------</span>
+      <button id="copy-room" class="btn-icon" title="复制">复制</button>
+    </div>
+    <div class="header-center">
+      <span class="game-type-badge sim-badge">全真扑克牌模拟</span>
+    </div>
+    <div class="header-right">
+      <span id="connection-status" class="connection-status">
+        <img src="images/icons/hyperlink-3.svg" alt="已连接" class="icon-sm">
+      </span>
+      <button id="voice-toggle" class="btn-icon" title="语音">
+        <img src="images/icons/microphone.svg" alt="语音开启" class="icon-sm">
+      </button>
+      <button id="exit-room" class="btn-icon btn-danger" title="退出房间">退出</button>
+    </div>
+  </header>
+
+  <main class="sim-game-area">
+    <div class="sim-table">
+      <div class="host-controls" id="host-controls" style="display:none">
+        <label class="joker-toggle">
+          <input type="checkbox" id="joker-toggle-checkbox">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">含Joker</span>
+        </label>
+        <button id="reset-btn" class="btn btn-action btn-reset">重新发牌</button>
+      </div>
+
+      <div class="table-center">
+        <div class="card-pile" id="card-pile">
+          <img id="pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
+          <span class="pile-count" id="pile-count">54</span>
+        </div>
+      </div>
+
+      <div class="players-area" id="players-area"></div>
+    </div>
+  </main>
+
+  <div class="drag-ghost" id="drag-ghost" style="display:none">
+    <img id="drag-ghost-img" src="" alt="" draggable="false">
+  </div>
+
+  <div class="notification" id="notification" style="display:none">
+    <span id="notification-text"></span>
+  </div>
+
+  <div class="host-panel" id="host-panel" style="display:none">
+    <h3>房主设置</h3>
+    <div class="host-setting-row">
+      <label class="joker-toggle">
+        <input type="checkbox" id="host-joker-toggle" checked>
+        <span class="toggle-slider"></span>
+        <span class="toggle-label">含Joker牌</span>
+      </label>
+    </div>
+    <button id="start-game" class="btn btn-primary">开始发牌</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/agora.js"></script>
+  <script src="js/sounds.js"></script>
+  <script src="js/poker-sim-room/game.js"></script>
+</body>
+</html>

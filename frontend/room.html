@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/chipDisplay.css">
+  <link rel="stylesheet" href="css/themePopup.css">
   <link rel="stylesheet" href="css/room.css">
   <style>
     @view-transition {
@@ -101,6 +102,11 @@
       </div>
 
       <div class="players-area">
+        <div class="card-pile" id="card-pile">
+          <img class="card-pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
+          <span class="card-pile-count" id="card-pile-count"></span>
+        </div>
+
         <div class="community-cards-section">
           <div class="community-cards-row" id="community-cards-flop"></div>
           <div class="community-cards-row" id="community-cards-turn-river"></div>
@@ -110,6 +116,8 @@
           <div class="pot-main">底池: <span id="pot-amount">0</span></div>
           <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
         </div>
+
+        <div class="table-chip-area" id="table-chip-area"></div>
 
         <div id="standup-status" class="standup-status" style="display: none;">
           <div class="standup-header">
@@ -408,6 +416,8 @@
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
   <script src="js/chipDisplay.js"></script>
+  <script src="js/themeManager.js"></script>
+  <script src="js/themePopup.js"></script>
   <script src="js/socket.js"></script>
   <script src="js/agora.js"></script>
   <script src="js/sounds.js"></script>

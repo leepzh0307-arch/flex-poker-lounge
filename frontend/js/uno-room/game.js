@@ -34,6 +34,7 @@ class UnoGameManager {
     this.ui.onPlayCard = (card) => this.playCard(card);
     this.ui.onChooseColor = (color) => this.chooseColor(color);
     this.ui.onResetGame = () => this.resetGame();
+    this.ui.onContinueGame = () => this.continueGame();
 
     this.ui.elements.deckPile.addEventListener('click', () => this.drawCard());
     this.ui.elements.startGame.addEventListener('click', () => this.startGame());
@@ -127,6 +128,21 @@ class UnoGameManager {
         break;
       case 'gameEnd':
         break;
+      case 'continueInfo':
+        this.ui.showNotification(data.message || '继续对决', 2500);
+        break;
+      case 'continueFailed':
+        this.ui.showNotification(data.message || '无法继续', 2500);
+        break;
+      case 'removedFromGame':
+        this.ui.showNotification(data.message || '你已胜出', 3000);
+        setTimeout(() => { window.location.href = 'index.html'; }, 3000);
+        break;
+      case 'becomeHost':
+        this.isHost = true;
+        this.ui.isHost = true;
+        this.ui.showNotification('你已成为新房主', 2000);
+        break;
     }
   }
 
@@ -169,6 +185,10 @@ class UnoGameManager {
 
   resetGame() {
     this.socketClient.sendUnoAction('resetGame', {});
+  }
+
+  continueGame() {
+    this.socketClient.sendUnoAction('continueGame', {});
   }
 
   async initVoice() {

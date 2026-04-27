@@ -585,7 +585,203 @@ module.exports = (socket, rooms, io) => {
       callback({ success: false, error: error.message });
     }
   });
-  
+
+  socket.on('createDiceRoom', ({ nickname, avatar }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        gameType: 'dice',
+        players: [{
+          id: socket.id,
+          playerId: playerId,
+          socketId: socket.id,
+          nickname: nickname || 'Player',
+          avatar: avatar || 'bear',
+          isAI: false,
+          isOnline: true,
+        }],
+        gameState: {
+          phase: 'WAITING',
+          diceCount: 5,
+          playerDice: {},
+          playerDiceCount: {},
+          playerRevealed: {},
+          playerConfirmed: {},
+          currentPlayerId: null,
+          revealerId: null,
+        },
+      };
+
+      rooms.set(roomId, room);
+      socket.join(roomId);
+      socket.data = { roomId, playerId };
+
+      if (callback) callback({ success: true, roomId });
+
+      socket.emit('roomCreated', { roomId });
+      socket.emit('diceUpdate', {
+        phase: 'WAITING',
+        diceCount: 5,
+        players: room.players.map(p => ({
+          id: p.id, nickname: p.nickname, avatar: p.avatar,
+          isAI: p.isAI, isOnline: true,
+          diceCount: 0, diceValues: [], diceRevealed: false,
+        })),
+        isMyTurn: false,
+        isRevealer: true,
+      });
+    } catch (error) {
+      console.error('创建骰子房间失败:', error);
+      if (callback) callback({ success: false, error: error.message });
+    }
+  });
+
+  socket.on('createDiceAiRoom', ({ nickname, avatar, aiCount, aiDifficulty }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+      const difficulty = aiDifficulty || 'medium';
+      const count = Math.min(Math.max(aiCount || 3, 1), 5);
+
+      const aiNames = ['骰子AI-小红', '骰子AI-小蓝', '骰子AI-小绿', '骰子AI-小黄', '骰子AI-小紫'];
+      const aiAvatars = ['kitty', 'froggy', 'piggy', 'ghost', 'zombie'];
+
+      const aiPlayers = [];
+      for (let i = 0; i < count; i++) {
+        aiPlayers.push({
+          id: 'ai-dice-' + Date.now() + '-' + i,
+          socketId: null,
+          nickname: aiNames[i] || ('AI-' + (i + 1)),
+          avatar: aiAvatars[i] || 'kitty',
+          isAI: true,
+          isOnline: true,
+          aiDifficulty: difficulty,
+        });
+      }
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        gameType: 'dice',
+        isAiRoom: true,
+        aiDifficulty: difficulty,
+        players: [{
+          id: socket.id,
+          playerId: playerId,
+          socketId: socket.id,
+          nickname: nickname || 'Player',
+          avatar: avatar || 'bear',
+          isAI: false,
+          isOnline: true,
+        }, ...aiPlayers],
+        gameState: {
+          phase: 'WAITING',
+          diceCount: 5,
+          playerDice: {},
+          playerDiceCount: {},
+          playerRevealed: {},
+          playerConfirmed: {},
+          currentPlayerId: null,
+          revealerId: null,
+        },
+      };
+
+      rooms.set(roomId, room);
+      socket.join(roomId);
+      socket.data = { roomId, playerId };
+
+      if (callback) callback({ success: true, roomId });
+
+      socket.emit('roomCreated', { roomId });
+      socket.emit('diceUpdate', {
+        phase: 'WAITING',
+        diceCount: 5,
+        players: room.players.map(p => ({
+          id: p.id, nickname: p.nickname, avatar: p.avatar,
+          isAI: p.isAI, isOnline: true,
+          diceCount: 0, diceValues: [], diceRevealed: false,
+        })),
+        isMyTurn: false,
+        isRevealer: true,
+      });
+    } catch (error) {
+      console.error('创建骰子AI房间失败:', error);
+      if (callback) callback({ success: false, error: error.message });
+    }
+  });
+
+  socket.on('joinDiceRoom', ({ roomId, nickname, avatar }, callback) => {
+    try {
+      const room = rooms.get(roomId);
+      if (!room) {
+        if (callback) callback({ success: false, error: '房间不存在' });
+        return;
+      }
+
+      if (room.gameType !== 'dice') {
+        if (callback) callback({ success: false, error: '不是骰子房间' });
+        return;
+      }
+
+      if (room.players.length >= 10) {
+        if (callback) callback({ success: false, error: '房间已满' });
+        return;
+      }
+
+      const newPlayerId = generatePlayerId();
+
+      const player = {
+        id: socket.id,
+        playerId: newPlayerId,
+        nickname: nickname || 'Player',
+        avatar: avatar || 'bear',
+        isAI: false,
+        isOnline: true,
+        joinedAt: Date.now(),
+      };
+
+      room.players.push(player);
+      socket.join(roomId);
+      socket.data = { roomId, playerId: newPlayerId };
+
+      if (callback) callback({ success: true, roomId });
+
+      socket.emit('roomJoined', { roomId, isHost: false });
+
+      room.players.forEach(function (p) {
+        if (!p.isAI) {
+          io.to(p.id).emit('diceUpdate', {
+            phase: room.gameState.phase,
+            diceCount: room.gameState.diceCount,
+            players: room.players.map(function (op) {
+              return {
+                id: op.id,
+                nickname: op.nickname,
+                avatar: op.avatar,
+                isAI: op.isAI,
+                isOnline: true,
+                diceCount: room.gameState.playerDiceCount[op.id] || 0,
+                diceValues: room.gameState.playerRevealed[op.id] ? (room.gameState.playerDice[op.id] || []) : [],
+                diceRevealed: room.gameState.playerRevealed[op.id] || false,
+              };
+            }),
+            isMyTurn: room.gameState.currentPlayerId === p.id,
+            isRevealer: room.gameState.revealerId === p.id,
+          });
+        }
+      });
+    } catch (error) {
+      console.error('加入骰子房间失败:', error);
+      if (callback) callback({ success: false, error: error.message });
+    }
+  });
+
   // 加入房间
   socket.on('joinRoom', ({ roomId, nickname, playerId: existingPlayerId, avatar }, callback) => {
     try {
@@ -642,7 +838,7 @@ module.exports = (socket, rooms, io) => {
           playerId: newPlayerId,
           nickname: nickname,
           avatar: avatar || 'froggy',
-          chips: room.gameType === 'uno' ? 0 : 1000,
+          chips: room.gameType === 'uno' || room.gameType === 'dice' ? 0 : 1000,
           seat: seat,
           isActive: true,
           isTurn: false,
@@ -661,12 +857,31 @@ module.exports = (socket, rooms, io) => {
         playerId: player.playerId,
         isReconnect: isReconnect,
         gameType: room.gameType || 'poker',
-        gameState: room.gameType === 'omaha' ? buildOmahaGameUpdateForPlayer(room, socket.id) : room.gameType === 'uno' ? {} : buildGameUpdateForPlayer(room, socket.id),
+        gameState: room.gameType === 'omaha' ? buildOmahaGameUpdateForPlayer(room, socket.id) : room.gameType === 'uno' ? {} : room.gameType === 'dice' ? {} : buildGameUpdateForPlayer(room, socket.id),
       });
       
       setTimeout(() => {
         if (room.gameType === 'omaha') {
           broadcastOmahaGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);
+        } else if (room.gameType === 'dice') {
+          room.players.forEach(p => {
+            if (!p.isAI) {
+              io.to(p.id).emit('diceUpdate', {
+                phase: room.gameState.phase,
+                diceCount: room.gameState.diceCount,
+                players: room.players.map(op => ({
+                  id: op.id, nickname: op.nickname, avatar: op.avatar,
+                  isAI: op.isAI, isOnline: true,
+                  diceCount: room.gameState.playerDiceCount[op.id] || 0,
+                  diceValues: room.gameState.playerRevealed[op.id] ? (room.gameState.playerDice[op.id] || []) : [],
+                  diceRevealed: room.gameState.playerRevealed[op.id] || false,
+                })),
+                isMyTurn: room.gameState.currentPlayerId === p.id,
+                isRevealer: room.gameState.revealerId === p.id,
+                message: isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`,
+              });
+            }
+          });
         } else if (room.gameType === 'uno') {
           const gs = room.gameState;
           room.players.forEach(p => {

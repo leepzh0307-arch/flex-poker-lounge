@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/chipDisplay.css">
+  <link rel="stylesheet" href="css/themePopup.css">
   <link rel="stylesheet" href="css/omaha-room.css">
   <style>
     @view-transition {
@@ -68,11 +69,43 @@
         <button id="voice-toggle" class="btn voice-btn header-btn">语音: 开启</button>
         <button id="exit-room" class="btn exit-btn header-btn">退出房间</button>
         <button id="switch-table-bg" class="btn switch-bg-btn header-btn">切换牌桌背景</button>
+        <button id="poker-power-btn" class="btn header-btn poker-power-btn">牌力规则</button>
       </div>
     </header>
 
     <!-- 游戏主区域 -->
     <main class="game-area">
+      <div id="poker-power-modal" class="poker-power-modal" style="display: none;">
+        <div class="poker-power-content">
+          <img src="css/images/poker-power.webp" alt="牌力规则" class="poker-power-image">
+          <div class="poker-power-text">
+            <h3>奥马哈与德州扑克的规则区别</h3>
+            <div class="rule-diff-item">
+              <h4>1. 手牌使用方式</h4>
+              <p>德州扑克：从2张手牌和5张公共牌中<strong>任意选择5张</strong>组成最佳牌型。</p>
+              <p>奥马哈：必须<strong>恰好使用2张手牌</strong>和<strong>恰好3张公共牌</strong>组成最佳牌型。不能只用1张或0张手牌，也不能用4张或5张公共牌。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>2. 手牌数量</h4>
+              <p>德州扑克：每位玩家发<strong>2张</strong>底牌。</p>
+              <p>奥马哈：每位玩家发<strong>4张</strong>底牌。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>3. 下注规则</h4>
+              <p>德州扑克：通常为<strong>无限注（No-Limit）</strong>，可随时全押。</p>
+              <p>奥马哈：通常为<strong>底池限注（Pot-Limit）</strong>，加注上限为当前底池大小。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>4. 常见误区</h4>
+              <p>手中有4张同花并不意味着成牌——你必须恰好使用2张手牌。例如手牌A♠K♠5♥7♥，公共牌Q♠J♠2♦3♣，你只能用A♠K♠加Q♠J♠2♦组成同花，而不能同时使用5♥7♥。</p>
+            </div>
+            <div class="rule-diff-item">
+              <h4>5. 牌力比较</h4>
+              <p>牌型排名与德州扑克完全相同（皇家同花顺 > 同花顺 > 四条 > 葫芦 > 同花 > 顺子 > 三条 > 两对 > 一对 > 高牌），但由于必须使用2+3规则，奥马哈中成牌往往更强。</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- 阶段指示器 -->
       <div class="phase-indicator-wrapper">
         <div class="phase-indicator" id="phase-indicator">
@@ -88,6 +121,11 @@
 
       <!-- 玩家座位区域 -->
       <div class="players-area">
+        <div class="card-pile" id="card-pile">
+          <img class="card-pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
+          <span class="card-pile-count" id="card-pile-count"></span>
+        </div>
+
         <!-- 公共牌区域 -->
         <div class="community-cards-section">
           <div class="community-cards" id="community-cards"></div>
@@ -99,6 +137,8 @@
           <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
           <div class="pot-limit-badge">POT LIMIT</div>
         </div>
+
+        <div class="table-chip-area" id="table-chip-area"></div>
 
         <!-- 10个玩家座位 -->
         <div class="player-seat seat-1" id="player-1">
@@ -374,6 +414,8 @@
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
   <script src="js/chipDisplay.js"></script>
+  <script src="js/themeManager.js"></script>
+  <script src="js/themePopup.js"></script>
   <script src="js/socket.js"></script>
   <script src="js/agora.js"></script>
   <script src="js/sounds.js"></script>
@@ -399,6 +441,19 @@
           this.style.setProperty('--y', '50%');
         });
       });
+
+      var pokerPowerBtn = document.getElementById('poker-power-btn');
+      var pokerPowerModal = document.getElementById('poker-power-modal');
+      if (pokerPowerBtn && pokerPowerModal) {
+        pokerPowerBtn.addEventListener('click', function() {
+          pokerPowerModal.style.display = pokerPowerModal.style.display === 'none' || !pokerPowerModal.style.display ? 'flex' : 'none';
+        });
+        pokerPowerModal.addEventListener('click', function(e) {
+          if (e.target === pokerPowerModal) {
+            pokerPowerModal.style.display = 'none';
+          }
+        });
+      }
     });
   </script>
 

@@ -360,20 +360,25 @@ body {
 .uno-card.color-wild { background: var(--uno-wild); }
 
 .uno-card.card-fly-in {
-  animation: cardFlyIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: cardFlyIn 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
+  transition: none !important;
+  z-index: 50 !important;
 }
 
 @keyframes cardFlyIn {
   0% {
-    transform: translate(var(--fly-from-x, 0px), var(--fly-from-y, -80px)) scale(var(--fly-from-scale, 0.5)) rotate(calc(var(--fly-from-x, 0px) * -0.15deg));
-    opacity: 0.3;
+    transform: translate(var(--fly-from-x, 0px), var(--fly-from-y, -80px)) scale(var(--fly-from-scale, 0.4)) rotate(calc(var(--fly-from-x, 0px) * -0.2deg));
+    opacity: 0;
   }
-  60% {
-    transform: translate(0, -8px) scale(1.08) rotate(-2deg);
+  30% {
     opacity: 1;
   }
-  80% {
-    transform: translate(0, 3px) scale(0.98) rotate(1deg);
+  70% {
+    transform: translate(0, -10px) scale(1.12) rotate(-3deg);
+    opacity: 1;
+  }
+  85% {
+    transform: translate(0, 4px) scale(0.96) rotate(1deg);
   }
   100% {
     transform: translate(0, 0) scale(1) rotate(0deg);
@@ -481,6 +486,33 @@ body {
   font-family: 'Playfair Display', serif;
 }
 
+.game-end-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--uno-green), #1e8449);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.btn-accent:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39,174,96,0.4); }
+
+.game-end-hint {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
 .confetti-container {
   position: fixed;
   inset: 0;
@@ -512,6 +544,10 @@ body {
   .my-hand { gap: 2px; }
   .play-area { gap: 20px; }
   .deck-img { width: 55px; height: 82px; }
+  .game-end-content { padding: 24px; }
+  .game-end-content h2 { font-size: 22px; }
+  .game-end-actions { gap: 8px; }
+  .btn-primary, .btn-accent { padding: 8px 16px; font-size: 13px; }
 }
 
 @media (max-width: 480px) {
@@ -523,4 +559,18 @@ body {
   .opponent-seat { min-width: 60px; padding: 4px 6px; }
   .play-area { gap: 14px; }
   .deck-img { width: 45px; height: 68px; }
+  .uno-game-area { height: calc(100vh - 44px); }
+  .my-area { padding: 6px 8px 10px; }
+  .my-info { gap: 6px; margin-bottom: 4px; }
+  .my-info .avatar-img { width: 24px; height: 24px; }
+  .my-info .nickname { font-size: 12px; }
+  .uno-button { font-size: 13px; padding: 4px 14px; }
+  .pass-button { font-size: 12px; padding: 4px 12px; }
+  .game-end-content { padding: 20px 16px; }
+  .game-end-content h2 { font-size: 18px; }
+  .game-end-hint { font-size: 10px; }
+  .btn-primary, .btn-accent { padding: 8px 14px; font-size: 12px; }
+  .color-option { width: 40px; height: 40px; }
+  .direction-indicator { font-size: 20px; }
+  .current-color-indicator { width: 24px; height: 24px; }
 }

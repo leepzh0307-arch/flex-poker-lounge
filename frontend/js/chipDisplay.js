@@ -1,16 +1,16 @@
 var ChipDisplay = (function () {
   var SERIES = {
     1: {
-      '0-20': 'images/chips/chip_series1_0%-20%.svg',
-      '20-40': 'images/chips/chip_series1_20%-40%.svg',
-      '40-70': 'images/chips/chip_series1_40%-70%.svg',
-      '70-100': 'images/chips/chip_series1_70%-100%.svg',
+      '0-20': 'images/chips/chip_series1_0%25-20%25.svg',
+      '20-40': 'images/chips/chip_series1_20%25-40%25.svg',
+      '40-70': 'images/chips/chip_series1_40%25-70%25.svg',
+      '70-100': 'images/chips/chip_series1_70%25-100%25.svg',
     },
     2: {
-      '0-20': 'images/chips/chip_series2_0%-20%.svg',
-      '20-40': 'images/chips/chip_series2_20%-40%.svg',
-      '40-70': 'images/chips/chip_series2_40%-70%.svg',
-      '70-100': 'images/chips/chip_series2_70%-100%.svg',
+      '0-20': 'images/chips/chip_series2_0%25-20%25.svg',
+      '20-40': 'images/chips/chip_series2_20%25-40%25.svg',
+      '40-70': 'images/chips/chip_series2_40%25-70%25.svg',
+      '70-100': 'images/chips/chip_series2_70%25-100%25.svg',
     },
   };
 

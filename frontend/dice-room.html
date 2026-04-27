@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a2a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Flex Poker - 骰子</title>
+  <link rel="stylesheet" href="css/themes/default.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/dice-room.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="game-header">
+    <div class="header-left">
+      <span class="room-label">房间号:</span>
+      <span id="room-id" class="room-id">------</span>
+      <button id="copy-room" class="btn-icon" title="复制">复制</button>
+    </div>
+    <div class="header-center">
+      <span class="game-type-badge dice-badge">骰子</span>
+    </div>
+    <div class="header-right">
+      <span id="connection-status" class="connection-status">
+        <img src="images/icons/hyperlink-3.svg" alt="已连接" class="icon-sm">
+      </span>
+      <button id="voice-toggle" class="btn-icon" title="语音">
+        <img src="images/icons/microphone.svg" alt="语音开启" class="icon-sm">
+      </button>
+      <button id="exit-room" class="btn-icon btn-danger" title="退出房间">退出</button>
+    </div>
+  </header>
+
+  <main class="dice-game-area">
+    <div class="dice-table">
+      <div class="phase-bar">
+        <span id="game-phase-text" class="phase-text">等待开始</span>
+        <span id="round-info" class="round-info"></span>
+      </div>
+
+      <div class="players-circle" id="players-circle"></div>
+
+      <div class="dice-canvas-wrapper" id="dice-canvas-wrapper">
+        <canvas id="dice-canvas"></canvas>
+      </div>
+
+      <div class="public-dice-area" id="public-dice-area" style="display:none">
+        <h3 class="public-title">公开骰子</h3>
+        <div class="public-dice-grid" id="public-dice-grid"></div>
+      </div>
+    </div>
+
+    <div class="my-area">
+      <div class="my-info-row">
+        <img id="my-avatar" src="" alt="" class="avatar-img">
+        <span id="my-name" class="nickname"></span>
+        <span id="my-cup-status" class="cup-status"></span>
+      </div>
+      <div class="my-dice-preview" id="my-dice-preview"></div>
+      <div class="action-buttons">
+        <button id="roll-btn" class="btn btn-action btn-roll" style="display:none">摇骰子</button>
+        <button id="reveal-btn" class="btn btn-action btn-reveal" style="display:none">公开</button>
+        <button id="add-dice-btn" class="btn btn-action btn-add" style="display:none">+骰</button>
+        <button id="remove-dice-btn" class="btn btn-action btn-remove" style="display:none">-骰</button>
+        <button id="confirm-btn" class="btn btn-action btn-confirm" style="display:none">确认</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="notification" id="notification" style="display:none">
+    <span id="notification-text"></span>
+  </div>
+
+  <div class="host-panel" id="host-panel" style="display:none">
+    <h3>房主设置</h3>
+    <div class="host-setting-row">
+      <label for="dice-count-select">骰子数量</label>
+      <select id="dice-count-select">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5" selected>5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+    <button id="start-game" class="btn btn-primary">开始游戏</button>
+  </div>
+
+  <div class="game-over-overlay" id="game-over-overlay" style="display:none">
+    <div class="game-over-content">
+      <h2 id="game-over-title">游戏结束</h2>
+      <div id="game-over-results" class="game-over-results"></div>
+      <div class="game-over-actions">
+        <button id="play-again-btn" class="btn btn-primary">再来一局</button>
+        <button id="back-to-lobby-btn" class="btn">返回大厅</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/agora.js"></script>
+  <script src="js/sounds.js"></script>
+  <script src="js/dice-room/dice3d.js"></script>
+  <script src="js/dice-room/ui.js"></script>
+  <script src="js/dice-room/game.js"></script>
+</body>
+</html>

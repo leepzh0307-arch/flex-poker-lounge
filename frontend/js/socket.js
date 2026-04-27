@@ -338,6 +338,62 @@ class SocketClient {
     }
   }
 
+  createDiceRoom(nickname, avatar, callback) {
+    if (!this.isConnected || !this.socket) {
+      if (callback) callback('未连接到服务器');
+      return;
+    }
+    this.socket.emit('createDiceRoom', { nickname, avatar }, (response) => {
+      if (response && response.success) {
+        if (callback) callback(null, response.roomId);
+      } else {
+        if (callback) callback((response && response.error) || '创建骰子房间失败');
+      }
+    });
+  }
+
+  joinDiceRoom(roomId, nickname, avatar, callback) {
+    if (!this.isConnected || !this.socket) {
+      if (callback) callback('未连接到服务器');
+      return;
+    }
+    this.socket.emit('joinDiceRoom', { roomId, nickname, avatar }, (response) => {
+      if (response && response.success) {
+        if (callback) callback(null, response.roomId);
+      } else {
+        if (callback) callback((response && response.error) || '加入骰子房间失败');
+      }
+    });
+  }
+
+  createPokerSimRoom(nickname, avatar, callback) {
+    if (!this.isConnected || !this.socket) {
+      if (callback) callback('未连接到服务器');
+      return;
+    }
+    this.socket.emit('createPokerSimRoom', { nickname, avatar }, (response) => {
+      if (response && response.success) {
+        if (callback) callback(null, response.roomId);
+      } else {
+        if (callback) callback((response && response.error) || '创建扑克牌模拟房间失败');
+      }
+    });
+  }
+
+  joinPokerSimRoom(roomId, nickname, avatar, callback) {
+    if (!this.isConnected || !this.socket) {
+      if (callback) callback('未连接到服务器');
+      return;
+    }
+    this.socket.emit('joinPokerSimRoom', { roomId, nickname, avatar }, (response) => {
+      if (response && response.success) {
+        if (callback) callback(null, response.roomId);
+      } else {
+        if (callback) callback((response && response.error) || '加入扑克牌模拟房间失败');
+      }
+    });
+  }
+
   leaveRoom() {
     if (this.socket) this.socket.emit('leaveRoom');
   }
