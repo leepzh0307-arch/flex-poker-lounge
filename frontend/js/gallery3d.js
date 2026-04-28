@@ -2,8 +2,7 @@ var Gallery3D = (function () {
   function create(container, opts) {
     opts = opts || {};
     var dragSensitivity = opts.dragSensitivity || 1.0;
-    var lerpSpeed = opts.lerpSpeed || 0.1;
-    var snapDuration = opts.snapDuration || 500;
+    var snapDuration = opts.snapDuration || 400;
     var gap = opts.gap || 20;
 
     var track = container.querySelector('.gallery-3d-track');
@@ -16,39 +15,45 @@ var Gallery3D = (function () {
     var itemWidth = 0;
     var totalWidth = 0;
 
-    var scroll = { current: 0, target: 0, last: 0 };
+    var scrollPos = 0;
+    var scrollVelocity = 0;
     var extras = [];
     for (var e = 0; e < count; e++) extras.push(0);
 
     var isDown = false;
     var startX = 0;
     var scrollStart = 0;
-    var velocity = 0;
     var lastX = 0;
     var lastTime = 0;
     var raf = 0;
 
     var isSnapping = false;
-    var snapStart = 0;
+    var snapStartTime = 0;
     var snapFrom = 0;
     var snapTo = 0;
-
-    function lerp(a, b, t) {
-      return a + (b - a) * t;
-    }
 
     function easeOutCubic(t) {
       return 1 - Math.pow(1 - t, 3);
     }
 
+    function easeOutQuart(t) {
+      return 1 - Math.pow(1 - t, 4);
+    }
+
     function calculateSizes() {
       var cw = container.clientWidth;
       var ch = container.clientHeight;
-      cardWidth = Math.floor(cw / 3.6);
+      var divisor = cw < 360 ? 1.5 : cw < 500 ? 1.8 : cw < 768 ? 2.4 : 3.6;
+      cardWidth = Math.floor(cw / divisor);
       cardHeight = Math.floor(cardWidth * 1.46);
-      if (cardHeight > ch - 40) {
-        cardHeight = ch - 40;
+      if (cardHeight > ch - 20) {
+        cardHeight = ch - 20;
         cardWidth = Math.floor(cardHeight / 1.46);
+      }
+      if (cw < 500) {
+        var maxCardWidth = cw - 40;
+        if (cardWidth > maxCardWidth) cardWidth = maxCardWidth;
+        cardHeight = Math.floor(cardWidth * 1.46);
       }
       itemWidth = cardWidth + gap;
       totalWidth = itemWidth * count;
@@ -61,10 +66,10 @@ var Gallery3D = (function () {
 
     function updateCards() {
       var halfContainer = container.clientWidth / 2;
-      var direction = scroll.current > scroll.last ? 'right' : 'left';
+      var direction = scrollPos > 0 ? 'right' : 'left';
 
       for (var i = 0; i < count; i++) {
-        var x = itemWidth * i - scroll.current - extras[i];
+        var x = itemWidth * i - scrollPos - extras[i];
 
         var planeOffset = cardWidth / 2;
         var viewportOffset = halfContainer;
@@ -78,7 +83,7 @@ var Gallery3D = (function () {
           extras[i] += totalWidth;
         }
 
-        x = itemWidth * i - scroll.current - extras[i];
+        x = itemWidth * i - scrollPos - extras[i];
 
         var centerX = x;
         var absCenter = Math.abs(centerX);
@@ -109,57 +114,52 @@ var Gallery3D = (function () {
 
     function animate() {
       if (isSnapping) {
-        var elapsed = Date.now() - snapStart;
+        var elapsed = Date.now() - snapStartTime;
         var t = Math.min(elapsed / snapDuration, 1);
-        scroll.current = snapFrom + (snapTo - snapFrom) * easeOutCubic(t);
+        scrollPos = snapFrom + (snapTo - snapFrom) * easeOutQuart(t);
         if (t >= 1) {
           isSnapping = false;
-          scroll.current = snapTo;
+          scrollPos = snapTo;
+          scrollVelocity = 0;
         }
-      } else if (!isDown) {
-        velocity *= 0.92;
-        scroll.target += velocity;
-        if (Math.abs(velocity) < 0.05) velocity = 0;
-        scroll.current = lerp(scroll.current, scroll.target, lerpSpeed);
-      } else {
-        scroll.current = lerp(scroll.current, scroll.target, lerpSpeed);
       }
 
       updateCards();
-      scroll.last = scroll.current;
       raf = requestAnimationFrame(animate);
     }
 
     function snapToNearest() {
       if (count === 0 || itemWidth === 0) return;
       isSnapping = true;
-      snapStart = Date.now();
-      snapFrom = scroll.current;
-      var itemIndex = Math.round(Math.abs(scroll.target) / itemWidth);
-      var item = itemWidth * itemIndex;
-      snapTo = scroll.target < 0 ? -item : item;
+      snapStartTime = Date.now();
+      snapFrom = scrollPos;
+      var velocity = scrollVelocity;
+      var projected = scrollPos + velocity * 150;
+      var rawIndex = projected / itemWidth;
+      var itemIndex = Math.round(rawIndex);
+      itemIndex = Math.max(0, Math.min(itemIndex, count - 1));
+      snapTo = itemWidth * itemIndex;
     }
 
     function onPointerDown(e) {
       isDown = true;
       isSnapping = false;
-      velocity = 0;
-      scrollStart = scroll.target;
+      scrollStart = scrollPos;
       startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
       lastX = startX;
       lastTime = Date.now();
+      scrollVelocity = 0;
     }
 
     function onPointerMove(e) {
       if (!isDown) return;
       var x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
       var dx = startX - x;
-      scroll.target = scrollStart + dx * dragSensitivity;
-
+      scrollPos = scrollStart + dx * dragSensitivity;
       var now = Date.now();
       var dt = now - lastTime;
       if (dt > 0) {
-        velocity = (lastX - x) * dragSensitivity / dt * 16;
+        scrollVelocity = (lastX - x) / dt * dragSensitivity;
       }
       lastX = x;
       lastTime = now;

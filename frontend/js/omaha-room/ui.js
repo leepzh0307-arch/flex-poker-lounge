@@ -947,27 +947,33 @@ class OmahaRoomUI {
   }
 
   showGameStatus(title, message) {
-    this.elements.statusTitle.textContent = title;
-    this.elements.statusMessage.textContent = message;
+    if (!this.elements.gameStatus) return;
+    if (this.elements.statusTitle) this.elements.statusTitle.textContent = title;
+    if (this.elements.statusMessage) this.elements.statusMessage.textContent = message;
     this.elements.gameStatus.style.display = 'block';
     setTimeout(() => { this.hideGameStatus(); }, 2000);
   }
 
   hideGameStatus() {
-    this.elements.gameStatus.style.display = 'none';
+    if (this.elements.gameStatus) this.elements.gameStatus.style.display = 'none';
   }
 
   showHostPanel() {
-    this.elements.hostPanel.style.display = 'block';
-    document.getElementById('start-game').style.display = 'block';
-    document.getElementById('reset-game').style.display = 'block';
+    if (this.elements.hostPanel) this.elements.hostPanel.style.display = 'block';
+    var startBtn = document.getElementById('start-game');
+    var resetBtn = document.getElementById('reset-game');
+    if (startBtn) startBtn.style.display = 'block';
+    if (resetBtn) resetBtn.style.display = 'block';
   }
 
   hideHostPanel() {
-    this.elements.hostPanel.style.display = 'none';
-    document.getElementById('start-game').style.display = 'none';
-    document.getElementById('next-hand-btn').style.display = 'none';
-    document.getElementById('reset-game').style.display = 'none';
+    if (this.elements.hostPanel) this.elements.hostPanel.style.display = 'none';
+    var startBtn = document.getElementById('start-game');
+    var nextBtn = document.getElementById('next-hand-btn');
+    var resetBtn = document.getElementById('reset-game');
+    if (startBtn) startBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+    if (resetBtn) resetBtn.style.display = 'none';
   }
 
   updateVoiceButton(enabled) {
@@ -978,11 +984,13 @@ class OmahaRoomUI {
   updateConnectionStatus(connected) {
     if (!this.elements.connectionStatus) return;
     if (connected) {
-      this.elements.connectionStatus.textContent = '🟢 已连接';
+      this.elements.connectionStatus.innerHTML = '<img src="images/icons/hyperlink.svg" alt="已连接" class="status-icon">';
       this.elements.connectionStatus.className = 'connection-status connected';
+      this.elements.connectionStatus.title = '已连接';
     } else {
-      this.elements.connectionStatus.textContent = '🔴 未连接';
+      this.elements.connectionStatus.innerHTML = '<img src="images/icons/hyperlink-broken.svg" alt="未连接" class="status-icon">';
       this.elements.connectionStatus.className = 'connection-status disconnected';
+      this.elements.connectionStatus.title = '未连接';
     }
   }
 

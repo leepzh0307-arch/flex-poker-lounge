@@ -9,9 +9,16 @@
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/poker-sim-room.css">
+  <link rel="stylesheet" href="css/themePopup.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="portrait-overlay" class="portrait-overlay" style="display:none">
+    <div class="portrait-content">
+      <div class="rotate-icon">📱</div>
+      <span>横屏体验更佳</span>
+    </div>
+  </div>
   <header class="game-header">
     <div class="header-left">
       <span class="room-label">房间号:</span>
@@ -28,6 +35,7 @@
       <button id="voice-toggle" class="btn-icon" title="语音">
         <img src="images/icons/microphone.svg" alt="语音开启" class="icon-sm">
       </button>
+      <button id="language-toggle" class="btn-icon" title="语言">中文</button>
       <button id="exit-room" class="btn-icon btn-danger" title="退出房间">退出</button>
     </div>
   </header>
@@ -40,6 +48,7 @@
           <span class="toggle-slider"></span>
           <span class="toggle-label">含Joker</span>
         </label>
+        <button id="reveal-btn" class="btn btn-action btn-reveal" style="display:none">公开</button>
         <button id="reset-btn" class="btn btn-action btn-reset">重新发牌</button>
       </div>
 
@@ -75,11 +84,35 @@
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    (function() {
+      function isMobile() {
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+      }
+      function applyScaling() {
+        if (!isMobile()) return;
+        var overlay = document.getElementById('portrait-overlay');
+        if (!overlay) return;
+        var isPortrait = window.innerHeight > window.innerWidth;
+        overlay.style.display = isPortrait ? 'flex' : 'none';
+      }
+      applyScaling();
+      var resizeTimer;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(applyScaling, 100);
+      });
+      window.addEventListener('orientationchange', function() {
+        setTimeout(applyScaling, 300);
+      });
+    })();
+  </script>
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
   <script src="js/socket.js"></script>
   <script src="js/agora.js"></script>
   <script src="js/sounds.js"></script>
+  <script src="js/themeManager.js"></script>
   <script src="js/poker-sim-room/game.js"></script>
 </body>
 </html>

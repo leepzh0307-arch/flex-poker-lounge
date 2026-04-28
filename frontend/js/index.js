@@ -472,19 +472,49 @@
     'uno-pvp': 'froggy',
     'uno-pvc': 'froggy',
     'dice-pvp': 'froggy',
-    'sim-pvp': 'bunny'
+    'sim-pvp': 'froggy'
   };
+
+  var ALL_AVATARS = ['froggy', 'kitty', 'bones', 'bear', 'ghost', 'burger', 'bread', 'piggy', 'zombie', 'knight'];
+  var HIDDEN_AVATARS = ['piggy', 'zombie', 'knight'];
 
   document.querySelectorAll('.avatar-picker').forEach(function(picker) {
     var target = picker.getAttribute('data-avatar-target');
     picker.querySelectorAll('.avatar-option').forEach(function(opt) {
       opt.addEventListener('click', function() {
+        var avatarName = opt.getAttribute('data-avatar');
+
+        if (avatarName === 'blindbox') {
+          var randomIndex = Math.floor(Math.random() * ALL_AVATARS.length);
+          var chosenAvatar = ALL_AVATARS[randomIndex];
+
+          picker.querySelectorAll('.avatar-option').forEach(function(o) {
+            o.classList.remove('selected');
+          });
+
+          opt.classList.add('selected');
+          opt.innerHTML = '<img src="images/avatars/' + chosenAvatar + '.gif" alt="' + chosenAvatar + '">';
+
+          if (target) {
+            selectedAvatars[target] = chosenAvatar;
+          }
+
+          if (HIDDEN_AVATARS.indexOf(chosenAvatar) !== -1) {
+            showToast('🎉 恭喜抽到限量头像！');
+          }
+
+          setTimeout(function() {
+            opt.innerHTML = '<span class="blindbox-icon">?</span>';
+          }, 2000);
+          return;
+        }
+
         picker.querySelectorAll('.avatar-option').forEach(function(o) {
           o.classList.remove('selected');
         });
         opt.classList.add('selected');
         if (target) {
-          selectedAvatars[target] = opt.getAttribute('data-avatar');
+          selectedAvatars[target] = avatarName;
         }
       });
     });

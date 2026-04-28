@@ -133,13 +133,16 @@ function handleRevealAll(room, roomId, io, playerId) {
   gs.revealerId = playerId;
   gs.currentPlayerId = null;
 
+  room.players.forEach(function (p) {
+    gs.playerRevealed[p.id] = true;
+  });
+
   sendDiceUpdate(roomId, io, room);
 }
 
 function handleAddDice(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'REVEAL') return;
-  if (gs.playerRevealed[playerId]) return;
   if (gs.playerDice[playerId].length >= 15) return;
 
   gs.playerDice[playerId].push(Math.floor(Math.random() * 6) + 1);
@@ -149,7 +152,6 @@ function handleAddDice(room, roomId, io, playerId) {
 function handleRemoveDice(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'REVEAL') return;
-  if (gs.playerRevealed[playerId]) return;
   if (gs.playerDice[playerId].length <= 1) return;
 
   gs.playerDice[playerId].pop();
@@ -159,13 +161,13 @@ function handleRemoveDice(room, roomId, io, playerId) {
 function handleConfirmDice(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'REVEAL') return;
-  if (gs.playerRevealed[playerId]) return;
 
-  gs.playerRevealed[playerId] = true;
+  if (gs.confirmedPlayers.indexOf(playerId) !== -1) return;
+
   gs.confirmedPlayers.push(playerId);
 
   var allConfirmed = room.players.every(function (p) {
-    return gs.playerRevealed[p.id];
+    return gs.confirmedPlayers.indexOf(p.id) !== -1;
   });
 
   if (allConfirmed) {
@@ -285,6 +287,57 @@ module.exports = function (socket, rooms, io) {
           return;
         }
 
+        var existingIdx = room.players.findIndex(function (p) { return p.id === socket.id; });
+        if (existingIdx !== -1) {
+          if (callback) callback({ success: true, roomId: data.roomId });
+          return;
+        }
+
+        var nicknameMatch = room.players.findIndex(function (p) {
+          return p.nickname === (data.nickname || 'Player') && p.id !== socket.id;
+        });
+        if (nicknameMatch !== -1) {
+          var oldId = room.players[nicknameMatch].id;
+          room.players[nicknameMatch].id = socket.id;
+          room.players[nicknameMatch].socketId = socket.id;
+          room.players[nicknameMatch].isOnline = true;
+
+          if (room.gameState) {
+            if (room.gameState.playerDice[oldId]) {
+              room.gameState.playerDice[socket.id] = room.gameState.playerDice[oldId];
+              delete room.gameState.playerDice[oldId];
+            }
+            if (room.gameState.playerRevealed[oldId] !== undefined) {
+              room.gameState.playerRevealed[socket.id] = room.gameState.playerRevealed[oldId];
+              delete room.gameState.playerRevealed[oldId];
+            }
+            if (room.gameState.currentPlayerId === oldId) {
+              room.gameState.currentPlayerId = socket.id;
+            }
+            if (room.gameState.revealerId === oldId) {
+              room.gameState.revealerId = socket.id;
+            }
+            if (room.gameState.confirmedPlayers) {
+              room.gameState.confirmedPlayers = room.gameState.confirmedPlayers.map(function (pid) {
+                return pid === oldId ? socket.id : pid;
+              });
+            }
+          }
+
+          if (room.host === oldId) {
+            room.host = socket.id;
+          }
+
+          socket.join(data.roomId);
+          socket.data = { roomId: data.roomId, playerId: socket.id };
+
+          if (callback) callback({ success: true, roomId: data.roomId });
+          socket.emit('roomJoined', { roomId: data.roomId, isHost: room.host === socket.id });
+
+          sendDiceUpdate(data.roomId, io, room);
+          return;
+        }
+
         var newPlayerId = socket.id;
 
         var player = {
@@ -368,22 +421,23 @@ module.exports = function (socket, rooms, io) {
 
       var playerIdx = room.players.findIndex(function (p) { return p.id === socket.id; });
       if (playerIdx !== -1) {
-        var player = room.players[playerIdx];
-        room.players.splice(playerIdx, 1);
-
-        if (room.gameState) {
-          delete room.gameState.playerDice[socket.id];
-          delete room.gameState.playerRevealed[socket.id];
-        }
-
-        if (room.players.length === 0) {
-          rooms.delete(socketData.roomId);
-        } else {
-          if (room.host === socket.id) {
-            room.host = room.players[0].id;
-          }
-          sendDiceUpdate(socketData.roomId, io, room);
-        }
+        room.players[playerIdx].isOnline = false;
+        sendDiceUpdate(socketData.roomId, io, room);
       }
+
+      setTimeout(function () {
+        var currentRoom = rooms.get(socketData.roomId);
+        if (!currentRoom) return;
+
+        var stillOffline = currentRoom.players.findIndex(function (p) {
+          return p.id === socket.id && p.isOnline === false;
+        });
+        if (stillOffline === -1) return;
+
+        var anyOnline = currentRoom.players.some(function (p) { return p.isOnline !== false; });
+        if (!anyOnline) {
+          rooms.delete(socketData.roomId);
+        }
+      }, 10000);
     });
   };

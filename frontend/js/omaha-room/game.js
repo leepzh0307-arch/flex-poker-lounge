@@ -50,10 +50,14 @@ class OmahaGameManager {
 
     omahaRoomUI.updateRoomId(this.gameState.roomId);
 
-    if (this.gameState.isHost) {
-      omahaRoomUI.showHostPanel();
-    } else {
-      omahaRoomUI.hideHostPanel();
+    try {
+      if (this.gameState.isHost) {
+        omahaRoomUI.showHostPanel();
+      } else {
+        omahaRoomUI.hideHostPanel();
+      }
+    } catch (e) {
+      console.warn('显示房主面板失败:', e);
     }
 
     omahaRoomUI.showGameStatus('正在连接', '正在连接到服务器...');

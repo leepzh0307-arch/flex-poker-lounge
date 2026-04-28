@@ -107,7 +107,8 @@ var DiceRoomUI = (function () {
   UI.prototype.setHost = function (isHost) {
     this.isHost = isHost;
     if (this.elements.hostPanel) {
-      this.elements.hostPanel.style.display = isHost ? 'block' : 'none';
+      var phase = this.currentGameState ? this.currentGameState.phase : 'WAITING';
+      this.elements.hostPanel.style.display = (isHost && phase === 'WAITING') ? 'block' : 'none';
     }
   };
 
@@ -159,6 +160,10 @@ var DiceRoomUI = (function () {
       this.elements.gamePhaseText.textContent = phaseText[phase] || phase;
     }
 
+    if (this.elements.hostPanel) {
+      this.elements.hostPanel.style.display = (phase === 'WAITING' && this.isHost) ? 'block' : 'none';
+    }
+
     if (this.elements.roundInfo) {
       if (state.diceCount) {
         this.elements.roundInfo.textContent = '骰子数: ' + state.diceCount;
@@ -177,7 +182,8 @@ var DiceRoomUI = (function () {
       this.elements.rollBtn.style.display = (phase === 'ROLLING' && isMyTurn && !hasRolled) ? 'inline-block' : 'none';
     }
     if (this.elements.revealBtn) {
-      this.elements.revealBtn.style.display = (phase === 'ROLLING' && isRevealer) ? 'inline-block' : 'none';
+      var allRolled = (state.players || []).every(function (p) { return p.diceCount > 0 || (p.diceValues && p.diceValues.length > 0); });
+      this.elements.revealBtn.style.display = (phase === 'ROLLING' && allRolled) ? 'inline-block' : 'none';
     }
     if (this.elements.addDiceBtn) {
       this.elements.addDiceBtn.style.display = (phase === 'REVEAL') ? 'inline-block' : 'none';

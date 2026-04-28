@@ -11,9 +11,16 @@ var DiceGameManager = (function () {
 
   GameManager.prototype.init = function () {
     this.ui = new DiceRoomUI();
-    this.socket = io();
+    this.socket = io(typeof config !== 'undefined' ? config.serverUrl : undefined, {
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+    });
 
     var self = this;
+    var hasJoined = false;
+
     this.socket.on('connect', function () {
       self.playerId = self.socket.id;
       self.ui.setMyPlayerId(self.playerId);
@@ -25,9 +32,15 @@ var DiceGameManager = (function () {
       var isHost = params.get('isHost') === 'true';
       var roomId = params.get('roomId');
 
-      if (isHost) {
-        self.isHost = true;
-        self.createRoom(nickname, avatar);
+      if (!hasJoined) {
+        if (isHost) {
+          self.isHost = true;
+          self.createRoom(nickname, avatar);
+          hasJoined = true;
+        } else if (roomId) {
+          self.joinRoom(roomId, nickname, avatar);
+          hasJoined = true;
+        }
       } else if (roomId) {
         self.joinRoom(roomId, nickname, avatar);
       }
@@ -118,6 +131,14 @@ var DiceGameManager = (function () {
         var icon = self.isMuted ? 'microphone-off.svg' : 'microphone.svg';
         var label = self.isMuted ? '语音关闭' : '语音开启';
         voiceBtn.innerHTML = '<img src="images/icons/' + icon + '" alt="' + label + '" class="icon-sm">';
+      });
+    }
+
+    var langBtn = document.getElementById('language-toggle');
+    if (langBtn) {
+      langBtn.addEventListener('click', function () {
+        var current = langBtn.textContent.trim();
+        langBtn.textContent = current === '中文' ? 'EN' : '中文';
       });
     }
   };

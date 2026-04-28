@@ -42,6 +42,11 @@ class UnoGameManager {
     this.ui.elements.unoBtn.addEventListener('click', () => this.callUno());
     this.ui.elements.passBtn.addEventListener('click', () => this.passTurn());
     this.ui.elements.voiceToggle.addEventListener('click', () => this.toggleVoice());
+
+    var langBtn = document.getElementById('language-toggle');
+    if (langBtn) {
+      langBtn.addEventListener('click', () => this.toggleLanguage());
+    }
   }
 
   async connectAndJoin() {
@@ -210,6 +215,13 @@ class UnoGameManager {
     const icon = this.isMuted ? 'microphone-off.svg' : 'microphone.svg';
     const label = this.isMuted ? '语音关闭' : '语音开启';
     this.ui.elements.voiceToggle.innerHTML = `<img src="images/icons/${icon}" alt="${label}" class="icon-sm">`;
+  }
+
+  toggleLanguage() {
+    const langBtn = document.getElementById('language-toggle');
+    if (!langBtn) return;
+    const current = langBtn.textContent.trim();
+    langBtn.textContent = current === '中文' ? 'EN' : '中文';
   }
 }
 

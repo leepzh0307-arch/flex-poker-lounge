@@ -43,6 +43,21 @@ function sendSimUpdate(roomId, io, room) {
   room.players.forEach(function (p) {
     if (p.isAI) return;
 
+    var playerCardsToSend = {};
+    if (gs.revealed) {
+      playerCardsToSend = gs.playerCards;
+    } else {
+      Object.keys(gs.playerCards).forEach(function (pid) {
+        if (pid === p.id) {
+          playerCardsToSend[pid] = gs.playerCards[pid];
+        } else {
+          playerCardsToSend[pid] = gs.playerCards[pid].map(function () {
+            return { suit: 'back', rank: 'back' };
+          });
+        }
+      });
+    }
+
     io.to(p.id).emit('simUpdate', {
       players: room.players.map(function (op) {
         return {
@@ -53,8 +68,9 @@ function sendSimUpdate(roomId, io, room) {
         };
       }),
       deck: gs.deck.map(function (c) { return { suit: c.suit, rank: c.rank }; }),
-      playerCards: gs.playerCards,
+      playerCards: playerCardsToSend,
       includeJoker: gs.includeJoker,
+      revealed: gs.revealed || false,
     });
   });
 }
@@ -84,6 +100,7 @@ module.exports = function (socket, rooms, io) {
           playerCards: {},
           includeJoker: true,
           started: false,
+          revealed: false,
         },
       };
 
@@ -116,6 +133,42 @@ module.exports = function (socket, rooms, io) {
 
       if (room.players.length >= 10) {
         if (callback) callback({ success: false, error: '房间已满' });
+        return;
+      }
+
+      var existingIdx = room.players.findIndex(function (p) { return p.id === socket.id; });
+      if (existingIdx !== -1) {
+        if (callback) callback({ success: true, roomId: data.roomId });
+        return;
+      }
+
+      var nicknameMatch = room.players.findIndex(function (p) {
+        return p.nickname === (data.nickname || 'Player') && p.id !== socket.id;
+      });
+      if (nicknameMatch !== -1) {
+        var oldId = room.players[nicknameMatch].id;
+        room.players[nicknameMatch].id = socket.id;
+        room.players[nicknameMatch].socketId = socket.id;
+        room.players[nicknameMatch].isOnline = true;
+
+        if (room.gameState) {
+          if (room.gameState.playerCards[oldId]) {
+            room.gameState.playerCards[socket.id] = room.gameState.playerCards[oldId];
+            delete room.gameState.playerCards[oldId];
+          }
+        }
+
+        if (room.host === oldId) {
+          room.host = socket.id;
+        }
+
+        socket.join(data.roomId);
+        socket.data = { roomId: data.roomId, playerId: socket.id };
+
+        if (callback) callback({ success: true, roomId: data.roomId });
+        socket.emit('roomJoined', { roomId: data.roomId, isHost: room.host === socket.id });
+
+        sendSimUpdate(data.roomId, io, room);
         return;
       }
 
@@ -173,7 +226,6 @@ module.exports = function (socket, rooms, io) {
     }
 
     if (action === 'dealCard') {
-      if (room.host !== socket.id) return;
       if (!gs.started) return;
       if (gs.deck.length === 0) return;
 
@@ -193,7 +245,47 @@ module.exports = function (socket, rooms, io) {
       room.players.forEach(function (p) {
         gs.playerCards[p.id] = [];
       });
+      gs.revealed = false;
       sendSimUpdate(socketData.roomId, io, room);
     }
+
+    if (action === 'revealCards') {
+      gs.revealed = true;
+      sendSimUpdate(socketData.roomId, io, room);
+    }
+
+    if (action === 'hideCards') {
+      gs.revealed = false;
+      sendSimUpdate(socketData.roomId, io, room);
+    }
+  });
+
+  socket.on('disconnect', function () {
+    var socketData = socket.data;
+    if (!socketData) return;
+
+    var room = rooms.get(socketData.roomId);
+    if (!room) return;
+
+    var playerIdx = room.players.findIndex(function (p) { return p.id === socket.id; });
+    if (playerIdx !== -1) {
+      room.players[playerIdx].isOnline = false;
+      sendSimUpdate(socketData.roomId, io, room);
+    }
+
+    setTimeout(function () {
+      var currentRoom = rooms.get(socketData.roomId);
+      if (!currentRoom) return;
+
+      var stillOffline = currentRoom.players.findIndex(function (p) {
+        return p.id === socket.id && p.isOnline === false;
+      });
+      if (stillOffline === -1) return;
+
+      var anyOnline = currentRoom.players.some(function (p) { return p.isOnline !== false; });
+      if (!anyOnline) {
+        rooms.delete(socketData.roomId);
+      }
+    }, 10000);
   });
 };

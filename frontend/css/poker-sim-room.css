@@ -154,6 +154,11 @@ body {
 }
 .btn-reset:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
 
+.btn-reveal {
+  background: linear-gradient(135deg, #27AE60, #1e8449);
+}
+.btn-reveal:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(39,174,96,0.4); }
+
 .table-center {
   display: flex;
   justify-content: center;

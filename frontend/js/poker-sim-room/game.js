@@ -20,8 +20,14 @@ var PokerSimGameManager = (function () {
   }
 
   GameManager.prototype.init = function () {
-    this.socket = io();
+    this.socket = io(typeof config !== 'undefined' ? config.serverUrl : undefined, {
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+    });
     var self = this;
+    var hasJoined = false;
 
     this.socket.on('connect', function () {
       self.playerId = self.socket.id;
@@ -33,9 +39,15 @@ var PokerSimGameManager = (function () {
       var isHost = params.get('isHost') === 'true';
       var roomId = params.get('roomId');
 
-      if (isHost) {
-        self.isHost = true;
-        self.createRoom(nickname, avatar);
+      if (!hasJoined) {
+        if (isHost) {
+          self.isHost = true;
+          self.createRoom(nickname, avatar);
+          hasJoined = true;
+        } else if (roomId) {
+          self.joinRoom(roomId, nickname, avatar);
+          hasJoined = true;
+        }
       } else if (roomId) {
         self.joinRoom(roomId, nickname, avatar);
       }
@@ -130,6 +142,14 @@ var PokerSimGameManager = (function () {
       });
     }
 
+    var revealBtn = document.getElementById('reveal-btn');
+    if (revealBtn) {
+      revealBtn.addEventListener('click', function () {
+        var action = self.revealed ? 'hideCards' : 'revealCards';
+        self.socket.emit('pokerSimAction', { action: action, data: {} });
+      });
+    }
+
     var jokerToggle = document.getElementById('joker-toggle-checkbox');
     if (jokerToggle) {
       jokerToggle.addEventListener('change', function () {
@@ -147,6 +167,14 @@ var PokerSimGameManager = (function () {
         voiceBtn.innerHTML = '<img src="images/icons/' + icon + '" alt="" class="icon-sm">';
       });
     }
+
+    var langBtn = document.getElementById('language-toggle');
+    if (langBtn) {
+      langBtn.addEventListener('click', function () {
+        var current = langBtn.textContent.trim();
+        langBtn.textContent = current === '中文' ? 'EN' : '中文';
+      });
+    }
   };
 
   GameManager.prototype.bindDragDrop = function () {
@@ -158,14 +186,12 @@ var PokerSimGameManager = (function () {
     if (!pile || !ghost) return;
 
     pile.addEventListener('mousedown', function (e) {
-      if (!self.isHost) return;
       if (self.deck.length === 0) return;
       e.preventDefault();
       self.startDrag(e.clientX, e.clientY, ghost, ghostImg);
     });
 
     pile.addEventListener('touchstart', function (e) {
-      if (!self.isHost) return;
       if (self.deck.length === 0) return;
       e.preventDefault();
       var t = e.touches[0];
@@ -258,6 +284,10 @@ var PokerSimGameManager = (function () {
   };
 
   GameManager.prototype.getCardImageSrc = function (card) {
+    if (card.suit === 'back') {
+      var backSrc = typeof ThemeManager !== 'undefined' ? ThemeManager.getCardBackSrc() : 'images/Cards/card_back2.svg';
+      return backSrc;
+    }
     if (card.suit === 'joker') {
       return 'images/Cards/card_joker_' + (card.rank === 'red' ? 'red' : 'black') + '.png';
     }
@@ -269,10 +299,20 @@ var PokerSimGameManager = (function () {
     this.deck = data.deck || [];
     this.playerCards = data.playerCards || {};
     this.includeJoker = data.includeJoker !== undefined ? data.includeJoker : this.includeJoker;
+    this.revealed = data.revealed || false;
 
     this.renderPlayers();
     this.updatePileCount();
     this.updateHostControls();
+    this.updateRevealButton();
+
+    var gameStarted = data.deck && data.deck.length > 0;
+    var hasPlayerCards = Object.keys(data.playerCards || {}).some(function (pid) {
+      return (data.playerCards[pid] || []).length > 0;
+    });
+    if (gameStarted || hasPlayerCards) {
+      this.showHostControls(true);
+    }
   };
 
   GameManager.prototype.renderPlayers = function () {
@@ -335,6 +375,17 @@ var PokerSimGameManager = (function () {
     if (jokerCb) jokerCb.checked = this.includeJoker;
   };
 
+  GameManager.prototype.updateRevealButton = function () {
+    var revealBtn = document.getElementById('reveal-btn');
+    if (!revealBtn) return;
+    if (this.deck.length === 0) {
+      revealBtn.style.display = 'none';
+      return;
+    }
+    revealBtn.style.display = 'inline-block';
+    revealBtn.textContent = this.revealed ? '隐藏' : '公开';
+  };
+
   GameManager.prototype.showHostPanel = function (show) {
     var panel = document.getElementById('host-panel');
     if (panel) panel.style.display = show ? 'flex' : 'none';
@@ -343,6 +394,8 @@ var PokerSimGameManager = (function () {
   GameManager.prototype.showHostControls = function (show) {
     var controls = document.getElementById('host-controls');
     if (controls) controls.style.display = show ? 'flex' : 'none';
+    var resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.style.display = (show && this.isHost) ? 'inline-block' : 'none';
   };
 
   GameManager.prototype.updateRoomId = function (id) {

@@ -10,6 +10,47 @@ button, a, [role="button"], input[type="checkbox"], input[type="radio"], select,
   cursor: var(--cursor-pointer, pointer);
 }
 
+.portrait-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(242, 240, 235, 0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 40px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.portrait-overlay .portrait-content {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.portrait-overlay .rotate-icon {
+  font-size: 1rem;
+  margin-bottom: 0;
+  animation: rotateHint 2s ease-in-out infinite;
+}
+
+.portrait-overlay .portrait-content h2,
+.portrait-overlay .portrait-content p,
+.portrait-overlay .portrait-sub {
+  display: none;
+}
+
+@keyframes rotateHint {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  75% { transform: rotate(90deg); }
+}
+
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-medium);

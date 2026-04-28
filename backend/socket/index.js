@@ -45,6 +45,11 @@ module.exports = (io) => {
       for (const [roomId, room] of rooms.entries()) {
         const playerIndex = room.players.findIndex(p => p.id === socket.id);
         if (playerIndex !== -1) {
+          // 骰子和扑克牌模拟房间由各自的handler处理disconnect
+          if (room.gameType === 'dice' || room.gameType === 'poker-sim') {
+            break;
+          }
+
           const player = room.players[playerIndex];
           const playerId = player.id;
           const playerNickname = player.nickname;
@@ -71,8 +76,12 @@ module.exports = (io) => {
                 checkPlayer.isOnline = false;
                 checkPlayer.lastDisconnectAt = Date.now();
                 
-                // 更新房间状态
-                io.to(roomId).emit('gameUpdate', {
+                // 根据游戏类型发送对应的事件
+                var updateEvent = 'gameUpdate';
+                if (checkRoom.gameType === 'uno') updateEvent = 'unoUpdate';
+                else if (checkRoom.gameType === 'omaha') updateEvent = 'omahaUpdate';
+                
+                io.to(roomId).emit(updateEvent, {
                   roomId: roomId,
                   players: checkRoom.players,
                   message: `${playerNickname} 暂时离开了`,

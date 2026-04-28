@@ -367,31 +367,43 @@ class SocketClient {
   }
 
   createPokerSimRoom(nickname, avatar, callback) {
-    if (!this.isConnected || !this.socket) {
-      if (callback) callback('未连接到服务器');
-      return;
+    var self = this;
+    function doCreate() {
+      self.socket.emit('createPokerSimRoom', { nickname, avatar }, (response) => {
+        if (response && response.success) {
+          if (callback) callback(null, response.roomId);
+        } else {
+          if (callback) callback((response && response.error) || '创建扑克牌模拟房间失败');
+        }
+      });
     }
-    this.socket.emit('createPokerSimRoom', { nickname, avatar }, (response) => {
-      if (response && response.success) {
-        if (callback) callback(null, response.roomId);
-      } else {
-        if (callback) callback((response && response.error) || '创建扑克牌模拟房间失败');
-      }
-    });
+    if (this.isConnected && this.socket) {
+      doCreate();
+    } else {
+      this.connect().then(doCreate).catch(function(err) {
+        if (callback) callback('连接服务器失败: ' + (err.message || err));
+      });
+    }
   }
 
   joinPokerSimRoom(roomId, nickname, avatar, callback) {
-    if (!this.isConnected || !this.socket) {
-      if (callback) callback('未连接到服务器');
-      return;
+    var self = this;
+    function doJoin() {
+      self.socket.emit('joinPokerSimRoom', { roomId, nickname, avatar }, (response) => {
+        if (response && response.success) {
+          if (callback) callback(null, response.roomId);
+        } else {
+          if (callback) callback((response && response.error) || '加入扑克牌模拟房间失败');
+        }
+      });
     }
-    this.socket.emit('joinPokerSimRoom', { roomId, nickname, avatar }, (response) => {
-      if (response && response.success) {
-        if (callback) callback(null, response.roomId);
-      } else {
-        if (callback) callback((response && response.error) || '加入扑克牌模拟房间失败');
-      }
-    });
+    if (this.isConnected && this.socket) {
+      doJoin();
+    } else {
+      this.connect().then(doJoin).catch(function(err) {
+        if (callback) callback('连接服务器失败: ' + (err.message || err));
+      });
+    }
   }
 
   leaveRoom() {

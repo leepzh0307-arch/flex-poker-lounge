@@ -477,8 +477,8 @@
         startGameBtn.addEventListener('click', function() {
           hostSetupModalEl.style.display = 'none';
           hostBtnWrapper.style.display = 'block';
-          if (window.omahaGame) {
-            omahaGame.onStartGame();
+          if (window.omahaGameManager) {
+            omahaGameManager.onStartGame();
           }
         });
       }

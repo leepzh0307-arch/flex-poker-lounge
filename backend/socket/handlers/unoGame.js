@@ -1,7 +1,7 @@
 const { generateUnoDeck, shuffleDeck, canPlayCard, getCardPoints, COLORS } = require('../../utils/unoDeck');
 
 const STARTING_HAND = 7;
-const AI_THINK_DELAY = 1500;
+const AI_THINK_DELAY = 1000;
 
 function unoGameHandler(socket, rooms, io) {
   socket.on('unoAction', ({ action, data }) => {
