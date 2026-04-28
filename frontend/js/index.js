@@ -697,9 +697,11 @@
   if (galleryEl && typeof Gallery3D !== 'undefined') {
     Gallery3D.create(galleryEl, {
       dragSensitivity: 1.0,
-      lerpSpeed: 0.1,
       snapDuration: 500,
-      gap: 20,
+      gap: 30,
+      autoRotateSpeed: 0.0003,
+      centerScale: 1.08,
+      edgeFadeStart: 0.5,
     });
   }
 })();

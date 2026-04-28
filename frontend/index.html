@@ -85,7 +85,9 @@
       <div class="gallery-3d-track" id="gallery-3d-track">
 
         <div class="gallery-card" data-index="0">
-          <div class="gallery-card-inner">
+          <div class="gallery-card-inner poker-card">
+            <div class="card-corner card-corner-tl"><span class="corner-rank">A</span><span class="corner-suit suit--spade">♠</span></div>
+            <div class="card-corner card-corner-br"><span class="corner-rank">A</span><span class="corner-suit suit--spade">♠</span></div>
             <div class="gallery-card-visual">
               <span class="suit suit--spade">♠</span>
               <span class="suit suit--heart">♥</span>
@@ -106,7 +108,9 @@
         </div>
 
         <div class="gallery-card" data-index="1">
-          <div class="gallery-card-inner">
+          <div class="gallery-card-inner poker-card">
+            <div class="card-corner card-corner-tl"><span class="corner-rank">K</span><span class="corner-suit suit--diamond">♦</span></div>
+            <div class="card-corner card-corner-br"><span class="corner-rank">K</span><span class="corner-suit suit--diamond">♦</span></div>
             <div class="gallery-card-visual">
               <span class="suit suit--diamond">♦</span>
               <span class="suit suit--club">♣</span>
@@ -127,7 +131,9 @@
         </div>
 
         <div class="gallery-card" data-index="2">
-          <div class="gallery-card-inner">
+          <div class="gallery-card-inner poker-card poker-card--uno">
+            <div class="card-corner card-corner-tl"><span class="corner-rank">U</span><span class="corner-suit" style="color:#B07878">●</span></div>
+            <div class="card-corner card-corner-br"><span class="corner-rank">U</span><span class="corner-suit" style="color:#7889A0">●</span></div>
             <div class="gallery-card-visual">
               <span class="suit" style="color:#B07878">●</span>
               <span class="suit" style="color:#7889A0">●</span>
@@ -150,7 +156,9 @@
         </div>
 
         <div class="gallery-card" data-index="3">
-          <div class="gallery-card-inner">
+          <div class="gallery-card-inner poker-card poker-card--dice">
+            <div class="card-corner card-corner-tl"><span class="corner-rank">6</span><span class="corner-suit" style="color:#B07878">⚀</span></div>
+            <div class="card-corner card-corner-br"><span class="corner-rank">6</span><span class="corner-suit" style="color:#7889A0">⚁</span></div>
             <div class="gallery-card-visual">
               <span class="suit" style="color:#B07878">⚀</span>
               <span class="suit" style="color:#7889A0">⚁</span>
@@ -167,7 +175,9 @@
         </div>
 
         <div class="gallery-card" data-index="4">
-          <div class="gallery-card-inner">
+          <div class="gallery-card-inner poker-card poker-card--sim">
+            <div class="card-corner card-corner-tl"><span class="corner-rank">J</span><span class="corner-suit suit--spade">♠</span></div>
+            <div class="card-corner card-corner-br"><span class="corner-rank">J</span><span class="corner-suit suit--heart">♥</span></div>
             <div class="gallery-card-visual">
               <span class="suit suit--spade">♠</span>
               <span class="suit suit--heart">♥</span>
@@ -586,6 +596,8 @@
 <script src="js/config.js"></script>
 <script src="js/socket.js"></script>
 <script src="js/pixelBlast.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
 <script src="js/gallery3d.js"></script>
 <script src="js/falling-text.js"></script>
 <script src="js/index.js"></script>
