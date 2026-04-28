@@ -1,12 +1,12 @@
 var Gallery3D = (function () {
   function create(container, opts) {
     opts = opts || {};
-    var autoRotateSpeed = opts.autoRotateSpeed || 0.0003;
+    var autoRotateSpeed = opts.autoRotateSpeed || 0.0006;
     var dragSensitivity = opts.dragSensitivity || 1.0;
     var snapDuration = opts.snapDuration || 500;
     var gap = opts.gap || 30;
     var magneticStrength = opts.magneticStrength || 0.08;
-    var centerScale = opts.centerScale || 1.08;
+    var centerScale = opts.centerScale || 1.0;
     var edgeFadeStart = opts.edgeFadeStart || 0.5;
 
     var track = container.querySelector('.gallery-3d-track');
@@ -110,7 +110,7 @@ var Gallery3D = (function () {
         var z = Math.cos(angle) * radius;
 
         cardObjects[i].position.set(x, 0, z);
-        cardObjects[i].rotation.y = -angle + Math.PI;
+        cardObjects[i].rotation.y = 0;
 
         var distFromCenter = Math.abs(Math.cos(angle));
         var normalizedDist = distFromCenter;
@@ -272,7 +272,7 @@ var Gallery3D = (function () {
     var snapTo = 0;
     var autoRotate = true;
     var autoRotateTimer = null;
-    var autoRotateSpeed = opts.autoRotateSpeed || 0.15;
+    var autoRotateSpeed = opts.autoRotateSpeed || 0.3;
 
     function easeOutQuart(t) {
       return 1 - Math.pow(1 - t, 4);

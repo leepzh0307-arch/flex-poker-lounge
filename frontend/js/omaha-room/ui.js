@@ -455,7 +455,12 @@ class OmahaRoomUI {
       if (!avatarEl) {
         avatarEl = document.createElement('img');
         avatarEl.className = 'player-avatar';
-        playerInfo.insertBefore(avatarEl, playerInfo.firstChild);
+        const infoText = playerInfo.querySelector('.player-info-text');
+        if (infoText) {
+          playerInfo.insertBefore(avatarEl, infoText);
+        } else {
+          playerInfo.insertBefore(avatarEl, playerInfo.firstChild);
+        }
       }
       const avatarName = player.avatar || 'froggy';
       avatarEl.src = 'images/avatars/' + avatarName + '.gif';
@@ -584,6 +589,8 @@ class OmahaRoomUI {
           statusEl.style.display = 'none';
         }
       }
+
+      this.repositionSeats();
     } else {
       seat.classList.add('seat-empty');
       seat._playerData = null;
@@ -608,6 +615,8 @@ class OmahaRoomUI {
       if (badge) badge.style.display = 'none';
       if (betEl) betEl.style.display = 'none';
       if (statusEl) statusEl.style.display = 'none';
+
+      this.repositionSeats();
     }
   }
 
@@ -1437,6 +1446,101 @@ class OmahaRoomUI {
         case 'winner': pokerSoundManager.winner(); break;
       }
     }
+  }
+
+  repositionSeats() {
+    const area = document.querySelector('.players-area');
+    if (!area) return;
+
+    const activeSeats = [];
+    let selfSeatIdx = -1;
+
+    for (let i = 0; i < 10; i++) {
+      const seat = this.elements.playerSeats[i];
+      if (seat && seat._playerData) {
+        activeSeats.push(i);
+        if (this.myPlayerId && seat._playerData.id === this.myPlayerId) {
+          selfSeatIdx = i;
+        }
+      }
+    }
+
+    if (selfSeatIdx === -1 && activeSeats.length > 0) {
+      selfSeatIdx = activeSeats[0];
+    }
+
+    if (activeSeats.length === 0) {
+      for (let i = 0; i < 10; i++) {
+        const seat = this.elements.playerSeats[i];
+        if (seat) {
+          seat.style.left = '';
+          seat.style.top = '';
+          seat.style.transform = '';
+          seat.classList.remove('pos-bottom', 'pos-top', 'pos-left', 'pos-right');
+        }
+      }
+      return;
+    }
+
+    const sortedSeats = [...activeSeats].sort((a, b) => a - b);
+    const selfPosInList = sortedSeats.indexOf(selfSeatIdx);
+    const numPlayers = sortedSeats.length;
+
+    const startAngle = 180;
+    const angleStep = 360 / numPlayers;
+
+    const rx = 38;
+    const ry = 42;
+    const cx = 50;
+    const cy = 50;
+
+    sortedSeats.forEach((seatIdx, listIdx) => {
+      const relativePos = (listIdx - selfPosInList + numPlayers) % numPlayers;
+      const angle = startAngle + relativePos * angleStep;
+      const rad = angle * Math.PI / 180;
+
+      const x = cx + rx * Math.sin(rad);
+      const y = cy - ry * Math.cos(rad);
+
+      const normalizedAngle = ((angle % 360) + 360) % 360;
+      const distFromBottom = Math.abs(normalizedAngle - 180);
+      const maxDist = 180;
+      const perspectiveScale = 0.55 + 0.45 * (1 - distFromBottom / maxDist);
+
+      const seat = this.elements.playerSeats[seatIdx];
+      if (seat) {
+        seat.style.left = x + '%';
+        seat.style.top = y + '%';
+
+        seat.classList.remove('pos-bottom', 'pos-top', 'pos-left', 'pos-right');
+        if (normalizedAngle >= 135 && normalizedAngle <= 225) {
+          seat.classList.add('pos-bottom');
+        } else if (normalizedAngle > 225 && normalizedAngle < 315) {
+          seat.classList.add('pos-left');
+        } else if (normalizedAngle >= 315 || normalizedAngle <= 45) {
+          seat.classList.add('pos-top');
+        } else {
+          seat.classList.add('pos-right');
+        }
+
+        if (seat.classList.contains('seat-self')) {
+          seat.style.transform = 'translate(-50%, -50%)';
+        } else {
+          seat.style.transform = `translate(-50%, -50%) scale(${perspectiveScale.toFixed(3)})`;
+        }
+        seat.style.opacity = '';
+      }
+
+      const betEl = this.elements.playerBets[seatIdx];
+      if (betEl) {
+        const betRad = rad;
+        const betDist = 12;
+        const bx = cx + (rx + betDist) * Math.sin(betRad);
+        const by = cy - (ry + betDist) * Math.cos(betRad);
+        betEl.style.left = bx + '%';
+        betEl.style.top = by + '%';
+      }
+    });
   }
 }
 

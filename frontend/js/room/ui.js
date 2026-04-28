@@ -502,7 +502,12 @@ class RoomUI {
       if (!avatarEl) {
         avatarEl = document.createElement('img');
         avatarEl.className = 'player-avatar';
-        playerInfo.insertBefore(avatarEl, playerInfo.firstChild);
+        const infoText = playerInfo.querySelector('.player-info-text');
+        if (infoText) {
+          playerInfo.insertBefore(avatarEl, infoText);
+        } else {
+          playerInfo.insertBefore(avatarEl, playerInfo.firstChild);
+        }
       }
       const avatarName = player.avatar || 'froggy';
       avatarEl.src = 'images/avatars/' + avatarName + '.gif';
@@ -1191,13 +1196,18 @@ class RoomUI {
       }
     }
 
-    if (selfSeatIdx === -1 || activeSeats.length === 0) {
+    if (selfSeatIdx === -1 && activeSeats.length > 0) {
+      selfSeatIdx = activeSeats[0];
+    }
+
+    if (activeSeats.length === 0) {
       for (let i = 0; i < 10; i++) {
         const seat = this.elements.playerSeats[i];
-        if (seat && seat._playerData) {
+        if (seat) {
           seat.style.left = '';
           seat.style.top = '';
           seat.style.transform = '';
+          seat.classList.remove('pos-bottom', 'pos-top', 'pos-left', 'pos-right');
         }
       }
       return;
@@ -1232,6 +1242,18 @@ class RoomUI {
       if (seat) {
         seat.style.left = x + '%';
         seat.style.top = y + '%';
+
+        seat.classList.remove('pos-bottom', 'pos-top', 'pos-left', 'pos-right');
+        if (normalizedAngle >= 135 && normalizedAngle <= 225) {
+          seat.classList.add('pos-bottom');
+        } else if (normalizedAngle > 225 && normalizedAngle < 315) {
+          seat.classList.add('pos-left');
+        } else if (normalizedAngle >= 315 || normalizedAngle <= 45) {
+          seat.classList.add('pos-top');
+        } else {
+          seat.classList.add('pos-right');
+        }
+
         if (seat.classList.contains('seat-self')) {
           seat.style.transform = 'translate(-50%, -50%)';
         } else {
