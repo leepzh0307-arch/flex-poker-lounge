@@ -65,7 +65,7 @@ var Gallery3D = (function () {
       }
 
       var angleStep = (2 * Math.PI) / count;
-      radius = Math.max(cardWidth * 1.2, (cardWidth + gap) / (2 * Math.sin(angleStep / 2)));
+      radius = Math.max(cardWidth * 2.4, (cardWidth + gap) / (2 * Math.sin(angleStep / 2)) * 2);
 
       for (var i = 0; i < count; i++) {
         cardEls[i].style.width = cardWidth + 'px';
@@ -77,7 +77,7 @@ var Gallery3D = (function () {
       calculateSizes();
 
       camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 1, 5000);
-      camera.position.set(0, 0, radius * 1.15);
+      camera.position.set(0, 0, radius * 1.8);
 
       scene = new THREE.Scene();
 
@@ -182,13 +182,13 @@ var Gallery3D = (function () {
     function onPointerMove(e) {
       if (!isDown) return;
       var x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      var dx = startX - x;
+      var dx = x - startX;
       var angleDelta = (dx / container.clientWidth) * Math.PI * dragSensitivity;
       scrollAngle = angleStart + angleDelta;
       var now = Date.now();
       var dt = now - lastTime;
       if (dt > 0) {
-        scrollVelocity = ((lastX - x) / dt) * 0.0005 * dragSensitivity;
+        scrollVelocity = ((x - lastX) / dt) * 0.0005 * dragSensitivity;
       }
       lastX = x;
       lastTime = now;
@@ -207,7 +207,7 @@ var Gallery3D = (function () {
       calculateSizes();
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
-      camera.position.set(0, 0, radius * 1.15);
+      camera.position.set(0, 0, radius * 1.8);
       renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
