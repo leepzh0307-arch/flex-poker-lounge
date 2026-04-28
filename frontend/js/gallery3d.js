@@ -5,9 +5,6 @@ var Gallery3D = (function () {
     var dragSensitivity = opts.dragSensitivity || 1.0;
     var snapDuration = opts.snapDuration || 500;
     var gap = opts.gap || 30;
-    var magneticStrength = opts.magneticStrength || 0.08;
-    var centerScale = opts.centerScale || 1.0;
-    var edgeFadeStart = opts.edgeFadeStart || 0.5;
 
     var track = container.querySelector('.gallery-3d-track');
     var cardEls = container.querySelectorAll('.gallery-card');
@@ -24,9 +21,9 @@ var Gallery3D = (function () {
     var cardWidth = 0;
     var cardHeight = 0;
     var radius = 0;
+    var arcSpan = Math.PI * 0.92;
 
     var scrollAngle = 0;
-    var targetAngle = 0;
     var scrollVelocity = 0;
     var isDown = false;
     var startX = 0;
@@ -41,11 +38,16 @@ var Gallery3D = (function () {
     var snapFromAngle = 0;
     var snapToAngle = 0;
 
-    var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function easeOutQuart(t) {
       return 1 - Math.pow(1 - t, 4);
+    }
+
+    function wrapAngle(angle) {
+      var half = arcSpan / 2;
+      var a = ((angle + half) % arcSpan + arcSpan) % arcSpan - half;
+      return a;
     }
 
     function calculateSizes() {
@@ -64,8 +66,8 @@ var Gallery3D = (function () {
         cardHeight = Math.floor(cardWidth * 1.46);
       }
 
-      var angleStep = (2 * Math.PI) / count;
-      radius = Math.max(cardWidth * 2.4, (cardWidth + gap) / (2 * Math.sin(angleStep / 2)) * 2);
+      var angleStep = arcSpan / count;
+      radius = Math.max(cardWidth * 2.0, (cardWidth + gap) / (2 * Math.sin(angleStep / 2)));
 
       for (var i = 0; i < count; i++) {
         cardEls[i].style.width = cardWidth + 'px';
@@ -76,8 +78,8 @@ var Gallery3D = (function () {
     function init() {
       calculateSizes();
 
-      camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 1, 5000);
-      camera.position.set(0, 0, radius * 1.8);
+      camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 1, 5000);
+      camera.position.set(0, 0, radius * 2.2);
 
       scene = new THREE.Scene();
 
@@ -102,33 +104,34 @@ var Gallery3D = (function () {
     }
 
     function positionCards() {
-      var angleStep = (2 * Math.PI) / count;
+      var angleStep = arcSpan / count;
 
       for (var i = 0; i < count; i++) {
-        var angle = angleStep * i + scrollAngle;
+        var rawAngle = angleStep * (i + 0.5) + scrollAngle;
+        var angle = wrapAngle(rawAngle);
+
         var x = Math.sin(angle) * radius;
         var z = Math.cos(angle) * radius;
 
         cardObjects[i].position.set(x, 0, z);
         cardObjects[i].rotation.y = 0;
 
-        var distFromCenter = Math.abs(Math.cos(angle));
-        var normalizedDist = distFromCenter;
-
-        var scale = 1 + (1 - normalizedDist) * (centerScale - 1);
-        if (isMobile) scale = Math.min(scale, 1.04);
-        cardObjects[i].scale.set(scale, scale, scale);
+        var cosA = Math.cos(angle);
+        var absSin = Math.abs(Math.sin(angle));
 
         var opacity = 1;
-        if (normalizedDist > edgeFadeStart) {
-          opacity = 1 - (normalizedDist - edgeFadeStart) / (1 - edgeFadeStart);
+        if (absSin > 0.75) {
+          opacity = 1 - (absSin - 0.75) / 0.25;
         }
-        opacity = Math.max(0.05, opacity);
+        if (cosA < 0.1) {
+          opacity = Math.min(opacity, cosA / 0.1);
+        }
+        opacity = Math.max(0.02, opacity);
         cardObjects[i].element.style.opacity = opacity;
 
-        var isNearCenter = normalizedDist < 0.3;
-        cardObjects[i].element.style.pointerEvents = isNearCenter ? 'auto' : 'none';
-        cardObjects[i].element.style.zIndex = Math.round(100 - normalizedDist * 100);
+        var isClickable = absSin < 0.65 && cosA > 0.2;
+        cardObjects[i].element.style.pointerEvents = isClickable ? 'auto' : 'none';
+        cardObjects[i].element.style.zIndex = Math.round(cosA * 100 + 100);
       }
     }
 
@@ -157,14 +160,14 @@ var Gallery3D = (function () {
     }
 
     function snapToNearest() {
-      var angleStep = (2 * Math.PI) / count;
+      var angleStep = arcSpan / count;
       var projected = scrollAngle + scrollVelocity * 80;
-      var rawIndex = projected / angleStep;
+      var rawIndex = projected / angleStep - 0.5;
       var itemIndex = Math.round(rawIndex);
       isSnapping = true;
       snapStartTime = Date.now();
       snapFromAngle = scrollAngle;
-      snapToAngle = angleStep * itemIndex;
+      snapToAngle = angleStep * (itemIndex + 0.5);
     }
 
     function onPointerDown(e) {
@@ -207,7 +210,7 @@ var Gallery3D = (function () {
       calculateSizes();
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
-      camera.position.set(0, 0, radius * 1.8);
+      camera.position.set(0, 0, radius * 2.2);
       renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
@@ -303,18 +306,12 @@ var Gallery3D = (function () {
 
     function updateCards() {
       var halfContainer = container.clientWidth / 2;
-      var direction = scrollPos > 0 ? 'right' : 'left';
       for (var i = 0; i < count; i++) {
-        var x = itemWidth * i - scrollPos - extras[i];
-        var planeOffset = cardWidth / 2;
-        var viewportOffset = halfContainer;
-        var isBefore = x + planeOffset < -viewportOffset;
-        var isAfter = x - planeOffset > viewportOffset;
-        if (direction === 'right' && isBefore) extras[i] -= totalWidth;
-        if (direction === 'left' && isAfter) extras[i] += totalWidth;
-        x = itemWidth * i - scrollPos - extras[i];
-        var centerX = x;
-        var absCenter = Math.abs(centerX);
+        var rawX = itemWidth * i - scrollPos;
+        var x = ((rawX + halfContainer) % totalWidth + totalWidth) % totalWidth - halfContainer;
+        if (x > halfContainer) x -= totalWidth;
+
+        var absCenter = Math.abs(x);
         if (absCenter > halfContainer + cardWidth) {
           cards[i].style.visibility = 'hidden';
           cards[i].style.opacity = '0';
@@ -322,10 +319,8 @@ var Gallery3D = (function () {
           continue;
         }
         var distRatio = absCenter / halfContainer;
-        var scale = 1 - distRatio * 0.12;
-        var centerBonus = Math.max(0, 1 - absCenter / (cardWidth * 0.5));
-        scale += centerBonus * 0.06;
-        var opacity = 1 - distRatio * 0.5;
+        var scale = 1 - distRatio * 0.1;
+        var opacity = 1 - distRatio * 0.4;
         var yPos = (container.clientHeight - cardHeight) / 2;
         cards[i].style.transform =
           'translateX(' + (x - cardWidth / 2 + halfContainer) + 'px) ' +
@@ -333,7 +328,7 @@ var Gallery3D = (function () {
           'scale(' + scale.toFixed(3) + ')';
         cards[i].style.opacity = Math.max(0.1, opacity);
         cards[i].style.visibility = 'visible';
-        cards[i].style.pointerEvents = absCenter < cardWidth * 0.6 ? 'auto' : 'none';
+        cards[i].style.pointerEvents = absCenter < cardWidth * 0.7 ? 'auto' : 'none';
         cards[i].style.zIndex = Math.round(100 - absCenter);
       }
     }
@@ -363,7 +358,6 @@ var Gallery3D = (function () {
       var projected = scrollPos + scrollVelocity * 150;
       var rawIndex = projected / itemWidth;
       var itemIndex = Math.round(rawIndex);
-      itemIndex = Math.max(0, Math.min(itemIndex, count - 1));
       snapTo = itemWidth * itemIndex;
     }
 
@@ -382,12 +376,12 @@ var Gallery3D = (function () {
     function onPointerMove(e) {
       if (!isDown) return;
       var x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      var dx = startX - x;
+      var dx = x - startX;
       scrollPos = scrollStart + dx * dragSensitivity;
       var now = Date.now();
       var dt = now - lastTime;
       if (dt > 0) {
-        scrollVelocity = (lastX - x) / dt * dragSensitivity;
+        scrollVelocity = (x - lastX) / dt * dragSensitivity;
       }
       lastX = x;
       lastTime = now;
