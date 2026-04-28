@@ -482,7 +482,7 @@ body {
   position: absolute;
   inset: 6px;
   border-radius: 44% 44% 48% 48% / 42% 42% 52% 52%;
-  border: 1px solid rgba(140, 154, 132, 0.2);
+  border: none;
   pointer-events: none;
   z-index: 1;
 }
@@ -1006,7 +1006,7 @@ body {
   width: 36px;
   aspect-ratio: 951 / 1346;
   font-size: 0.5rem;
-  padding: 2px 3px;
+  padding: 0;
   border-radius: var(--radius-xs);
   position: relative;
   transition: transform var(--transition-normal);
@@ -1015,7 +1015,7 @@ body {
 .seat-self .player-cards .poker-card {
   width: 56px;
   font-size: 0.7rem;
-  padding: 3px 4px;
+  padding: 0;
   border-radius: var(--radius-sm);
 }
 
@@ -2547,25 +2547,25 @@ body {
 }
 
 .poker-card {
-  background-color: #FFFFFF;
+  background-color: transparent;
   color: #000;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 4px 5px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  box-shadow: none;
   transition: transform 0.25s ease, opacity 0.25s ease;
   cursor: pointer;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: none;
 }
 
 
 .poker-card.back {
   background-size: cover;
   color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: none;
 }
 
 .poker-card .card-value {

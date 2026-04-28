@@ -1,7 +1,7 @@
 var Gallery3D = (function () {
   function create(container, opts) {
     opts = opts || {};
-    var autoRotateSpeed = opts.autoRotateSpeed || 0.0006;
+    var autoRotateSpeed = opts.autoRotateSpeed || 0.0018;
     var dragSensitivity = opts.dragSensitivity || 1.0;
     var snapDuration = opts.snapDuration || 500;
     var gap = opts.gap || 30;
@@ -53,7 +53,7 @@ var Gallery3D = (function () {
     function calculateSizes() {
       var cw = container.clientWidth;
       var ch = container.clientHeight;
-      var divisor = cw < 360 ? 1.5 : cw < 500 ? 1.8 : cw < 768 ? 2.4 : 3.2;
+      var divisor = cw < 360 ? 1.0 : cw < 500 ? 1.2 : cw < 768 ? 1.6 : 2.1;
       cardWidth = Math.floor(cw / divisor);
       cardHeight = Math.floor(cardWidth * 1.46);
       if (cardHeight > ch - 30) {
@@ -61,7 +61,7 @@ var Gallery3D = (function () {
         cardWidth = Math.floor(cardHeight / 1.46);
       }
       if (cw < 500) {
-        var maxCardWidth = cw - 40;
+        var maxCardWidth = cw - 20;
         if (cardWidth > maxCardWidth) cardWidth = maxCardWidth;
         cardHeight = Math.floor(cardWidth * 1.46);
       }
@@ -275,7 +275,7 @@ var Gallery3D = (function () {
     var snapTo = 0;
     var autoRotate = true;
     var autoRotateTimer = null;
-    var autoRotateSpeed = opts.autoRotateSpeed || 0.3;
+    var autoRotateSpeed = opts.autoRotateSpeed || 0.9;
 
     function easeOutQuart(t) {
       return 1 - Math.pow(1 - t, 4);
@@ -284,7 +284,7 @@ var Gallery3D = (function () {
     function calculateSizes() {
       var cw = container.clientWidth;
       var ch = container.clientHeight;
-      var divisor = cw < 360 ? 1.5 : cw < 500 ? 1.8 : cw < 768 ? 2.4 : 3.6;
+      var divisor = cw < 360 ? 1.0 : cw < 500 ? 1.2 : cw < 768 ? 1.6 : 2.4;
       cardWidth = Math.floor(cw / divisor);
       cardHeight = Math.floor(cardWidth * 1.46);
       if (cardHeight > ch - 20) {
@@ -292,7 +292,7 @@ var Gallery3D = (function () {
         cardWidth = Math.floor(cardHeight / 1.46);
       }
       if (cw < 500) {
-        var maxCardWidth = cw - 40;
+        var maxCardWidth = cw - 20;
         if (cardWidth > maxCardWidth) cardWidth = maxCardWidth;
         cardHeight = Math.floor(cardWidth * 1.46);
       }

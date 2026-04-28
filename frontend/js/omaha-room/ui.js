@@ -1523,11 +1523,7 @@ class OmahaRoomUI {
           seat.classList.add('pos-right');
         }
 
-        if (seat.classList.contains('seat-self')) {
-          seat.style.transform = 'translate(-50%, -50%)';
-        } else {
-          seat.style.transform = `translate(-50%, -50%) scale(${perspectiveScale.toFixed(3)})`;
-        }
+        seat.style.transform = 'translate(-50%, -50%)';
         seat.style.opacity = '';
       }
 

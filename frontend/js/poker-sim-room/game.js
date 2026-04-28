@@ -20,6 +20,11 @@ var PokerSimGameManager = (function () {
   }
 
   GameManager.prototype.init = function () {
+    if (typeof io === 'undefined') {
+      this.updateConnectionStatus('连接失败');
+      this.showNotification('无法加载Socket.IO，请检查网络连接后刷新页面', 'error');
+      return;
+    }
     this.socket = io(typeof config !== 'undefined' ? config.serverUrl : undefined, {
       reconnection: true,
       reconnectionAttempts: 10,
