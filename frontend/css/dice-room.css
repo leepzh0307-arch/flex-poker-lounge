@@ -14,7 +14,10 @@ body {
   background: var(--dice-bg-dark);
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-header {
@@ -26,6 +29,7 @@ body {
   backdrop-filter: blur(10px);
   z-index: 100;
   position: relative;
+  flex-shrink: 0;
 }
 
 .header-left, .header-center, .header-right {
@@ -68,9 +72,11 @@ body {
 .dice-game-area {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px);
+  flex: 1;
+  min-height: 0;
   background: radial-gradient(ellipse at center, var(--dice-felt) 0%, var(--dice-bg-dark) 100%);
   position: relative;
+  overflow: hidden;
 }
 
 .dice-table {
@@ -81,6 +87,7 @@ body {
   position: relative;
   overflow: hidden;
   padding: 8px;
+  min-height: 0;
 }
 
 .phase-bar {
@@ -189,7 +196,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 200px;
+  min-height: 120px;
   max-height: 50vh;
 }
 
@@ -261,6 +268,7 @@ body {
 .my-area {
   flex: 0 0 auto;
   padding: 8px 16px 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: rgba(0,0,0,0.3);
   border-top: 1px solid rgba(255,255,255,0.1);
 }
@@ -288,6 +296,24 @@ body {
 .cup-status {
   color: rgba(255,255,255,0.5);
   font-size: 12px;
+}
+
+.dice-adjust-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.dice-adjust-badge.positive {
+  background: rgba(51,102,204,0.3);
+  color: #6fa3ff;
+}
+
+.dice-adjust-badge.negative {
+  background: rgba(204,51,51,0.3);
+  color: #ff6b6b;
 }
 
 .my-dice-preview {
@@ -361,6 +387,11 @@ body {
   background: linear-gradient(135deg, var(--dice-accent), #b8922e);
 }
 .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
+
+.btn-end-game {
+  background: linear-gradient(135deg, var(--dice-red), #992626);
+}
+.btn-end-game:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(204,51,51,0.4); }
 
 .notification {
   position: fixed;
@@ -514,7 +545,7 @@ body {
 }
 
 @media (max-width: 768px) {
-  .dice-game-area { height: calc(100vh - 44px); }
+  .dice-game-area { flex: 1; min-height: 0; }
   .players-circle { gap: 8px; padding: 4px; }
   .circle-seat { min-width: 65px; min-height: 65px; width: 75px; height: 75px; padding: 6px 8px; }
   .circle-avatar { width: 22px; height: 22px; }
@@ -524,7 +555,7 @@ body {
   .btn-action { padding: 6px 14px; font-size: 12px; }
   .game-over-content { padding: 24px; }
   .game-over-content h2 { font-size: 22px; }
-  .dice-canvas-wrapper { max-height: 40vh; }
+  .dice-canvas-wrapper { max-height: 35vh; min-height: 100px; }
 }
 
 @media (max-width: 480px) {
@@ -534,7 +565,7 @@ body {
   .circle-avatar { width: 18px; height: 18px; }
   .circle-name { font-size: 8px; max-width: 50px; }
   .circle-die { width: 14px; height: 14px; font-size: 8px; }
-  .my-area { padding: 6px 8px 10px; }
+  .my-area { padding: 6px 8px 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
   .my-info-row { gap: 6px; margin-bottom: 4px; }
   .my-info-row .avatar-img { width: 24px; height: 24px; }
   .my-info-row .nickname { font-size: 12px; }
@@ -543,9 +574,12 @@ body {
   .game-over-content { padding: 16px; }
   .game-over-content h2 { font-size: 18px; }
   .result-die { width: 18px; height: 18px; line-height: 18px; font-size: 10px; }
-  .dice-canvas-wrapper { max-height: 35vh; min-height: 150px; }
+  .dice-canvas-wrapper { max-height: 30vh; min-height: 80px; }
   .host-panel { padding: 16px; min-width: 160px; }
   .phase-bar { padding: 4px 12px; }
   .phase-text { font-size: 12px; }
   .round-info { font-size: 10px; }
+  .public-dice-area { padding: 8px; }
+  .public-die { width: 22px; height: 22px; font-size: 11px; }
+  .public-player-name { font-size: 10px; min-width: 40px; }
 }

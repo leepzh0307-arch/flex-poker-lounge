@@ -20,51 +20,25 @@ var PokerSimGameManager = (function () {
   }
 
   GameManager.prototype.init = function () {
-    if (typeof io === 'undefined') {
+    var self = this;
+    var params = new URLSearchParams(window.location.search);
+    var nickname = params.get('nickname') || 'Player';
+    var avatar = params.get('avatar') || 'bear';
+    var isHost = params.get('isHost') === 'true';
+    var roomId = params.get('roomId');
+
+    if (!window.socketClient) {
       this.updateConnectionStatus('连接失败');
-      this.showNotification('无法加载Socket.IO，请检查网络连接后刷新页面', 'error');
+      this.showNotification('Socket客户端未加载，请刷新页面', 'error');
       return;
     }
-    this.socket = io(typeof config !== 'undefined' ? config.serverUrl : undefined, {
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 10000,
-    });
-    var self = this;
-    var hasJoined = false;
 
-    this.socket.on('connect', function () {
-      self.playerId = self.socket.id;
-      self.updateConnectionStatus('已连接');
-
-      var params = new URLSearchParams(window.location.search);
-      var nickname = params.get('nickname') || 'Player';
-      var avatar = params.get('avatar') || 'bear';
-      var isHost = params.get('isHost') === 'true';
-      var roomId = params.get('roomId');
-
-      if (!hasJoined) {
-        if (isHost) {
-          self.isHost = true;
-          self.createRoom(nickname, avatar);
-          hasJoined = true;
-        } else if (roomId) {
-          self.joinRoom(roomId, nickname, avatar);
-          hasJoined = true;
-        }
-      } else if (roomId) {
-        self.joinRoom(roomId, nickname, avatar);
-      }
-    });
-
-    this.socket.on('disconnect', function () {
-      self.updateConnectionStatus('已断开');
-    });
+    this.socket = window.socketClient;
 
     this.socket.on('roomCreated', function (data) {
       self.roomId = data.roomId;
       self.isHost = true;
+      self.playerId = self.socket.getSocketId();
       self.showHostPanel(true);
       self.updateRoomId(data.roomId);
       self.showNotification('房间创建成功: ' + data.roomId);
@@ -74,6 +48,7 @@ var PokerSimGameManager = (function () {
     this.socket.on('roomJoined', function (data) {
       self.roomId = data.roomId;
       self.isHost = data.isHost || false;
+      self.playerId = self.socket.getSocketId();
       self.showHostPanel(self.isHost);
       self.updateRoomId(data.roomId);
       self.showNotification('已加入房间: ' + data.roomId);
@@ -92,6 +67,21 @@ var PokerSimGameManager = (function () {
 
     this.socket.on('error', function (data) {
       self.showNotification(data.message || '出错了', 5000);
+    });
+
+    this.socket.connect().then(function () {
+      self.playerId = self.socket.getSocketId();
+      self.updateConnectionStatus('已连接');
+
+      if (isHost) {
+        self.isHost = true;
+        self.createRoom(nickname, avatar);
+      } else if (roomId) {
+        self.joinRoom(roomId, nickname, avatar);
+      }
+    }).catch(function (err) {
+      self.updateConnectionStatus('已断开');
+      self.showNotification('连接服务器失败: ' + (err.message || err));
     });
 
     this.bindUI();

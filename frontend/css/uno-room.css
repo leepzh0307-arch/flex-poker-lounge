@@ -14,7 +14,10 @@ body {
   background: var(--uno-bg-dark);
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-header {
@@ -26,6 +29,7 @@ body {
   backdrop-filter: blur(10px);
   z-index: 100;
   position: relative;
+  flex-shrink: 0;
 }
 
 .header-left, .header-center, .header-right {
@@ -66,9 +70,11 @@ body {
 .uno-game-area {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px);
+  flex: 1;
+  min-height: 0;
   background: radial-gradient(ellipse at center, var(--uno-bg) 0%, var(--uno-bg-dark) 100%);
   position: relative;
+  overflow: hidden;
 }
 
 .opponents-area {
@@ -77,7 +83,7 @@ body {
   justify-content: center;
   gap: 16px;
   padding: 12px 16px;
-  min-height: 100px;
+  min-height: 60px;
   flex-wrap: wrap;
 }
 
@@ -147,6 +153,7 @@ body {
   justify-content: center;
   gap: 12px;
   position: relative;
+  min-height: 0;
 }
 
 .direction-indicator {
@@ -247,6 +254,7 @@ body {
 .my-area {
   flex: 0 0 auto;
   padding: 8px 16px 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: rgba(0,0,0,0.3);
   border-top: 1px solid rgba(255,255,255,0.1);
 }
@@ -537,7 +545,7 @@ body {
     --card-width: 55px;
     --card-height: 82px;
   }
-  .opponents-area { gap: 8px; padding: 8px; }
+  .opponents-area { gap: 8px; padding: 6px 8px; min-height: 50px; }
   .opponent-seat { padding: 6px 8px; min-width: 70px; }
   .opponent-seat .nickname { font-size: 10px; }
   .opponent-seat .avatar-img { width: 28px; height: 28px; }
@@ -552,25 +560,32 @@ body {
 
 @media (max-width: 480px) {
   :root {
-    --card-width: 45px;
-    --card-height: 68px;
+    --card-width: 42px;
+    --card-height: 63px;
   }
   .game-header { padding: 6px 10px; }
-  .opponent-seat { min-width: 60px; padding: 4px 6px; }
-  .play-area { gap: 14px; }
-  .deck-img { width: 45px; height: 68px; }
-  .uno-game-area { height: calc(100vh - 44px); }
-  .my-area { padding: 6px 8px 10px; }
-  .my-info { gap: 6px; margin-bottom: 4px; }
-  .my-info .avatar-img { width: 24px; height: 24px; }
-  .my-info .nickname { font-size: 12px; }
-  .uno-button { font-size: 13px; padding: 4px 14px; }
-  .pass-button { font-size: 12px; padding: 4px 12px; }
+  .opponents-area { gap: 6px; padding: 4px 6px; min-height: 40px; }
+  .opponent-seat { min-width: 50px; padding: 4px 6px; }
+  .opponent-seat .avatar-img { width: 22px; height: 22px; }
+  .opponent-seat .nickname { font-size: 9px; }
+  .opponent-seat .mini-card { width: 14px; height: 20px; }
+  .opponent-seat .card-count-num { font-size: 11px; }
+  .play-area { gap: 10px; }
+  .deck-img { width: 42px; height: 63px; }
+  .uno-game-area { flex: 1; min-height: 0; }
+  .my-area { padding: 4px 6px 8px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .my-info { gap: 4px; margin-bottom: 2px; }
+  .my-info .avatar-img { width: 22px; height: 22px; }
+  .my-info .nickname { font-size: 11px; }
+  .uno-button { font-size: 12px; padding: 3px 12px; }
+  .pass-button { font-size: 11px; padding: 3px 10px; }
+  .my-hand { gap: 1px; padding: 2px 0; }
   .game-end-content { padding: 20px 16px; }
   .game-end-content h2 { font-size: 18px; }
   .game-end-hint { font-size: 10px; }
   .btn-primary, .btn-accent { padding: 8px 14px; font-size: 12px; }
-  .color-option { width: 40px; height: 40px; }
-  .direction-indicator { font-size: 20px; }
-  .current-color-indicator { width: 24px; height: 24px; }
+  .color-option { width: 36px; height: 36px; }
+  .direction-indicator { font-size: 18px; }
+  .current-color-indicator { width: 22px; height: 22px; }
+  .table-center { gap: 6px; }
 }

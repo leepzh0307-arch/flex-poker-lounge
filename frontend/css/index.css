@@ -362,7 +362,7 @@ body {
 
 .gallery-3d {
   width: 100%;
-  height: clamp(320px, 50vw, 520px);
+  height: clamp(400px, 65vw, 700px);
   position: relative;
   overflow: hidden;
   cursor: grab;

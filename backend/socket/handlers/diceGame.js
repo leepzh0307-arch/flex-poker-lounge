@@ -27,17 +27,23 @@ function sendDiceUpdate(roomId, io, room) {
         isAI: op.isAI || false,
         isOnline: op.isOnline !== false,
         diceCount: gs.playerDice[op.id] ? gs.playerDice[op.id].length : 0,
+        diceTotal: gs.playerDiceCount[op.id] || gs.diceCount,
         diceValues: gs.playerRevealed[op.id] ? (gs.playerDice[op.id] || []) : [],
         diceRevealed: gs.playerRevealed[op.id] || false,
+        diceAdjust: gs.playerDiceAdjust[op.id] || 0,
+        confirmed: gs.confirmedPlayers.indexOf(op.id) !== -1,
       };
     });
 
     io.to(p.id).emit('diceUpdate', {
       phase: gs.phase,
       diceCount: gs.diceCount,
+      roundNumber: gs.roundNumber,
       players: playerData,
       isMyTurn: gs.currentPlayerId === p.id,
       isRevealer: gs.revealerId === p.id,
+      isHost: room.host === p.id,
+      myDiceTotal: gs.playerDiceCount[p.id] || gs.diceCount,
     });
   });
 }
@@ -50,12 +56,18 @@ function getNextPlayerId(room, currentId) {
 }
 
 function handleStartGame(room, roomId, io, diceCount) {
+  var baseDice = diceCount || room.diceCount || 5;
+
   room.gameState = {
     phase: 'ROLLING',
-    diceCount: diceCount || room.diceCount || 5,
+    diceCount: baseDice,
+    baseDiceCount: baseDice,
+    roundNumber: 1,
     currentPlayerId: room.players[0].id,
     playerDice: {},
+    playerDiceCount: {},
     playerRevealed: {},
+    playerDiceAdjust: {},
     revealerId: null,
     confirmedPlayers: [],
     results: null,
@@ -63,7 +75,9 @@ function handleStartGame(room, roomId, io, diceCount) {
 
   room.players.forEach(function (p) {
     room.gameState.playerDice[p.id] = [];
+    room.gameState.playerDiceCount[p.id] = baseDice;
     room.gameState.playerRevealed[p.id] = false;
+    room.gameState.playerDiceAdjust[p.id] = 0;
   });
 
   sendDiceUpdate(roomId, io, room);
@@ -74,7 +88,7 @@ function handleRollDice(room, roomId, io, playerId) {
   if (gs.phase !== 'ROLLING') return;
   if (gs.currentPlayerId !== playerId) return;
 
-  var diceCount = gs.diceCount;
+  var diceCount = gs.playerDiceCount[playerId] || gs.diceCount;
   var diceValues = [];
 
   for (var i = 0; i < diceCount; i++) {
@@ -143,22 +157,30 @@ function handleRevealAll(room, roomId, io, playerId) {
 function handleAddDice(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'REVEAL') return;
-  if (gs.playerDice[playerId].length >= 15) return;
 
-  gs.playerDice[playerId].push(Math.floor(Math.random() * 6) + 1);
+  var adjust = gs.playerDiceAdjust[playerId] || 0;
+  var currentDice = gs.diceCount + adjust;
+  if (currentDice >= 15) return;
+
+  gs.playerDiceAdjust[playerId] = adjust + 1;
+
   sendDiceUpdate(roomId, io, room);
 }
 
 function handleRemoveDice(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'REVEAL') return;
-  if (gs.playerDice[playerId].length <= 1) return;
 
-  gs.playerDice[playerId].pop();
+  var adjust = gs.playerDiceAdjust[playerId] || 0;
+  var currentDice = gs.diceCount + adjust;
+  if (currentDice <= 1) return;
+
+  gs.playerDiceAdjust[playerId] = adjust - 1;
+
   sendDiceUpdate(roomId, io, room);
 }
 
-function handleConfirmDice(room, roomId, io, playerId) {
+function handleConfirmRound(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'REVEAL') return;
 
@@ -171,32 +193,71 @@ function handleConfirmDice(room, roomId, io, playerId) {
   });
 
   if (allConfirmed) {
-    var results = room.players.map(function (p) {
-      var dice = gs.playerDice[p.id] || [];
-      var total = dice.reduce(function (sum, v) { return sum + v; }, 0);
-      return {
-        id: p.id,
-        nickname: p.nickname,
-        avatar: p.avatar,
-        diceValues: dice,
-        total: total,
-      };
-    });
-
-    results.sort(function (a, b) { return b.total - a.total; });
-
-    gs.phase = 'GAME_END';
-    gs.results = results;
-
-    room.players.forEach(function (p) {
-      if (!p.isAI) {
-        io.to(p.id).emit('diceAction', {
-          type: 'gameEnd',
-          results: results,
-        });
-      }
-    });
+    startNextRound(room, roomId, io);
+  } else {
+    sendDiceUpdate(roomId, io, room);
   }
+}
+
+function startNextRound(room, roomId, io) {
+  var gs = room.gameState;
+
+  var baseDice = gs.diceCount;
+
+  var nextRound = (gs.roundNumber || 0) + 1;
+
+  gs.phase = 'ROLLING';
+  gs.roundNumber = nextRound;
+  gs.currentPlayerId = room.players[0].id;
+  gs.revealerId = null;
+  gs.results = null;
+  gs.confirmedPlayers = [];
+
+  room.players.forEach(function (p) {
+    var adjust = gs.playerDiceAdjust[p.id] || 0;
+    var playerDice = baseDice + adjust;
+    if (playerDice < 1) playerDice = 1;
+    if (playerDice > 15) playerDice = 15;
+    gs.playerDiceCount[p.id] = playerDice;
+    gs.playerDice[p.id] = [];
+    gs.playerRevealed[p.id] = false;
+    gs.playerDiceAdjust[p.id] = 0;
+  });
+
+  sendDiceUpdate(roomId, io, room);
+}
+
+function handleEndGame(room, roomId, io, playerId) {
+  if (room.host !== playerId) return;
+
+  var gs = room.gameState;
+  if (gs.phase === 'WAITING') return;
+
+  var results = room.players.map(function (p) {
+    var dice = gs.playerDice[p.id] || [];
+    var total = dice.reduce(function (sum, v) { return sum + v; }, 0);
+    return {
+      id: p.id,
+      nickname: p.nickname,
+      avatar: p.avatar,
+      diceValues: dice,
+      total: total,
+    };
+  });
+
+  results.sort(function (a, b) { return b.total - a.total; });
+
+  gs.phase = 'GAME_END';
+  gs.results = results;
+
+  room.players.forEach(function (p) {
+    if (!p.isAI) {
+      io.to(p.id).emit('diceAction', {
+        type: 'gameEnd',
+        results: results,
+      });
+    }
+  });
 
   sendDiceUpdate(roomId, io, room);
 }
@@ -205,9 +266,13 @@ function handleResetGame(room, roomId, io) {
   room.gameState = {
     phase: 'WAITING',
     diceCount: room.diceCount || 5,
+    baseDiceCount: room.diceCount || 5,
+    roundNumber: 0,
     currentPlayerId: null,
     playerDice: {},
+    playerDiceCount: {},
     playerRevealed: {},
+    playerDiceAdjust: {},
     revealerId: null,
     confirmedPlayers: [],
     results: null,
@@ -215,7 +280,9 @@ function handleResetGame(room, roomId, io) {
 
   room.players.forEach(function (p) {
     room.gameState.playerDice[p.id] = [];
+    room.gameState.playerDiceCount[p.id] = room.diceCount || 5;
     room.gameState.playerRevealed[p.id] = false;
+    room.gameState.playerDiceAdjust[p.id] = 0;
   });
 
   sendDiceUpdate(roomId, io, room);
@@ -245,9 +312,13 @@ module.exports = function (socket, rooms, io) {
           gameState: {
             phase: 'WAITING',
             diceCount: 5,
+            baseDiceCount: 5,
+            roundNumber: 0,
             currentPlayerId: null,
             playerDice: {},
+            playerDiceCount: {},
             playerRevealed: {},
+            playerDiceAdjust: {},
             revealerId: null,
             confirmedPlayers: [],
             results: null,
@@ -255,7 +326,9 @@ module.exports = function (socket, rooms, io) {
         };
 
         room.gameState.playerDice[socket.id] = [];
+        room.gameState.playerDiceCount[socket.id] = 5;
         room.gameState.playerRevealed[socket.id] = false;
+        room.gameState.playerDiceAdjust[socket.id] = 0;
 
         rooms.set(roomId, room);
         socket.join(roomId);
@@ -311,6 +384,14 @@ module.exports = function (socket, rooms, io) {
               room.gameState.playerRevealed[socket.id] = room.gameState.playerRevealed[oldId];
               delete room.gameState.playerRevealed[oldId];
             }
+            if (room.gameState.playerDiceAdjust[oldId] !== undefined) {
+              room.gameState.playerDiceAdjust[socket.id] = room.gameState.playerDiceAdjust[oldId];
+              delete room.gameState.playerDiceAdjust[oldId];
+            }
+            if (room.gameState.playerDiceCount && room.gameState.playerDiceCount[oldId] !== undefined) {
+              room.gameState.playerDiceCount[socket.id] = room.gameState.playerDiceCount[oldId];
+              delete room.gameState.playerDiceCount[oldId];
+            }
             if (room.gameState.currentPlayerId === oldId) {
               room.gameState.currentPlayerId = socket.id;
             }
@@ -353,7 +434,9 @@ module.exports = function (socket, rooms, io) {
 
         room.players.push(player);
         room.gameState.playerDice[socket.id] = [];
+        room.gameState.playerDiceCount[socket.id] = room.gameState.diceCount || 5;
         room.gameState.playerRevealed[socket.id] = false;
+        room.gameState.playerDiceAdjust[socket.id] = 0;
 
         socket.join(data.roomId);
         socket.data = { roomId: data.roomId, playerId: newPlayerId };
@@ -401,8 +484,11 @@ module.exports = function (socket, rooms, io) {
         case 'removeDice':
           handleRemoveDice(room, socketData.roomId, io, playerId);
           break;
-        case 'confirmDice':
-          handleConfirmDice(room, socketData.roomId, io, playerId);
+        case 'confirmRound':
+          handleConfirmRound(room, socketData.roomId, io, playerId);
+          break;
+        case 'endGame':
+          handleEndGame(room, socketData.roomId, io, playerId);
           break;
         case 'resetGame':
           if (room.host === playerId) {

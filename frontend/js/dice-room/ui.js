@@ -26,12 +26,14 @@ var DiceRoomUI = (function () {
       myAvatar: document.getElementById('my-avatar'),
       myName: document.getElementById('my-name'),
       myCupStatus: document.getElementById('my-cup-status'),
+      myDiceAdjust: document.getElementById('my-dice-adjust'),
       myDicePreview: document.getElementById('my-dice-preview'),
       rollBtn: document.getElementById('roll-btn'),
       revealBtn: document.getElementById('reveal-btn'),
       addDiceBtn: document.getElementById('add-dice-btn'),
       removeDiceBtn: document.getElementById('remove-dice-btn'),
-      confirmBtn: document.getElementById('confirm-btn'),
+      confirmRoundBtn: document.getElementById('confirm-round-btn'),
+      endGameBtn: document.getElementById('end-game-btn'),
       hostPanel: document.getElementById('host-panel'),
       diceCountSelect: document.getElementById('dice-count-select'),
       startGameBtn: document.getElementById('start-game'),
@@ -77,8 +79,12 @@ var DiceRoomUI = (function () {
       if (window.diceGameManager) diceGameManager.sendGameAction('removeDice');
     });
 
-    bindEvent(this.elements.confirmBtn, function () {
-      if (window.diceGameManager) diceGameManager.sendGameAction('confirmDice');
+    bindEvent(this.elements.confirmRoundBtn, function () {
+      if (window.diceGameManager) diceGameManager.sendGameAction('confirmRound');
+    });
+
+    bindEvent(this.elements.endGameBtn, function () {
+      if (window.diceGameManager) diceGameManager.sendGameAction('endGame');
     });
 
     bindEvent(this.elements.startGameBtn, function () {
@@ -149,10 +155,11 @@ var DiceRoomUI = (function () {
   };
 
   UI.prototype.updatePhaseUI = function (phase, state) {
+    var roundNum = state.roundNumber || 0;
     var phaseText = {
       WAITING: '等待开始',
-      ROLLING: '摇骰中...',
-      REVEAL: '公开阶段',
+      ROLLING: '第' + roundNum + '局 - 摇骰中',
+      REVEAL: '第' + roundNum + '局 - 公开阶段',
       GAME_END: '游戏结束',
     };
 
@@ -166,23 +173,28 @@ var DiceRoomUI = (function () {
 
     if (this.elements.roundInfo) {
       if (state.diceCount) {
-        this.elements.roundInfo.textContent = '骰子数: ' + state.diceCount;
+        var info = '基础骰: ' + state.diceCount;
+        if (state.myDiceTotal && state.myDiceTotal !== state.diceCount && phase === 'REVEAL') {
+          info += ' | 我下局: ' + state.myDiceTotal;
+        }
+        this.elements.roundInfo.textContent = info;
       } else {
         this.elements.roundInfo.textContent = '';
       }
     }
 
     var isMyTurn = state.isMyTurn || false;
-    var isRevealer = state.isRevealer || false;
     var hasRolled = false;
     var me = (state.players || []).find(function (p) { return p.id === this.myPlayerId; }.bind(this));
     if (me && me.diceValues && me.diceValues.length > 0) hasRolled = true;
+
+    var allRolled = (state.players || []).every(function (p) { return p.diceCount > 0 || (p.diceValues && p.diceValues.length > 0); });
+    var iConfirmed = me && me.confirmed;
 
     if (this.elements.rollBtn) {
       this.elements.rollBtn.style.display = (phase === 'ROLLING' && isMyTurn && !hasRolled) ? 'inline-block' : 'none';
     }
     if (this.elements.revealBtn) {
-      var allRolled = (state.players || []).every(function (p) { return p.diceCount > 0 || (p.diceValues && p.diceValues.length > 0); });
       this.elements.revealBtn.style.display = (phase === 'ROLLING' && allRolled) ? 'inline-block' : 'none';
     }
     if (this.elements.addDiceBtn) {
@@ -191,8 +203,23 @@ var DiceRoomUI = (function () {
     if (this.elements.removeDiceBtn) {
       this.elements.removeDiceBtn.style.display = (phase === 'REVEAL') ? 'inline-block' : 'none';
     }
-    if (this.elements.confirmBtn) {
-      this.elements.confirmBtn.style.display = (phase === 'REVEAL') ? 'inline-block' : 'none';
+    if (this.elements.confirmRoundBtn) {
+      if (phase === 'REVEAL' && !iConfirmed) {
+        this.elements.confirmRoundBtn.style.display = 'inline-block';
+        this.elements.confirmRoundBtn.textContent = '确认结束本局';
+      } else if (phase === 'REVEAL' && iConfirmed) {
+        this.elements.confirmRoundBtn.style.display = 'inline-block';
+        this.elements.confirmRoundBtn.textContent = '已确认 ✓';
+        this.elements.confirmRoundBtn.disabled = true;
+        this.elements.confirmRoundBtn.style.opacity = '0.6';
+      } else {
+        this.elements.confirmRoundBtn.style.display = 'none';
+        this.elements.confirmRoundBtn.disabled = false;
+        this.elements.confirmRoundBtn.style.opacity = '1';
+      }
+    }
+    if (this.elements.endGameBtn) {
+      this.elements.endGameBtn.style.display = (state.isHost && (phase === 'ROLLING' || phase === 'REVEAL')) ? 'inline-block' : 'none';
     }
   };
 
@@ -244,7 +271,24 @@ var DiceRoomUI = (function () {
         diceInfo.appendChild(empty);
       }
 
-      seat.appendChild(diceInfo);
+      if (player.confirmed && state.phase === 'REVEAL') {
+        var checkMark = document.createElement('div');
+        checkMark.style.cssText = 'color:#27AE60;font-size:10px;margin-top:2px;';
+        checkMark.textContent = '✓ 已确认';
+        seat.appendChild(diceInfo);
+        seat.appendChild(checkMark);
+      } else {
+        seat.appendChild(diceInfo);
+      }
+
+      if (player.diceAdjust && player.diceAdjust !== 0 && state.phase === 'REVEAL') {
+        var adjustBadge = document.createElement('div');
+        adjustBadge.style.cssText = 'font-size:9px;font-weight:700;margin-top:1px;';
+        adjustBadge.style.color = player.diceAdjust > 0 ? '#6fa3ff' : '#ff6b6b';
+        adjustBadge.textContent = (player.diceAdjust > 0 ? '+' : '') + player.diceAdjust + '骰(→' + (player.diceTotal || '?') + ')';
+        seat.appendChild(adjustBadge);
+      }
+
       container.appendChild(seat);
     });
   };
@@ -256,6 +300,17 @@ var DiceRoomUI = (function () {
     if (this.elements.myAvatar) this.elements.myAvatar.src = 'images/avatars/' + (me.avatar || 'bear') + '.gif';
     if (this.elements.myName) this.elements.myName.textContent = me.nickname || '--';
     if (this.elements.myCupStatus) this.elements.myCupStatus.textContent = '骰盅: ' + (me.diceCount || 0) + '颗';
+
+    if (this.elements.myDiceAdjust) {
+      var adjust = me.diceAdjust || 0;
+      if (adjust !== 0 && state.phase === 'REVEAL') {
+        this.elements.myDiceAdjust.style.display = 'inline-block';
+        this.elements.myDiceAdjust.textContent = (adjust > 0 ? '+' : '') + adjust + '骰(下局' + (me.diceTotal || state.diceCount) + '颗)';
+        this.elements.myDiceAdjust.className = 'dice-adjust-badge ' + (adjust > 0 ? 'positive' : 'negative');
+      } else {
+        this.elements.myDiceAdjust.style.display = 'none';
+      }
+    }
 
     var preview = this.elements.myDicePreview;
     if (preview) {
@@ -328,6 +383,14 @@ var DiceRoomUI = (function () {
       }
 
       row.appendChild(diceEl);
+
+      if (player.confirmed && state.phase === 'REVEAL') {
+        var confirmBadge = document.createElement('span');
+        confirmBadge.style.cssText = 'color:#27AE60;font-size:11px;margin-left:8px;';
+        confirmBadge.textContent = '✓';
+        row.appendChild(confirmBadge);
+      }
+
       grid.appendChild(row);
     });
   };
