@@ -9,6 +9,22 @@ class UnoRoomUI {
     this._prevTopCardId = null;
   }
 
+  bindEvent(element, handler) {
+    if (!element) return;
+    var handled = false;
+    element.addEventListener('click', function(e) {
+      if (handled) { handled = false; return; }
+      handler(e);
+    });
+    element.addEventListener('touchstart', function(e) {
+      handled = true;
+      handler(e);
+    }, { passive: true });
+    element.addEventListener('touchend', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+  }
+
   init() {
     this.elements = {
       roomId: document.getElementById('room-id'),
@@ -46,36 +62,36 @@ class UnoRoomUI {
   }
 
   bindEvents() {
-    this.elements.copyRoom.addEventListener('click', () => {
+    this.bindEvent(this.elements.copyRoom, () => {
       const roomId = this.elements.roomId.textContent;
       navigator.clipboard.writeText(roomId).then(() => {
         this.showNotification('房间号已复制');
       });
     });
 
-    this.elements.hostBtn.addEventListener('click', () => {
+    this.bindEvent(this.elements.hostBtn, () => {
       this.hostPanelVisible = !this.hostPanelVisible;
       this.elements.hostPanel.style.display = this.hostPanelVisible ? 'flex' : 'none';
     });
 
-    this.elements.exitRoom.addEventListener('click', () => {
+    this.bindEvent(this.elements.exitRoom, () => {
       window.location.href = '/';
     });
 
     this.elements.colorChooser.querySelectorAll('.color-option').forEach(opt => {
-      opt.addEventListener('click', () => {
+      this.bindEvent(opt, () => {
         const color = opt.dataset.color;
         if (this.onChooseColor) this.onChooseColor(color);
         this.elements.colorChooser.classList.remove('visible');
       });
     });
 
-    this.elements.playAgainBtn.addEventListener('click', () => {
+    this.bindEvent(this.elements.playAgainBtn, () => {
       this.elements.gameEndOverlay.style.display = 'none';
       if (this.onResetGame) this.onResetGame();
     });
 
-    this.elements.continueGameBtn.addEventListener('click', () => {
+    this.bindEvent(this.elements.continueGameBtn, () => {
       this.elements.gameEndOverlay.style.display = 'none';
       if (this.onContinueGame) this.onContinueGame();
     });
@@ -266,7 +282,7 @@ class UnoRoomUI {
       cardEl.classList.add(isPlayable ? 'playable' : 'not-playable');
 
       if (isPlayable) {
-        cardEl.addEventListener('click', () => {
+        this.bindEvent(cardEl, () => {
           if (this.onPlayCard) this.onPlayCard(card);
         });
       }

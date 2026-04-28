@@ -73,7 +73,11 @@ var PokerSimGameManager = (function () {
       self.playerId = self.socket.getSocketId();
       self.updateConnectionStatus('已连接');
 
-      if (isHost) {
+      if (isHost && roomId) {
+        self.isHost = true;
+        self.roomId = roomId;
+        self.socket.emit('joinPokerSimRoom', { roomId: roomId, nickname: nickname, avatar: avatar });
+      } else if (isHost) {
         self.isHost = true;
         self.createRoom(nickname, avatar);
       } else if (roomId) {

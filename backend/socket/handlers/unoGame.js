@@ -3,6 +3,18 @@ const { generateUnoDeck, shuffleDeck, canPlayCard, getCardPoints, COLORS } = req
 const STARTING_HAND = 7;
 const AI_THINK_DELAY = 1000;
 
+function clearAiTimers(room) {
+  if (room._aiTimerIds && room._aiTimerIds.length > 0) {
+    room._aiTimerIds.forEach(function(id) { clearTimeout(id); });
+    room._aiTimerIds = [];
+  }
+}
+
+function trackAiTimer(room, timerId) {
+  if (!room._aiTimerIds) room._aiTimerIds = [];
+  room._aiTimerIds.push(timerId);
+}
+
 function unoGameHandler(socket, rooms, io) {
   socket.on('unoAction', ({ action, data }) => {
     const roomId = findPlayerRoom(socket.id, rooms);
@@ -38,6 +50,7 @@ function findPlayerRoom(socketId, rooms) {
 
 function handleStartGame(room, roomId, io) {
   if (room.gameState.phase !== 'WAITING') return;
+  clearAiTimers(room);
 
   const activePlayers = room.players.filter(p => p.isOnline !== false);
   if (activePlayers.length < 2) return;
@@ -305,6 +318,7 @@ function handlePassTurn(room, roomId, io, socket) {
 }
 
 function handleResetGame(room, roomId, io) {
+  clearAiTimers(room);
   room.gameState = {
     phase: 'WAITING',
     deck: [],
@@ -437,12 +451,15 @@ function scheduleAiAction(room, roomId, io) {
 
   const delay = room.aiThinkDelay || AI_THINK_DELAY;
 
-  setTimeout(() => {
+  const timerId = setTimeout(() => {
+    const idx = room._aiTimerIds ? room._aiTimerIds.indexOf(timerId) : -1;
+    if (idx !== -1) room._aiTimerIds.splice(idx, 1);
     if (gs.phase !== 'PLAYING') return;
     if (gs.playerOrder[gs.currentPlayerIndex] !== currentPlayerId) return;
 
     makeAiDecision(room, roomId, io, player);
   }, delay);
+  trackAiTimer(room, timerId);
 }
 
 function makeAiDecision(room, roomId, io, aiPlayer) {
@@ -482,7 +499,9 @@ function makeAiDecision(room, roomId, io, aiPlayer) {
   } else {
     handleDrawCard(room, roomId, io, { id: aiPlayer.id });
 
-    setTimeout(() => {
+    const innerTimerId = setTimeout(() => {
+      const idx = room._aiTimerIds ? room._aiTimerIds.indexOf(innerTimerId) : -1;
+      if (idx !== -1) room._aiTimerIds.splice(idx, 1);
       if (gs.phase !== 'PLAYING') return;
       if (gs.playerOrder[gs.currentPlayerIndex] !== aiPlayer.id) return;
 
@@ -505,6 +524,7 @@ function makeAiDecision(room, roomId, io, aiPlayer) {
         scheduleAiAction(room, roomId, io);
       }
     }, AI_THINK_DELAY);
+    trackAiTimer(room, innerTimerId);
   }
 }
 

@@ -2,6 +2,18 @@ var { generateDeck, shuffleDeck } = require('../../utils/deck');
 var { omahaShowdown: omahaPokerShowdown, findBestOmahaHand, calculatePotLimitRaise, evaluateOmahaPreflopStrength } = require('../../utils/omahaEvaluator');
 var { makeDecision, getThinkTime, pickAiName, clearRoomPersonality } = require('../../utils/aiEngine');
 
+function omahaClearAiTimers(room) {
+  if (room._aiTimerIds && room._aiTimerIds.length > 0) {
+    room._aiTimerIds.forEach(function(id) { clearTimeout(id); });
+    room._aiTimerIds = [];
+  }
+}
+
+function omahaTrackAiTimer(room, timerId) {
+  if (!room._aiTimerIds) room._aiTimerIds = [];
+  room._aiTimerIds.push(timerId);
+}
+
 module.exports = function(socket, rooms, io) {
   socket.on('omahaAction', function(data) {
     try {
@@ -178,6 +190,7 @@ function communityCardsComplete(room) {
 }
 
 function omahaStartGame(room, roomId, io, config, rooms) {
+  omahaClearAiTimers(room);
   room.players.forEach(function(p) { if (!p.isAI) io.to(p.id).emit('omahaAction', { type: 'startGame', timestamp: Date.now() }); });
 
   if (config) {
@@ -1024,6 +1037,7 @@ function omahaNextHand(room, roomId, io, rooms) {
 }
 
 function omahaResetGame(room, roomId, io) {
+  omahaClearAiTimers(room);
   room.dealerButton = undefined;
   room.initialChipsMap = {};
   room.extraChipsMap = {};
@@ -1154,7 +1168,9 @@ function omahaConfirmContinue(room, roomId, io, playerId, rooms) {
 
 function omahaScheduleAiAction(room, roomId, io, aiPlayer, rooms) {
   var thinkTime = getThinkTime(aiPlayer.aiDifficulty || 'medium', aiPlayer.personality);
-  setTimeout(function() {
+  var timerId = setTimeout(function() {
+    var idx = room._aiTimerIds ? room._aiTimerIds.indexOf(timerId) : -1;
+    if (idx !== -1) room._aiTimerIds.splice(idx, 1);
     try {
       if (!room || room.gameState.currentPlayer !== aiPlayer.id) return;
       if (!aiPlayer.isActive || aiPlayer.chips === 0) return;
@@ -1193,6 +1209,7 @@ function omahaScheduleAiAction(room, roomId, io, aiPlayer, rooms) {
       }
     }
   }, thinkTime);
+  omahaTrackAiTimer(room, timerId);
 }
 
 function omahaBuildAiGameState(room, aiPlayer) {

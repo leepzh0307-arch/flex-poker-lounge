@@ -538,7 +538,7 @@ class OmahaRoomUI {
             10: { dx: 0,  dy: -1 }
           };
           const offset = betOffsets[seatIndex] || { dx: 0, dy: -1 };
-          const moveDistance = 80;
+          const moveDistance = 50;
           const tx = Math.round(offset.dx * moveDistance);
           const ty = Math.round(offset.dy * moveDistance);
           betEl.style.setProperty('--bet-tx', tx + 'px');
@@ -806,43 +806,28 @@ class OmahaRoomUI {
   }
 
   updatePhaseIndicator(phase) {
-    if (!this.elements.phaseIndicator) return;
+    const phaseLabelEl = document.getElementById('phase-current-label');
+    if (!phaseLabelEl) return;
 
-    const phaseOrder = [
-      'WAITING', 'PRE_FLOP_BLINDS', 'PRE_FLOP_BETTING',
-      'FLOP_DEAL', 'FLOP_BETTING',
-      'TURN_DEAL', 'TURN_BETTING',
-      'RIVER_DEAL', 'RIVER_BETTING',
-      'SHOWDOWN'
-    ];
+    const phaseNames = {
+      'WAITING': '等待中',
+      'PRE_FLOP_BLINDS': '盲注阶段',
+      'PRE_FLOP_BETTING': '翻前下注',
+      'FLOP_DEAL': '翻牌',
+      'FLOP_BETTING': '翻牌下注',
+      'TURN_DEAL': '转牌',
+      'TURN_BETTING': '转牌下注',
+      'RIVER_DEAL': '河牌',
+      'RIVER_BETTING': '河牌下注',
+      'SHOWDOWN': '摊牌',
+      'HAND_END': '本局结束'
+    };
 
-    const steps = this.elements.phaseIndicator.querySelectorAll('.phase-step');
-    steps.forEach(step => {
-      const stepPhase = step.dataset.phase;
-      step.classList.remove('active', 'completed', 'current');
-
-      const phaseIdx = phaseOrder.indexOf(phase);
-      const stepIdx = phaseOrder.indexOf(stepPhase);
-
-      if (stepIdx < 0) return;
-
-      if (stepPhase === phase ||
-          (phase.startsWith('PRE_FLOP') && stepPhase === 'PRE_FLOP_BLINDS') ||
-          (phase === 'FLOP_DEAL' && stepPhase === 'FLOP_BETTING') ||
-          (phase === 'TURN_DEAL' && stepPhase === 'TURN_BETTING') ||
-          (phase === 'RIVER_DEAL' && stepPhase === 'RIVER_BETTING')) {
-        step.classList.add('current');
-      } else if (stepIdx < phaseIdx) {
-        step.classList.add('completed');
-      }
-    });
+    const label = phaseNames[phase] || phase;
+    phaseLabelEl.textContent = label;
 
     if (phase === 'FLOP_DEAL' || phase === 'TURN_DEAL' || phase === 'RIVER_DEAL' || phase === 'SHOWDOWN' || phase === 'HAND_END') {
       this.triggerBetGatherAnimation();
-    }
-
-    if (phase === 'HAND_END' || phase === 'WAITING') {
-      steps.forEach(s => s.classList.remove('current'));
     }
 
     if (window.pokerSoundManager) {

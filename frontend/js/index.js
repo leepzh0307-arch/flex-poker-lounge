@@ -385,7 +385,7 @@
         showToast('创建房间失败: ' + err);
         return;
       }
-      var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
+      var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&isHost=true&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
       closeAllModals();
       setTimeout(function() { navigateToRoom(targetUrl); }, 300);
     });

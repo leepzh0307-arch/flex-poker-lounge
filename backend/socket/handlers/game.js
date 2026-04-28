@@ -4,6 +4,18 @@ const { showdown: pokerShowdown, findBestHand, HAND_NAMES } = require('../../uti
 const { makeDecision, getThinkTime, pickAiName, clearRoomPersonality } = require('../../utils/aiEngine');
 const StandUpGame = require('../../utils/standupGame');
 
+function clearAiTimers(room) {
+  if (room._aiTimerIds && room._aiTimerIds.length > 0) {
+    room._aiTimerIds.forEach(id => clearTimeout(id));
+    room._aiTimerIds = [];
+  }
+}
+
+function trackAiTimer(room, timerId) {
+  if (!room._aiTimerIds) room._aiTimerIds = [];
+  room._aiTimerIds.push(timerId);
+}
+
 module.exports = (socket, rooms, io) => {
   socket.on('gameAction', ({ action, data }) => {
     try {
@@ -198,6 +210,7 @@ function findNextActivePlayerClockwise(room, startSeatIndex) {
 // ==================== 状态机核心 ====================
 
 function startGame(room, roomId, io, config, rooms) {
+  clearAiTimers(room);
   room.players.forEach(p => { if (!p.isAI) io.to(p.id).emit('gameAction', { type: 'startGame', timestamp: Date.now() }); });
   if (config) {
     room.config = { ...room.config, ...config };
@@ -1134,6 +1147,7 @@ function finishHandEndTransition(room, roomId, io, rooms) {
 // ==================== 重置游戏 ====================
 
 function resetGame(room, roomId, io) {
+  clearAiTimers(room);
   room.dealerButton = undefined;
   room.initialChipsMap = {};
   room.extraChipsMap = {};
@@ -1282,7 +1296,9 @@ function handleConfirmContinue(room, roomId, io, playerId, rooms) {
 
 function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
   const thinkTime = getThinkTime(aiPlayer.aiDifficulty || 'medium', aiPlayer.personality);
-  setTimeout(() => {
+  const timerId = setTimeout(() => {
+    const idx = room._aiTimerIds ? room._aiTimerIds.indexOf(timerId) : -1;
+    if (idx !== -1) room._aiTimerIds.splice(idx, 1);
     try {
       if (!room || room.gameState.currentPlayer !== aiPlayer.id) return;
       if (!aiPlayer.isActive || aiPlayer.chips === 0) return;
@@ -1317,6 +1333,7 @@ function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
       }
     }
   }, thinkTime);
+  trackAiTimer(room, timerId);
 }
 
 function buildAiGameState(room, aiPlayer) {

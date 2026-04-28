@@ -53,7 +53,7 @@ var Gallery3D = (function () {
     function calculateSizes() {
       var cw = container.clientWidth;
       var ch = container.clientHeight;
-      var divisor = cw < 360 ? 1.0 : cw < 500 ? 1.2 : cw < 768 ? 1.6 : 2.1;
+      var divisor = cw < 360 ? 0.55 : cw < 500 ? 0.7 : cw < 768 ? 0.9 : 1.15;
       cardWidth = Math.floor(cw / divisor);
       cardHeight = Math.floor(cardWidth * 1.46);
       if (cardHeight > ch - 30) {
@@ -284,7 +284,7 @@ var Gallery3D = (function () {
     function calculateSizes() {
       var cw = container.clientWidth;
       var ch = container.clientHeight;
-      var divisor = cw < 360 ? 1.0 : cw < 500 ? 1.2 : cw < 768 ? 1.6 : 2.4;
+      var divisor = cw < 360 ? 0.55 : cw < 500 ? 0.7 : cw < 768 ? 0.9 : 1.3;
       cardWidth = Math.floor(cw / divisor);
       cardHeight = Math.floor(cardWidth * 1.46);
       if (cardHeight > ch - 20) {

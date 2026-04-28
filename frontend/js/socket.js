@@ -13,11 +13,19 @@ class SocketClient {
     this.connectPromise = new Promise((resolve, reject) => {
       if (this.isConnected && this.socket) {
         console.log('[Socket] 已连接');
+        this.connectPromise = null;
         resolve();
         return;
       }
 
       let resolved = false;
+
+      function resetAndReject(err) {
+        this.connectPromise = null;
+        this.isConnected = false;
+        if (!resolved) { resolved = true; reject(err); }
+      }
+      resetAndReject = resetAndReject.bind(this);
 
       try {
         const url = config.serverUrl;
@@ -39,9 +47,7 @@ class SocketClient {
         connectionTimeout = setTimeout(() => {
           if (!resolved) {
             console.error('[Socket] 连接超时(30s)');
-            this.isConnected = false;
-            resolved = true;
-            reject(new Error('连接服务器超时，请检查网络后刷新页面重试'));
+            resetAndReject(new Error('连接服务器超时，请检查网络后刷新页面重试'));
           }
         }, 35000);
 
@@ -53,6 +59,7 @@ class SocketClient {
           
           console.log(`[Socket] 连接成功! id=${this.socket.id}`);
           this.isConnected = true;
+          this.connectPromise = null;
           this.flushPendingEvents();
           if (!resolved) { resolved = true; resolve(); }
         });
@@ -65,6 +72,7 @@ class SocketClient {
         this.socket.on('disconnect', (reason) => {
           console.log(`[Socket] 断开连接: ${reason}`);
           this.isConnected = false;
+          this.connectPromise = null;
           
           if (reason === 'io server disconnect') {
             console.log('[Socket] 服务器主动断开连接');
@@ -76,6 +84,7 @@ class SocketClient {
         this.socket.on('reconnect', (attemptNum) => {
           console.log(`[Socket] 重连成功 (第${attemptNum}次尝试)`);
           this.isConnected = true;
+          this.connectPromise = null;
           this.flushPendingEvents();
         });
 
@@ -86,11 +95,12 @@ class SocketClient {
         this.socket.on('reconnect_failed', () => {
           console.error('[Socket] 重连失败，已达到最大重连次数');
           this.isConnected = false;
+          this.connectPromise = null;
         });
 
       } catch (error) {
         console.error('[Socket] 创建连接异常:', error.message);
-        if (!resolved) { resolved = true; reject(error); }
+        resetAndReject(error);
       }
     });
 

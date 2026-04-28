@@ -36,16 +36,16 @@ class UnoGameManager {
     this.ui.onResetGame = () => this.resetGame();
     this.ui.onContinueGame = () => this.continueGame();
 
-    this.ui.elements.deckPile.addEventListener('click', () => this.drawCard());
-    this.ui.elements.startGame.addEventListener('click', () => this.startGame());
-    this.ui.elements.resetGame.addEventListener('click', () => this.resetGame());
-    this.ui.elements.unoBtn.addEventListener('click', () => this.callUno());
-    this.ui.elements.passBtn.addEventListener('click', () => this.passTurn());
-    this.ui.elements.voiceToggle.addEventListener('click', () => this.toggleVoice());
+    this.ui.bindEvent(this.ui.elements.deckPile, () => this.drawCard());
+    this.ui.bindEvent(this.ui.elements.startGame, () => this.startGame());
+    this.ui.bindEvent(this.ui.elements.resetGame, () => this.resetGame());
+    this.ui.bindEvent(this.ui.elements.unoBtn, () => this.callUno());
+    this.ui.bindEvent(this.ui.elements.passBtn, () => this.passTurn());
+    this.ui.bindEvent(this.ui.elements.voiceToggle, () => this.toggleVoice());
 
     var langBtn = document.getElementById('language-toggle');
     if (langBtn) {
-      langBtn.addEventListener('click', () => this.toggleLanguage());
+      this.ui.bindEvent(langBtn, () => this.toggleLanguage());
     }
   }
 

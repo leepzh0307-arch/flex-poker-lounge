@@ -37,12 +37,6 @@
   </style>
 </head>
 <body>
-  <div id="portrait-overlay" class="portrait-overlay" style="display:none">
-    <div class="portrait-content">
-      <div class="rotate-icon">📱</div>
-      <span>横屏体验更佳</span>
-    </div>
-  </div>
 
   <div class="game-bg"></div>
 
@@ -83,13 +77,7 @@
 
       <div class="phase-indicator-wrapper">
         <div class="phase-indicator" id="phase-indicator">
-          <div class="phase-step" data-phase="WAITING"><span class="phase-dot"></span><span class="phase-label">等待</span></div>
-          <div class="phase-step" data-phase="PRE_FLOP_BLINDS"><span class="phase-dot"></span><span class="phase-label">盲注</span></div>
-          <div class="phase-step" data-phase="PRE_FLOP_BETTING"><span class="phase-dot"></span><span class="phase-label">翻前</span></div>
-          <div class="phase-step" data-phase="FLOP_BETTING"><span class="phase-dot"></span><span class="phase-label">翻牌</span></div>
-          <div class="phase-step" data-phase="TURN_BETTING"><span class="phase-dot"></span><span class="phase-label">转牌</span></div>
-          <div class="phase-step" data-phase="RIVER_BETTING"><span class="phase-dot"></span><span class="phase-label">河牌</span></div>
-          <div class="phase-step" data-phase="SHOWDOWN"><span class="phase-dot"></span><span class="phase-label">摊牌</span></div>
+          <span class="phase-current-label" id="phase-current-label">等待中</span>
         </div>
       </div>
     </div>
@@ -102,20 +90,20 @@
       </div>
 
       <div class="players-area">
-        <div class="card-pile" id="card-pile">
-          <img class="card-pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
-          <span class="card-pile-count" id="card-pile-count"></span>
-        </div>
+          <div class="pot-info">
+            <div class="pot-main">底池: <span id="pot-amount">0</span></div>
+            <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
+          </div>
 
-        <div class="community-cards-section">
-          <div class="community-cards-row" id="community-cards-flop"></div>
-          <div class="community-cards-row" id="community-cards-turn-river"></div>
-        </div>
+          <div class="card-pile" id="card-pile">
+            <img class="card-pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
+            <span class="card-pile-count" id="card-pile-count"></span>
+          </div>
 
-        <div class="pot-info">
-          <div class="pot-main">底池: <span id="pot-amount">0</span></div>
-          <div class="pot-blind-info" id="blind-info">SB: 10 / BB: 20</div>
-        </div>
+          <div class="community-cards-section">
+            <div class="community-cards-row" id="community-cards-flop"></div>
+            <div class="community-cards-row" id="community-cards-turn-river"></div>
+          </div>
 
         <div class="table-chip-area" id="table-chip-area"></div>
 
@@ -516,32 +504,6 @@
         });
       }
     });
-  </script>
-
-  <script>
-    (function() {
-      function isMobile() {
-        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia('(hover: none) and (pointer: coarse)').matches);
-      }
-
-      function applyScaling() {
-        if (!isMobile()) return;
-        var overlay = document.getElementById('portrait-overlay');
-        if (!overlay) return;
-        var isPortrait = window.innerHeight > window.innerWidth;
-        overlay.style.display = isPortrait ? 'flex' : 'none';
-      }
-
-      applyScaling();
-      var resizeTimer;
-      window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(applyScaling, 100);
-      });
-      window.addEventListener('orientationchange', function() {
-        setTimeout(applyScaling, 300);
-      });
-    })();
   </script>
 
   <script>
