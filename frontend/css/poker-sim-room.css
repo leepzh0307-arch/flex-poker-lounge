@@ -2,17 +2,25 @@
   --sim-bg: #1a2a1a;
   --sim-bg-dark: #0d1a0d;
   --sim-felt: #1e3a1e;
+  --sim-felt-dark: #152a15;
+  --sim-felt-border: rgba(140, 154, 132, 0.25);
   --sim-accent: #d4a843;
   --sim-red: #cc3333;
   --sim-blue: #3366cc;
   --sim-gold: #d4a843;
+  --sim-table-max-w: 560px;
 }
 
 body {
   background: var(--sim-bg-dark);
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   font-family: 'DM Sans', sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .game-header {
@@ -56,6 +64,7 @@ body {
   cursor: pointer;
   font-size: 12px;
   transition: all 0.2s;
+  touch-action: manipulation;
 }
 .btn-icon:hover { background: rgba(255,255,255,0.2); }
 .btn-icon.btn-danger { border-color: rgba(204,51,51,0.5); color: var(--sim-red); }
@@ -63,32 +72,249 @@ body {
 .icon-sm { width: 16px; height: 16px; vertical-align: middle; }
 
 .sim-game-area {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 50px);
-  background: radial-gradient(ellipse at center, var(--sim-felt) 0%, var(--sim-bg-dark) 100%);
-  position: relative;
-}
-
-.sim-table {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 8px;
+  min-height: 0;
+  padding: 4px 0 0 0;
+  background: radial-gradient(ellipse at center, var(--sim-felt) 0%, var(--sim-bg-dark) 100%);
 }
 
-.host-controls {
+.players-area {
+  position: relative;
+  flex: 1 1 auto;
+  aspect-ratio: 5 / 7;
+  max-width: calc(var(--sim-table-max-w) * 0.72);
+  min-height: 280px;
+  margin: 0 auto;
+  padding-bottom: 50px;
+  border-radius: 44% 44% 48% 48% / 42% 42% 52% 52%;
+  background: radial-gradient(ellipse at 50% 55%, var(--sim-felt) 0%, var(--sim-felt-dark) 80%);
+  border: 2px solid var(--sim-felt-border);
+  box-shadow:
+    inset 0 2px 30px rgba(45, 58, 49, 0.15),
+    inset 0 0 60px rgba(45, 58, 49, 0.08),
+    0 0 40px rgba(140, 154, 132, 0.1);
+  overflow: visible;
+  perspective: 800px;
+}
+
+.card-pile {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: grab;
+  transition: transform 0.2s;
+}
+
+.card-pile:hover {
+  transform: translateX(-50%) scale(1.08);
+}
+
+.card-pile:active {
+  cursor: grabbing;
+}
+
+.card-pile-img {
+  width: 52px;
+  height: auto;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.card-pile-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.community-cards-section {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 60px;
+  min-height: 50px;
+  border-radius: 12px;
+  padding: 8px 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.community-cards-section.drag-over {
+  background: rgba(212, 168, 67, 0.1);
+  border: 2px dashed var(--sim-accent);
+}
+
+.community-cards-section.drag-target {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.community-cards-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.table-info {
+  position: absolute;
+  top: 68%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  text-align: center;
+}
+
+.table-info-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.sim-seat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.sim-seat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 10;
+}
+
+.sim-seat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.sim-seat-name {
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sim-seat-cards {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 40px;
+  position: relative;
+}
+
+.sim-card {
+  width: 36px;
+  height: auto;
+  aspect-ratio: 951 / 1346;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  object-fit: contain;
+  transition: transform 0.15s;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.sim-card:hover {
+  transform: translateY(-4px);
+  z-index: 10;
+}
+
+.sim-seat-cards .sim-card:nth-child(n+2) {
+  margin-left: -10px;
+}
+
+.sim-seat.drag-target .sim-seat-cards {
+  border: 2px dashed var(--sim-accent);
+  border-radius: 8px;
+  padding: 2px;
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.sim-seat.drag-over .sim-seat-cards {
+  border-color: var(--sim-accent);
+  background: rgba(212, 168, 67, 0.15);
+}
+
+.sim-seat-reveal-btn {
+  font-size: 0.55rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(39, 174, 96, 0.5);
+  background: rgba(39, 174, 96, 0.2);
+  color: #27AE60;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.sim-seat-reveal-btn:hover {
+  background: rgba(39, 174, 96, 0.35);
+}
+
+.sim-seat-reveal-btn.revealed {
+  border-color: rgba(212, 175, 55, 0.5);
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--sim-gold);
+}
+
+.community-card {
+  width: 44px;
+  height: auto;
+  aspect-ratio: 951 / 1346;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  object-fit: contain;
+  transition: transform 0.15s;
+}
+
+.community-card:hover {
+  transform: translateY(-3px);
+  z-index: 10;
+}
+
+.sim-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 8px 20px;
-  background: rgba(0,0,0,0.4);
-  border-radius: 20px;
-  margin-bottom: 12px;
-  z-index: 10;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+  flex-shrink: 0;
 }
 
 .joker-toggle {
@@ -147,6 +373,7 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   color: #fff;
+  touch-action: manipulation;
 }
 
 .btn-reset {
@@ -158,132 +385,6 @@ body {
   background: linear-gradient(135deg, #27AE60, #1e8449);
 }
 .btn-reveal:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(39,174,96,0.4); }
-
-.table-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  z-index: 5;
-}
-
-.card-pile {
-  position: relative;
-  width: 80px;
-  height: 112px;
-  cursor: grab;
-  transition: transform 0.2s;
-  user-select: none;
-}
-
-.card-pile:hover {
-  transform: scale(1.05);
-}
-
-.card-pile:active {
-  cursor: grabbing;
-}
-
-.card-pile img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-.pile-count {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-  background: var(--sim-accent);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-.players-area {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
-  padding: 16px;
-  width: 100%;
-  max-width: 1200px;
-  z-index: 5;
-}
-
-.player-zone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(0,0,0,0.25);
-  border-radius: 16px;
-  border: 2px solid rgba(255,255,255,0.08);
-  min-width: 140px;
-  min-height: 120px;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.player-zone.drag-over {
-  border-color: var(--sim-accent);
-  background: rgba(212,168,67,0.1);
-}
-
-.player-zone-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.player-zone-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.player-zone-name {
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.player-zone-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  justify-content: center;
-  min-height: 60px;
-}
-
-.sim-card {
-  width: 44px;
-  height: 62px;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  object-fit: contain;
-  transition: transform 0.15s;
-  cursor: default;
-}
-
-.sim-card:hover {
-  transform: translateY(-4px);
-  z-index: 10;
-}
-
-.player-zone-cards .sim-card:nth-child(n+2) {
-  margin-left: -12px;
-}
 
 .drag-ghost {
   position: fixed;
@@ -354,24 +455,30 @@ body {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  touch-action: manipulation;
 }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
 
 @media (max-width: 768px) {
-  .sim-game-area { height: calc(100vh - 44px); }
-  .players-area { gap: 10px; padding: 8px; }
-  .player-zone { min-width: 110px; padding: 8px 10px; }
-  .sim-card { width: 36px; height: 50px; }
-  .player-zone-cards .sim-card:nth-child(n+2) { margin-left: -10px; }
-  .card-pile { width: 64px; height: 90px; }
+  .players-area { min-height: 240px; }
+  .sim-seat-avatar { width: 26px; height: 26px; }
+  .sim-seat-name { font-size: 0.6rem; max-width: 55px; }
+  .sim-card { width: 30px; }
+  .sim-seat-cards .sim-card:nth-child(n+2) { margin-left: -8px; }
+  .card-pile-img { width: 44px; }
+  .community-card { width: 36px; }
 }
 
 @media (max-width: 480px) {
   .game-header { padding: 6px 10px; }
-  .players-area { gap: 8px; }
-  .player-zone { min-width: 90px; padding: 6px 8px; }
-  .sim-card { width: 30px; height: 42px; }
-  .player-zone-cards .sim-card:nth-child(n+2) { margin-left: -8px; }
-  .card-pile { width: 52px; height: 73px; }
+  .players-area { min-height: 200px; }
+  .sim-seat-avatar { width: 22px; height: 22px; }
+  .sim-seat-name { font-size: 0.55rem; max-width: 45px; }
+  .sim-card { width: 26px; }
+  .sim-seat-cards .sim-card:nth-child(n+2) { margin-left: -6px; }
+  .card-pile-img { width: 38px; }
+  .community-card { width: 30px; }
   .game-type-badge { font-size: 12px; padding: 3px 10px; }
+  .sim-controls { gap: 8px; padding: 6px 10px; }
+  .btn-action { padding: 5px 10px; font-size: 11px; }
 }

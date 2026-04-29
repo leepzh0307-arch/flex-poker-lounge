@@ -44,19 +44,19 @@ function sendSimUpdate(roomId, io, room) {
     if (p.isAI) return;
 
     var playerCardsToSend = {};
-    if (gs.revealed) {
-      playerCardsToSend = gs.playerCards;
-    } else {
-      Object.keys(gs.playerCards).forEach(function (pid) {
-        if (pid === p.id) {
-          playerCardsToSend[pid] = gs.playerCards[pid];
-        } else {
-          playerCardsToSend[pid] = gs.playerCards[pid].map(function () {
-            return { suit: 'back', rank: 'back' };
-          });
-        }
-      });
-    }
+    Object.keys(gs.playerCards).forEach(function (pid) {
+      var isSelf = pid === p.id;
+      var isRevealedAll = gs.revealed;
+      var isRevealedIndividual = gs.revealedPlayers[pid] || false;
+
+      if (isSelf || isRevealedAll || isRevealedIndividual) {
+        playerCardsToSend[pid] = gs.playerCards[pid];
+      } else {
+        playerCardsToSend[pid] = gs.playerCards[pid].map(function () {
+          return { suit: 'back', rank: 'back' };
+        });
+      }
+    });
 
     io.to(p.id).emit('simUpdate', {
       players: room.players.map(function (op) {
@@ -69,6 +69,8 @@ function sendSimUpdate(roomId, io, room) {
       }),
       deck: gs.deck.map(function (c) { return { suit: c.suit, rank: c.rank }; }),
       playerCards: playerCardsToSend,
+      communityCards: gs.communityCards.map(function (c) { return { suit: c.suit, rank: c.rank }; }),
+      revealedPlayers: Object.assign({}, gs.revealedPlayers),
       includeJoker: gs.includeJoker,
       revealed: gs.revealed || false,
     });
@@ -98,6 +100,8 @@ module.exports = function (socket, rooms, io) {
         gameState: {
           deck: [],
           playerCards: {},
+          communityCards: [],
+          revealedPlayers: {},
           includeJoker: true,
           started: false,
           revealed: false,
@@ -155,6 +159,10 @@ module.exports = function (socket, rooms, io) {
           if (room.gameState.playerCards[oldId]) {
             room.gameState.playerCards[socket.id] = room.gameState.playerCards[oldId];
             delete room.gameState.playerCards[oldId];
+          }
+          if (room.gameState.revealedPlayers[oldId] !== undefined) {
+            room.gameState.revealedPlayers[socket.id] = room.gameState.revealedPlayers[oldId];
+            delete room.gameState.revealedPlayers[oldId];
           }
         }
 
@@ -219,6 +227,8 @@ module.exports = function (socket, rooms, io) {
       gs.includeJoker = includeJoker;
       gs.deck = createDeck(includeJoker);
       gs.started = true;
+      gs.communityCards = [];
+      gs.revealedPlayers = {};
       room.players.forEach(function (p) {
         gs.playerCards[p.id] = [];
       });
@@ -239,9 +249,21 @@ module.exports = function (socket, rooms, io) {
       sendSimUpdate(socketData.roomId, io, room);
     }
 
+    if (action === 'dealToCommunity') {
+      if (!gs.started) return;
+      if (gs.deck.length === 0) return;
+
+      var card = gs.deck.pop();
+      gs.communityCards.push(card);
+
+      sendSimUpdate(socketData.roomId, io, room);
+    }
+
     if (action === 'resetGame') {
       if (room.host !== socket.id) return;
       gs.deck = createDeck(gs.includeJoker);
+      gs.communityCards = [];
+      gs.revealedPlayers = {};
       room.players.forEach(function (p) {
         gs.playerCards[p.id] = [];
       });
@@ -256,6 +278,18 @@ module.exports = function (socket, rooms, io) {
 
     if (action === 'hideCards') {
       gs.revealed = false;
+      sendSimUpdate(socketData.roomId, io, room);
+    }
+
+    if (action === 'revealMyCards') {
+      if (!gs.started) return;
+      gs.revealedPlayers[socket.id] = true;
+      sendSimUpdate(socketData.roomId, io, room);
+    }
+
+    if (action === 'hideMyCards') {
+      if (!gs.started) return;
+      gs.revealedPlayers[socket.id] = false;
       sendSimUpdate(socketData.roomId, io, room);
     }
   });

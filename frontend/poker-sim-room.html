@@ -35,27 +35,31 @@
   </header>
 
   <main class="sim-game-area">
-    <div class="sim-table">
-      <div class="host-controls" id="host-controls" style="display:none">
-        <label class="joker-toggle">
-          <input type="checkbox" id="joker-toggle-checkbox">
-          <span class="toggle-slider"></span>
-          <span class="toggle-label">含Joker</span>
-        </label>
-        <button id="reveal-btn" class="btn btn-action btn-reveal" style="display:none">公开</button>
-        <button id="reset-btn" class="btn btn-action btn-reset">重新发牌</button>
+    <div class="players-area" id="players-area">
+      <div class="card-pile" id="card-pile">
+        <img class="card-pile-img" id="pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
+        <span class="card-pile-count" id="pile-count">54</span>
       </div>
 
-      <div class="table-center">
-        <div class="card-pile" id="card-pile">
-          <img id="pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
-          <span class="pile-count" id="pile-count">54</span>
-        </div>
+      <div class="community-cards-section" id="community-cards-section">
+        <div class="community-cards-row" id="community-cards"></div>
       </div>
 
-      <div class="players-area" id="players-area"></div>
+      <div class="table-info" id="table-info">
+        <span class="table-info-label" id="table-info-label"></span>
+      </div>
     </div>
   </main>
+
+  <div class="sim-controls" id="sim-controls" style="display:none">
+    <label class="joker-toggle">
+      <input type="checkbox" id="joker-toggle-checkbox">
+      <span class="toggle-slider"></span>
+      <span class="toggle-label">含Joker</span>
+    </label>
+    <button id="reveal-btn" class="btn btn-action btn-reveal" style="display:none">公开全部</button>
+    <button id="reset-btn" class="btn btn-action btn-reset">重新发牌</button>
+  </div>
 
   <div class="drag-ghost" id="drag-ghost" style="display:none">
     <img id="drag-ghost-img" src="" alt="" draggable="false">

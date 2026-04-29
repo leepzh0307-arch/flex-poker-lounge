@@ -8,7 +8,7 @@
 
 ## 2. 技术栈铁则
 
-- 前端：纯HTML5+CSS3+原生JavaScript（ES6+），不得用任何框架
+- 前端：纯HTML5+CSS3+原生JavaScript（ES6+）
 - 后端：Node.js + Express + Socket.io（实现联机功能）
 - 语音：声网Agora Web SDK
 - 部署：render，代码托管GitHub

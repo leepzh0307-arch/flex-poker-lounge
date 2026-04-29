@@ -556,8 +556,12 @@ class RoomUI {
 
         if (currentBet > 0 && player.isActive) {
           const initialChips = this._getInitialChips();
-          const existingChip = betEl.querySelector('.chip-display');
 
+          if (betChanged) {
+            this._animateChipToSeat(seatEl, betEl, currentBet, initialChips);
+          }
+
+          const existingChip = betEl.querySelector('.chip-display');
           if (existingChip) {
             ChipDisplay.updateChipElement(existingChip, currentBet, initialChips);
           } else {
@@ -567,45 +571,6 @@ class RoomUI {
             betEl.appendChild(chipEl);
           }
           betEl.style.display = 'flex';
-
-          if (betChanged) {
-            this._animateChipToTable(seatEl, betEl, currentBet, initialChips);
-          }
-
-          // 根据座位号确定筹码偏移方向（朝牌桌中心方向）
-          // 座位1/9/10在底部 → 筹码向上（负Y）
-          // 座位2/3在左侧 → 筹码向右（正X）
-          // 座位4/5/6在顶部 → 筹码向下（正Y）
-          // 座位7/8在右侧 → 筹码向左（负X）
-          const betOffsets = {
-            1:  { dx: 0,  dy: -1 },
-            2:  { dx: 1,  dy: 0 },
-            3:  { dx: 1,  dy: 0 },
-            4:  { dx: 0,  dy: 1 },
-            5:  { dx: 0,  dy: 1 },
-            6:  { dx: 0,  dy: 1 },
-            7:  { dx: -1, dy: 0 },
-            8:  { dx: -1, dy: 0 },
-            9:  { dx: 0,  dy: -1 },
-            10: { dx: 0,  dy: -1 }
-          };
-          const offset = betOffsets[seatIndex] || { dx: 0, dy: -1 };
-          const moveDistance = 50;
-          const tx = Math.round(offset.dx * moveDistance);
-          const ty = Math.round(offset.dy * moveDistance);
-          betEl.style.setProperty('--bet-tx', tx + 'px');
-          betEl.style.setProperty('--bet-ty', ty + 'px');
-          
-          if (betChanged) {
-            betEl.classList.remove('fade-out', 'animate', 'gather');
-            betEl.offsetHeight;
-            requestAnimationFrame(() => {
-              betEl.classList.add('animate');
-              setTimeout(() => {
-                betEl.classList.remove('animate');
-              }, 1200);
-            });
-          }
         } else {
           if (player.id) {
             this.previousBets[player.id] = 0;
@@ -761,21 +726,21 @@ class RoomUI {
     }
   }
 
-  _animateChipToTable(seatEl, betEl, amount, initialChips) {
-    var chipArea = document.getElementById('table-chip-area');
-    if (!chipArea) return;
+  _animateChipToSeat(seatEl, betEl, amount, initialChips) {
+    var tableArea = document.querySelector('.players-area');
+    if (!tableArea) return;
 
-    var tableRect = document.querySelector('.players-area').getBoundingClientRect();
+    var tableRect = tableArea.getBoundingClientRect();
+    var seatRect = seatEl.getBoundingClientRect();
     var betRect = betEl.getBoundingClientRect();
-    var areaRect = chipArea.getBoundingClientRect();
 
-    var fromX = betRect.left + betRect.width / 2 - tableRect.left;
-    var fromY = betRect.top + betRect.height / 2 - tableRect.top;
-    var toX = areaRect.left + areaRect.width / 2 - tableRect.left;
-    var toY = areaRect.top + areaRect.height / 2 - tableRect.top;
+    var fromX = seatRect.left + seatRect.width / 2 - tableRect.left;
+    var fromY = seatRect.top + seatRect.height / 2 - tableRect.top;
+    var toX = betRect.left + betRect.width / 2 - tableRect.left;
+    var toY = betRect.top + betRect.height / 2 - tableRect.top;
 
     var flyEl = document.createElement('div');
-    flyEl.className = 'chip-fly-to-table';
+    flyEl.className = 'chip-fly-to-bet';
     flyEl.style.setProperty('--chip-from-x', fromX + 'px');
     flyEl.style.setProperty('--chip-from-y', fromY + 'px');
     flyEl.style.setProperty('--chip-to-x', toX + 'px');
@@ -785,7 +750,6 @@ class RoomUI {
     chipEl.classList.add('chip-display--small');
     flyEl.appendChild(chipEl);
 
-    var tableArea = document.querySelector('.players-area');
     tableArea.appendChild(flyEl);
 
     setTimeout(function() {
@@ -1202,8 +1166,19 @@ class RoomUI {
     const startAngle = 180;
     const angleStep = 360 / numPlayers;
 
-    const rx = 38;
-    const ry = 42;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isMobile = vw < 768;
+    const isSmallMobile = vw < 480;
+
+    let rx, ry, betDist;
+    if (isSmallMobile) {
+      rx = 28; ry = 32; betDist = 10;
+    } else if (isMobile) {
+      rx = 33; ry = 37; betDist = 11;
+    } else {
+      rx = 38; ry = 42; betDist = 12;
+    }
     const cx = 50;
     const cy = 50;
 
@@ -1216,9 +1191,6 @@ class RoomUI {
       const y = cy - ry * Math.cos(rad);
 
       const normalizedAngle = ((angle % 360) + 360) % 360;
-      const distFromBottom = Math.abs(normalizedAngle - 180);
-      const maxDist = 180;
-      const perspectiveScale = 0.55 + 0.45 * (1 - distFromBottom / maxDist);
 
       const seat = this.elements.playerSeats[seatIdx];
       if (seat) {
@@ -1243,9 +1215,8 @@ class RoomUI {
       const betEl = this.elements.playerBets[seatIdx];
       if (betEl) {
         const betRad = rad;
-        const betDist = 12;
-        const bx = cx + (rx + betDist) * Math.sin(betRad);
-        const by = cy - (ry + betDist) * Math.cos(betRad);
+        const bx = cx + (rx - betDist) * Math.sin(betRad);
+        const by = cy - (ry - betDist) * Math.cos(betRad);
         betEl.style.left = bx + '%';
         betEl.style.top = by + '%';
       }

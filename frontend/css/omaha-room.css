@@ -518,7 +518,7 @@ body {
 }
 
 .seat-self .player-cards .poker-card:hover {
-  transform: rotate(0deg) translateY(-8px) scale(1.1);
+  transform: translateX(-50%) translateY(-12px) scale(1.12);
   z-index: 10;
 }
 
@@ -603,27 +603,27 @@ body {
   pointer-events: none;
 }
 
-.chip-fly-to-table {
+.chip-fly-to-bet {
   position: absolute;
   z-index: 20;
   pointer-events: none;
-  animation: chipFlyToTable 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: chipFlyToBet 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
-@keyframes chipFlyToTable {
+@keyframes chipFlyToBet {
   0% {
     left: var(--chip-from-x);
     top: var(--chip-from-y);
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
-  70% {
+  80% {
     opacity: 1;
   }
   100% {
     left: var(--chip-to-x);
     top: var(--chip-to-y);
-    transform: translate(-50%, -50%) scale(0.7);
+    transform: translate(-50%, -50%) scale(0.85);
     opacity: 0;
   }
 }
@@ -882,9 +882,6 @@ body {
   height: 28px;
 }
 
-.seat-self .player-info {
-}
-
 .player-name {
   font-size: 0.8rem;
   font-weight: 800;
@@ -953,30 +950,7 @@ body {
   color: inherit;
   font-size: inherit;
   font-weight: inherit;
-}
-
-.player-seat.pos-bottom .player-bet {
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-seat.pos-top .player-bet {
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-seat.pos-left .player-bet {
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.player-seat.pos-right .player-bet {
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .player-cards {
@@ -990,8 +964,9 @@ body {
 }
 
 .seat-self .player-cards {
-  height: 90px;
+  height: 110px;
   overflow: visible;
+  perspective: 600px;
 }
 
 .player-seat:not(.seat-self) .player-cards {
@@ -1015,6 +990,30 @@ body {
   font-size: 0.7rem;
   padding: 0;
   border-radius: var(--radius-sm);
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform-origin: bottom center;
+}
+
+.seat-self .player-cards .poker-card:nth-child(1) {
+  transform: translateX(-50%) rotate(-24deg);
+  z-index: 1;
+}
+
+.seat-self .player-cards .poker-card:nth-child(2) {
+  transform: translateX(-50%) rotate(-8deg);
+  z-index: 2;
+}
+
+.seat-self .player-cards .poker-card:nth-child(3) {
+  transform: translateX(-50%) rotate(8deg);
+  z-index: 3;
+}
+
+.seat-self .player-cards .poker-card:nth-child(4) {
+  transform: translateX(-50%) rotate(24deg);
+  z-index: 4;
 }
 
 .player-cards .poker-card:nth-child(1) {
@@ -2020,12 +2019,28 @@ body {
   }
 
   .seat-self .player-cards {
-    height: 96px;
+    height: 80px;
   }
 
   .seat-self .player-cards .poker-card {
     width: 50px;
     font-size: 0.65rem;
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(1) {
+    transform: translateX(-50%) rotate(-24deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(2) {
+    transform: translateX(-50%) rotate(-8deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(3) {
+    transform: translateX(-50%) rotate(8deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(4) {
+    transform: translateX(-50%) rotate(24deg);
   }
 
   .community-cards-row .poker-card {
@@ -2108,6 +2123,22 @@ body {
   .seat-self .player-cards .poker-card {
     width: 56px;
     font-size: 0.7rem;
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(1) {
+    transform: translateX(-50%) rotate(-24deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(2) {
+    transform: translateX(-50%) rotate(-8deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(3) {
+    transform: translateX(-50%) rotate(8deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(4) {
+    transform: translateX(-50%) rotate(24deg);
   }
 
   .community-cards-row .poker-card {
@@ -2206,7 +2237,7 @@ body {
   }
 
   .seat-self .player-cards {
-    height: 54px;
+    height: 60px;
   }
 
   .player-cards .poker-card {
@@ -2218,16 +2249,26 @@ body {
     font-size: 0.55rem;
   }
 
+  .seat-self .player-cards .poker-card:nth-child(1) {
+    transform: translateX(-50%) rotate(-20deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(2) {
+    transform: translateX(-50%) rotate(-7deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(3) {
+    transform: translateX(-50%) rotate(7deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(4) {
+    transform: translateX(-50%) rotate(20deg);
+  }
+
   .player-cards .poker-card:nth-child(2),
   .player-cards .poker-card:nth-child(3),
   .player-cards .poker-card:nth-child(4) {
     margin-left: -18px;
-  }
-
-  .seat-self .player-cards .poker-card:nth-child(2),
-  .seat-self .player-cards .poker-card:nth-child(3),
-  .seat-self .player-cards .poker-card:nth-child(4) {
-    margin-left: -28px;
   }
 
   .community-cards-row .poker-card {
@@ -2466,7 +2507,7 @@ body {
   }
 
   .seat-self .player-cards {
-    height: 46px;
+    height: 50px;
   }
 
   .player-cards .poker-card {
@@ -2478,16 +2519,26 @@ body {
     font-size: 0.5rem;
   }
 
+  .seat-self .player-cards .poker-card:nth-child(1) {
+    transform: translateX(-50%) rotate(-18deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(2) {
+    transform: translateX(-50%) rotate(-6deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(3) {
+    transform: translateX(-50%) rotate(6deg);
+  }
+
+  .seat-self .player-cards .poker-card:nth-child(4) {
+    transform: translateX(-50%) rotate(18deg);
+  }
+
   .player-cards .poker-card:nth-child(2),
   .player-cards .poker-card:nth-child(3),
   .player-cards .poker-card:nth-child(4) {
     margin-left: -14px;
-  }
-
-  .seat-self .player-cards .poker-card:nth-child(2),
-  .seat-self .player-cards .poker-card:nth-child(3),
-  .seat-self .player-cards .poker-card:nth-child(4) {
-    margin-left: -22px;
   }
 
   .community-cards-row .poker-card {
@@ -2673,26 +2724,23 @@ body {
 }
 
 .seat-self .player-cards .poker-card:nth-child(1) {
-  transform: rotate(-18deg) translateY(4px);
+  transform: translateX(-50%) rotate(-24deg);
 }
 
 .seat-self .player-cards .poker-card:nth-child(2) {
-  transform: rotate(-6deg) translateY(1px);
-  margin-left: -40px;
+  transform: translateX(-50%) rotate(-8deg);
 }
 
 .seat-self .player-cards .poker-card:nth-child(3) {
-  transform: rotate(6deg) translateY(1px);
-  margin-left: -40px;
+  transform: translateX(-50%) rotate(8deg);
 }
 
 .seat-self .player-cards .poker-card:nth-child(4) {
-  transform: rotate(18deg) translateY(4px);
-  margin-left: -40px;
+  transform: translateX(-50%) rotate(24deg);
 }
 
 .seat-self .player-cards {
-  height: 100px;
+  height: 110px;
 }
 
 .poker-power-text {

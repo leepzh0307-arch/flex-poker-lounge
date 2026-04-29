@@ -462,9 +462,23 @@ function omahaMoveToNextPlayer(room, roomId, io, rooms) {
     return;
   }
 
+  if (omahaIsBettingRoundComplete(room)) {
+    omahaEndBettingRound(room, roomId, io, rooms);
+    return;
+  }
+
   var currentId = room.gameState.currentPlayer;
   var currentIdx = activePlayers.findIndex(function(p) { return p.id === currentId; });
-  if (currentIdx === -1) currentIdx = activePlayers.length - 1;
+
+  if (currentIdx === -1) {
+    var foldedPlayer = room.players.find(function(p) { return p.id === currentId; });
+    if (foldedPlayer) {
+      currentIdx = activePlayers.findIndex(function(p) { return p.seat > foldedPlayer.seat; });
+      if (currentIdx === -1) currentIdx = activePlayers.length - 1;
+    } else {
+      currentIdx = activePlayers.length - 1;
+    }
+  }
 
   var attempts = 0;
   while (attempts < activePlayers.length) {
@@ -551,23 +565,7 @@ function omahaHandleFold(room, roomId, io, playerId, rooms) {
     return;
   }
 
-  var startSeatIndex = player.seat - 1;
-  var nextPlayer = findNextActivePlayerClockwise(room, startSeatIndex);
-  if (!nextPlayer) {
-    omahaMoveToNextPlayer(room, roomId, io, rooms);
-    return;
-  }
-
-  room.gameState.currentPlayer = nextPlayer.id;
-  nextPlayer.isTurn = true;
-  nextPlayer.hasActed = true;
-  room.gameState.playersActedThisRound.add(nextPlayer.id);
-
-  omahaSendUpdate(room, roomId, io, '轮到 ' + nextPlayer.nickname + ' 行动');
-
-  if (nextPlayer.isAI) {
-    omahaScheduleAiAction(room, roomId, io, nextPlayer, rooms);
-  }
+  omahaMoveToNextPlayer(room, roomId, io, rooms);
 }
 
 function omahaHandleCheck(room, roomId, io, playerId, rooms) {
@@ -1173,7 +1171,12 @@ function omahaScheduleAiAction(room, roomId, io, aiPlayer, rooms) {
     if (idx !== -1) room._aiTimerIds.splice(idx, 1);
     try {
       if (!room || room.gameState.currentPlayer !== aiPlayer.id) return;
-      if (!aiPlayer.isActive || aiPlayer.chips === 0) return;
+      if (!aiPlayer.isActive || aiPlayer.chips === 0) {
+        if (aiPlayer.isActive && aiPlayer.chips === 0) {
+          omahaMoveToNextPlayer(room, roomId, io, rooms);
+        }
+        return;
+      }
 
       var gameState = omahaBuildAiGameState(room, aiPlayer);
       var decision = makeDecision(aiPlayer.aiDifficulty || 'medium', gameState, aiPlayer.id);
@@ -1210,6 +1213,16 @@ function omahaScheduleAiAction(room, roomId, io, aiPlayer, rooms) {
     }
   }, thinkTime);
   omahaTrackAiTimer(room, timerId);
+
+  var safetyTimerId = setTimeout(function() {
+    var sIdx = room._aiTimerIds ? room._aiTimerIds.indexOf(safetyTimerId) : -1;
+    if (sIdx !== -1) room._aiTimerIds.splice(sIdx, 1);
+    if (room && room.gameState.currentPlayer === aiPlayer.id && aiPlayer.isActive) {
+      console.warn('[奥马哈AI] 安全超时：强制 ' + aiPlayer.nickname + ' 弃牌');
+      omahaHandleFold(room, roomId, io, aiPlayer.id, rooms);
+    }
+  }, Math.max(thinkTime + 5000, 10000));
+  omahaTrackAiTimer(room, safetyTimerId);
 }
 
 function omahaBuildAiGameState(room, aiPlayer) {

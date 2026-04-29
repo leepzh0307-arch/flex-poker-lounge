@@ -1,7 +1,4 @@
 var PokerSimGameManager = (function () {
-  var SUITS = ['spades', 'hearts', 'diamonds', 'clubs'];
-  var RANKS = ['02', '03', '04', '05', '06', '07', '08', '09', '10', 'J', 'Q', 'K', 'A'];
-
   function GameManager() {
     this.socket = null;
     this.roomId = null;
@@ -10,7 +7,10 @@ var PokerSimGameManager = (function () {
     this.players = [];
     this.deck = [];
     this.playerCards = {};
+    this.communityCards = [];
+    this.revealedPlayers = {};
     this.includeJoker = true;
+    this.revealed = false;
     this.isDragging = false;
     this.dragCard = null;
     this.dragGhost = null;
@@ -90,6 +90,7 @@ var PokerSimGameManager = (function () {
 
     this.bindUI();
     this.bindDragDrop();
+    window.addEventListener('resize', function () { self.repositionSeats(); });
     window.pokerSimGameManager = this;
   };
 
@@ -130,7 +131,7 @@ var PokerSimGameManager = (function () {
           data: { includeJoker: self.includeJoker },
         });
         self.showHostPanel(false);
-        self.showHostControls(true);
+        self.showSimControls(true);
       });
     }
 
@@ -185,13 +186,13 @@ var PokerSimGameManager = (function () {
     if (!pile || !ghost) return;
 
     pile.addEventListener('mousedown', function (e) {
-      if (self.deck.length === 0) return;
+      if (self.deck.length === 0 || !self.isHost) return;
       e.preventDefault();
       self.startDrag(e.clientX, e.clientY, ghost, ghostImg);
     });
 
     pile.addEventListener('touchstart', function (e) {
-      if (self.deck.length === 0) return;
+      if (self.deck.length === 0 || !self.isHost) return;
       e.preventDefault();
       var t = e.touches[0];
       self.startDrag(t.clientX, t.clientY, ghost, ghostImg);
@@ -229,10 +230,12 @@ var PokerSimGameManager = (function () {
     ghost.style.left = (x - 30) + 'px';
     ghost.style.top = (y - 42) + 'px';
 
-    var playersArea = document.getElementById('players-area');
-    if (playersArea) {
-      var zones = playersArea.querySelectorAll('.player-zone');
-      zones.forEach(function (z) { z.classList.add('drag-target'); });
+    var area = document.getElementById('players-area');
+    if (area) {
+      var seats = area.querySelectorAll('.sim-seat');
+      seats.forEach(function (s) { s.classList.add('drag-target'); });
+      var comm = document.getElementById('community-cards-section');
+      if (comm) comm.classList.add('drag-target');
     }
   };
 
@@ -240,17 +243,27 @@ var PokerSimGameManager = (function () {
     ghost.style.left = (x - 30) + 'px';
     ghost.style.top = (y - 42) + 'px';
 
-    var playersArea = document.getElementById('players-area');
-    if (playersArea) {
-      var zones = playersArea.querySelectorAll('.player-zone');
-      zones.forEach(function (z) {
-        var rect = z.getBoundingClientRect();
+    var area = document.getElementById('players-area');
+    if (area) {
+      var seats = area.querySelectorAll('.sim-seat');
+      seats.forEach(function (s) {
+        var rect = s.getBoundingClientRect();
         if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-          z.classList.add('drag-over');
+          s.classList.add('drag-over');
         } else {
-          z.classList.remove('drag-over');
+          s.classList.remove('drag-over');
         }
       });
+
+      var comm = document.getElementById('community-cards-section');
+      if (comm) {
+        var rect = comm.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          comm.classList.add('drag-over');
+        } else {
+          comm.classList.remove('drag-over');
+        }
+      }
     }
   };
 
@@ -259,17 +272,30 @@ var PokerSimGameManager = (function () {
     ghost.style.display = 'none';
 
     var targetPlayerId = null;
-    var playersArea = document.getElementById('players-area');
-    if (playersArea) {
-      var zones = playersArea.querySelectorAll('.player-zone');
-      zones.forEach(function (z) {
-        z.classList.remove('drag-over');
-        z.classList.remove('drag-target');
-        var rect = z.getBoundingClientRect();
+    var targetCommunity = false;
+
+    var area = document.getElementById('players-area');
+    if (area) {
+      var seats = area.querySelectorAll('.sim-seat');
+      seats.forEach(function (s) {
+        s.classList.remove('drag-over');
+        s.classList.remove('drag-target');
+        var rect = s.getBoundingClientRect();
         if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-          targetPlayerId = z.getAttribute('data-player-id');
+          targetPlayerId = s.getAttribute('data-player-id');
         }
       });
+
+      var comm = document.getElementById('community-cards-section');
+      if (comm) {
+        comm.classList.remove('drag-over');
+        comm.classList.remove('drag-target');
+        if (targetPlayerId) return;
+        var rect = comm.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          targetCommunity = true;
+        }
+      }
     }
 
     if (targetPlayerId && this.dragCard) {
@@ -277,15 +303,20 @@ var PokerSimGameManager = (function () {
         action: 'dealCard',
         data: { playerId: targetPlayerId },
       });
+    } else if (targetCommunity && this.dragCard) {
+      this.socket.emit('pokerSimAction', {
+        action: 'dealToCommunity',
+        data: {},
+      });
     }
 
     this.dragCard = null;
   };
 
   GameManager.prototype.getCardImageSrc = function (card) {
+    if (!card) return '';
     if (card.suit === 'back') {
-      var backSrc = typeof ThemeManager !== 'undefined' ? ThemeManager.getCardBackSrc() : 'images/Cards/card_back2.svg';
-      return backSrc;
+      return typeof ThemeManager !== 'undefined' ? ThemeManager.getCardBackSrc() : 'images/Cards/card_back2.svg';
     }
     if (card.suit === 'joker') {
       return 'images/Cards/card_joker_' + (card.rank === 'red' ? 'red' : 'black') + '.png';
@@ -297,52 +328,83 @@ var PokerSimGameManager = (function () {
     this.players = data.players || [];
     this.deck = data.deck || [];
     this.playerCards = data.playerCards || {};
+    this.communityCards = data.communityCards || [];
+    this.revealedPlayers = data.revealedPlayers || {};
     this.includeJoker = data.includeJoker !== undefined ? data.includeJoker : this.includeJoker;
     this.revealed = data.revealed || false;
 
-    this.renderPlayers();
+    this.renderSeats();
+    this.renderCommunityCards();
     this.updatePileCount();
-    this.updateHostControls();
+    this.updateSimControls();
     this.updateRevealButton();
+    this.updateTableInfo();
 
     var gameStarted = data.deck && data.deck.length > 0;
-    var hasPlayerCards = Object.keys(data.playerCards || {}).some(function (pid) {
+    var hasCards = Object.keys(data.playerCards || {}).some(function (pid) {
       return (data.playerCards[pid] || []).length > 0;
     });
-    if (gameStarted || hasPlayerCards) {
-      this.showHostControls(true);
+    if (gameStarted || hasCards || (data.communityCards || []).length > 0) {
+      this.showSimControls(true);
     }
   };
 
-  GameManager.prototype.renderPlayers = function () {
-    var container = document.getElementById('players-area');
-    if (!container) return;
-    container.innerHTML = '';
-
+  GameManager.prototype.renderSeats = function () {
     var self = this;
-    this.players.forEach(function (player) {
-      var zone = document.createElement('div');
-      zone.className = 'player-zone';
-      zone.setAttribute('data-player-id', player.id);
+    var area = document.getElementById('players-area');
+    if (!area) return;
 
-      var header = document.createElement('div');
-      header.className = 'player-zone-header';
+    var existingSeats = area.querySelectorAll('.sim-seat');
+    var seatMap = {};
+    existingSeats.forEach(function (s) {
+      seatMap[s.getAttribute('data-player-id')] = s;
+    });
+
+    this.players.forEach(function (player) {
+      var seat = seatMap[player.id];
+      if (!seat) {
+        seat = document.createElement('div');
+        seat.className = 'sim-seat';
+        seat.setAttribute('data-player-id', player.id);
+        area.appendChild(seat);
+        delete seatMap[player.id];
+      }
+
+      seat.innerHTML = '';
+
+      var info = document.createElement('div');
+      info.className = 'sim-seat-info';
 
       var avatar = document.createElement('img');
-      avatar.className = 'player-zone-avatar';
+      avatar.className = 'sim-seat-avatar';
       avatar.src = 'images/avatars/' + (player.avatar || 'bear') + '.gif';
       avatar.alt = player.nickname;
-      header.appendChild(avatar);
+      info.appendChild(avatar);
 
       var name = document.createElement('div');
-      name.className = 'player-zone-name';
+      name.className = 'sim-seat-name';
       name.textContent = player.nickname || '--';
-      header.appendChild(name);
+      info.appendChild(name);
 
-      zone.appendChild(header);
+      if (player.id === self.playerId) {
+        var revealBtn = document.createElement('button');
+        revealBtn.className = 'sim-seat-reveal-btn';
+        var isRevealed = self.revealedPlayers[player.id] || false;
+        revealBtn.textContent = isRevealed ? '已公开' : '公开手牌';
+        if (isRevealed) revealBtn.classList.add('revealed');
+        revealBtn.addEventListener('click', function () {
+          self.socket.emit('pokerSimAction', {
+            action: isRevealed ? 'hideMyCards' : 'revealMyCards',
+            data: {},
+          });
+        });
+        info.appendChild(revealBtn);
+      }
+
+      seat.appendChild(info);
 
       var cardsDiv = document.createElement('div');
-      cardsDiv.className = 'player-zone-cards';
+      cardsDiv.className = 'sim-seat-cards';
 
       var cards = self.playerCards[player.id] || [];
       cards.forEach(function (card) {
@@ -354,8 +416,66 @@ var PokerSimGameManager = (function () {
         cardsDiv.appendChild(img);
       });
 
-      zone.appendChild(cardsDiv);
-      container.appendChild(zone);
+      seat.appendChild(cardsDiv);
+    });
+
+    Object.keys(seatMap).forEach(function (pid) {
+      if (seatMap[pid] && seatMap[pid].parentNode) {
+        seatMap[pid].parentNode.removeChild(seatMap[pid]);
+      }
+    });
+
+    this.repositionSeats();
+  };
+
+  GameManager.prototype.repositionSeats = function () {
+    var area = document.getElementById('players-area');
+    if (!area) return;
+
+    var seats = area.querySelectorAll('.sim-seat');
+    var count = seats.length;
+    if (count === 0) return;
+
+    var w = area.clientWidth;
+    var h = area.clientHeight;
+    var rx = w * 0.40;
+    var ry = h * 0.38;
+    var cx = w * 0.50;
+    var cy = h * 0.52;
+
+    var myIndex = -1;
+    seats.forEach(function (s, i) {
+      if (s.getAttribute('data-player-id') === window.pokerSimGameManager.playerId) {
+        myIndex = i;
+      }
+    });
+
+    seats.forEach(function (seat, i) {
+      var angleOffset = myIndex >= 0 ? -Math.PI / 2 - (myIndex * 2 * Math.PI / count) : -Math.PI / 2;
+      var angle = angleOffset + (i * 2 * Math.PI / count);
+
+      var x = cx + rx * Math.cos(angle);
+      var y = cy + ry * Math.sin(angle);
+
+      seat.style.left = x + 'px';
+      seat.style.top = y + 'px';
+      seat.style.transform = 'translate(-50%, -50%)';
+    });
+  };
+
+  GameManager.prototype.renderCommunityCards = function () {
+    var self = this;
+    var row = document.getElementById('community-cards');
+    if (!row) return;
+    row.innerHTML = '';
+
+    this.communityCards.forEach(function (card) {
+      var img = document.createElement('img');
+      img.className = 'community-card';
+      img.src = self.getCardImageSrc(card);
+      img.alt = card.suit + ' ' + card.rank;
+      img.draggable = false;
+      row.appendChild(img);
     });
   };
 
@@ -369,20 +489,49 @@ var PokerSimGameManager = (function () {
     }
   };
 
-  GameManager.prototype.updateHostControls = function () {
+  GameManager.prototype.updateSimControls = function () {
     var jokerCb = document.getElementById('joker-toggle-checkbox');
     if (jokerCb) jokerCb.checked = this.includeJoker;
+
+    var resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.style.display = this.isHost ? 'inline-block' : 'none';
   };
 
   GameManager.prototype.updateRevealButton = function () {
     var revealBtn = document.getElementById('reveal-btn');
     if (!revealBtn) return;
-    if (this.deck.length === 0) {
+    if (!this.isHost) {
+      revealBtn.style.display = 'none';
+      return;
+    }
+    var hasAnyCards = Object.keys(this.playerCards).some(function (pid) {
+      return (this.playerCards[pid] || []).length > 0;
+    }.bind(this)) || this.communityCards.length > 0;
+
+    if (!hasAnyCards) {
       revealBtn.style.display = 'none';
       return;
     }
     revealBtn.style.display = 'inline-block';
-    revealBtn.textContent = this.revealed ? '隐藏' : '公开';
+    revealBtn.textContent = this.revealed ? '隐藏全部' : '公开全部';
+  };
+
+  GameManager.prototype.updateTableInfo = function () {
+    var label = document.getElementById('table-info-label');
+    if (!label) return;
+    var totalDealt = 0;
+    var self = this;
+    Object.keys(this.playerCards).forEach(function (pid) {
+      totalDealt += (self.playerCards[pid] || []).length;
+    });
+    totalDealt += this.communityCards.length;
+    if (totalDealt > 0) {
+      label.textContent = '已发 ' + totalDealt + ' 张 / 剩余 ' + this.deck.length + ' 张';
+    } else if (this.deck.length > 0) {
+      label.textContent = '牌堆: ' + this.deck.length + ' 张';
+    } else {
+      label.textContent = '';
+    }
   };
 
   GameManager.prototype.showHostPanel = function (show) {
@@ -390,11 +539,9 @@ var PokerSimGameManager = (function () {
     if (panel) panel.style.display = show ? 'flex' : 'none';
   };
 
-  GameManager.prototype.showHostControls = function (show) {
-    var controls = document.getElementById('host-controls');
+  GameManager.prototype.showSimControls = function (show) {
+    var controls = document.getElementById('sim-controls');
     if (controls) controls.style.display = show ? 'flex' : 'none';
-    var resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) resetBtn.style.display = (show && this.isHost) ? 'inline-block' : 'none';
   };
 
   GameManager.prototype.updateRoomId = function (id) {
