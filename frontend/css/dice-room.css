@@ -253,6 +253,57 @@ body {
   border-top: 1px solid var(--dice-stone);
 }
 
+/* ===== 摇骰子浮动按钮 ===== */
+.roll-float-btn {
+  position: fixed;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--dice-accent-dark), #3D4A41);
+  color: #fff;
+  font-family: var(--dice-font-body);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 0 8px 24px rgba(45, 58, 49, 0.3), 0 2px 8px rgba(45, 58, 49, 0.15);
+  transition: all 0.3s ease;
+  animation: roll-btn-pulse 2s ease-in-out infinite;
+}
+
+.roll-float-btn:hover {
+  transform: translateX(-50%) translateY(-3px);
+  box-shadow: 0 12px 32px rgba(45, 58, 49, 0.35), 0 4px 12px rgba(45, 58, 49, 0.2);
+}
+
+.roll-float-btn:active {
+  transform: translateX(-50%) translateY(0);
+  box-shadow: 0 4px 12px rgba(45, 58, 49, 0.25);
+  animation: none;
+}
+
+.roll-float-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.roll-float-text {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+@keyframes roll-btn-pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(45, 58, 49, 0.3), 0 2px 8px rgba(45, 58, 49, 0.15); }
+  50% { box-shadow: 0 8px 32px rgba(45, 58, 49, 0.4), 0 2px 12px rgba(45, 58, 49, 0.25); }
+}
+
 .my-info-row {
   display: flex;
   align-items: center;
@@ -619,6 +670,9 @@ body {
   .game-over-content { padding: 24px; }
   .game-over-content h2 { font-size: 22px; }
   .dice-canvas-wrapper { max-height: 35vh; min-height: 100px; }
+  .roll-float-btn { bottom: 120px; padding: 12px 28px; }
+  .roll-float-icon { font-size: 20px; }
+  .roll-float-text { font-size: 15px; }
 }
 
 @media (max-width: 480px) {
@@ -645,4 +699,7 @@ body {
   .public-dice-area { padding: 8px; }
   .public-die { width: 22px; height: 22px; font-size: 11px; }
   .public-player-name { font-size: 10px; min-width: 40px; }
+  .roll-float-btn { bottom: 100px; padding: 10px 22px; }
+  .roll-float-icon { font-size: 18px; }
+  .roll-float-text { font-size: 14px; }
 }

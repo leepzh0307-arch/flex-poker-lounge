@@ -2,7 +2,8 @@ class OmahaRoomUI {
   constructor() {
     this.elements = {
       roomId: document.getElementById('room-id'),
-      communityCards: document.getElementById('community-cards'),
+      communityCardsFlop: document.getElementById('community-cards-flop'),
+      communityCardsTurnRiver: document.getElementById('community-cards-turn-river'),
       playerSeats: [],
       positionBadges: [],
       playerBets: [],
@@ -372,31 +373,47 @@ class OmahaRoomUI {
     const newCards = cards ? cards.filter(c => c && !c.hidden) : [];
     const newCount = newCards.length;
 
-    this.elements.communityCards.innerHTML = '';
+    if (!this.elements.communityCardsFlop || !this.elements.communityCardsTurnRiver) {
+      return;
+    }
+
+    this.elements.communityCardsFlop.innerHTML = '';
+    this.elements.communityCardsTurnRiver.innerHTML = '';
+
+    const createPlaceholder = () => {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'poker-card empty-slot';
+      return placeholder;
+    };
+
+    const addCardToRow = (card, container, isAnimated, animDelay) => {
+      if (card) {
+        const cardElement = this.createCardElement(card);
+        if (isAnimated) {
+          cardElement.classList.add('dealing');
+          cardElement.style.animationDelay = `${animDelay}ms`;
+          cardElement.style.opacity = '0';
+          this._setDealFromPile(cardElement);
+          const animDuration = 400;
+          setTimeout(() => {
+            cardElement.style.opacity = '';
+            if (window.pokerSoundManager) pokerSoundManager.dealCard();
+          }, animDelay + animDuration);
+        }
+        container.appendChild(cardElement);
+      } else {
+        container.appendChild(createPlaceholder());
+      }
+    };
 
     if (newCount > prevCount && newCount > 0) {
       const dealDelay = Math.round(200 * speedMultiplier);
 
       for (let i = 0; i < 5; i++) {
-        if (cards && cards[i]) {
-          const cardElement = this.createCardElement(cards[i]);
-          if (i >= prevCount && i < newCount) {
-            cardElement.classList.add('dealing');
-            cardElement.style.animationDelay = `${(i - prevCount) * dealDelay}ms`;
-            cardElement.style.opacity = '0';
-            this._setDealFromPile(cardElement);
-            setTimeout(() => {
-              cardElement.style.opacity = '';
-              if (window.pokerSoundManager) pokerSoundManager.dealCard();
-            }, (i - prevCount) * dealDelay + 400);
-          }
-          this.elements.communityCards.appendChild(cardElement);
-        } else {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'poker-card back';
-          placeholder.style.opacity = '0.3';
-          this.elements.communityCards.appendChild(placeholder);
-        }
+        const container = i < 3 ? this.elements.communityCardsFlop : this.elements.communityCardsTurnRiver;
+        const isAnimated = i >= prevCount && i < newCount;
+        const animDelay = isAnimated ? (i - prevCount) * dealDelay : 0;
+        addCardToRow(cards && cards[i] ? cards[i] : null, container, isAnimated, animDelay);
       }
 
       if (newCount === 3 && prevCount < 3 && window.pokerSoundManager) {
@@ -408,14 +425,8 @@ class OmahaRoomUI {
       }
     } else {
       for (let i = 0; i < 5; i++) {
-        if (cards && cards[i]) {
-          this.elements.communityCards.appendChild(this.createCardElement(cards[i]));
-        } else {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'poker-card back';
-          placeholder.style.opacity = '0.3';
-          this.elements.communityCards.appendChild(placeholder);
-        }
+        const container = i < 3 ? this.elements.communityCardsFlop : this.elements.communityCardsTurnRiver;
+        addCardToRow(cards && cards[i] ? cards[i] : null, container, false, 0);
       }
     }
 

@@ -213,7 +213,7 @@ var DiceRoomUI = (function () {
     var iConfirmed = me && me.confirmed;
 
     if (this.elements.rollBtn) {
-      this.elements.rollBtn.style.display = (phase === 'ROLLING' && isMyTurn && !hasRolled) ? 'inline-block' : 'none';
+      this.elements.rollBtn.style.display = (phase === 'ROLLING' && isMyTurn && !hasRolled) ? 'flex' : 'none';
     }
     if (this.elements.revealSelfBtn) {
       this.elements.revealSelfBtn.style.display = (phase === 'ROLLING' && hasRolled && !me.diceRevealed) ? 'inline-block' : 'none';

@@ -164,8 +164,8 @@ class OmahaGameManager {
 
     console.log(`[奥马哈前端状态] phase=${phase}, currentPlayer=${gameState.currentPlayer}, myId=${this.gameState.myPlayerId}, isMyTurn=${gameState.currentPlayer === this.gameState.myPlayerId}`);
 
-    if (updates.communityCards) {
-      omahaRoomUI.updateCommunityCards(gameState.communityCards || []);
+    if (updates.communityCards || updates.gamePhase) {
+      omahaRoomUI.updateCommunityCards(this.gameState.communityCards || []);
     }
 
     omahaRoomUI.updatePhaseIndicator(phase);

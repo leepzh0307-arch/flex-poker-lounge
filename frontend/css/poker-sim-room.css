@@ -55,6 +55,7 @@ body {
   min-height: 0;
   background: var(--sim-bg);
   position: relative;
+  padding-top: 4px;
 }
 
 /* ===== 高透明度区域提示 ===== */
@@ -79,10 +80,13 @@ body {
   justify-content: center;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 10px 6px;
+  padding: 6px 10px;
   flex-wrap: wrap;
   flex-shrink: 0;
   position: relative;
+  min-height: 40px;
+  max-height: 25vh;
+  overflow-y: auto;
 }
 
 .sim-zone-hint {
@@ -174,6 +178,7 @@ body {
   gap: 16px;
   padding: 8px 16px;
   flex-shrink: 0;
+  max-height: 40vh;
 }
 
 .sim-middle-left {
@@ -241,6 +246,7 @@ body {
   box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.03);
   transition: all 0.3s ease;
   position: relative;
+  margin: 0 auto;
 }
 
 .community-cards-section.drag-over {
@@ -264,7 +270,7 @@ body {
   justify-content: center;
   align-items: flex-end;
   position: relative;
-  min-height: 80px;
+  min-height: 50px;
   width: 100%;
 }
 
@@ -301,14 +307,17 @@ body {
 
 /* ===== 本玩家区域 ===== */
 .sim-self-area {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  padding: 4px 12px 12px;
-  min-height: 0;
+  padding: 8px 12px 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  min-height: 100px;
+  max-height: 40vh;
+  overflow: visible;
 }
 
 .sim-self-cards-wrapper {
@@ -618,12 +627,13 @@ body {
   .card-pile-img { width: 40px; }
   .community-card { width: 44px; }
   .community-cards-section { min-width: 160px; min-height: 110px; }
-  .sim-middle-area { gap: 12px; padding: 6px 10px; }
+  .sim-middle-area { gap: 12px; padding: 6px 10px; max-height: 35vh; }
+  .sim-self-area { min-height: 90px; max-height: 35vh; }
 }
 
 @media (max-width: 480px) {
   .game-header { padding: 6px 10px; }
-  .sim-top-players { gap: 5px; padding: 6px 4px 2px; }
+  .sim-top-players { gap: 5px; padding: 6px 4px 2px; max-height: 20vh; }
   .sim-other-player { padding: 4px 6px; min-width: 56px; border-radius: 20px; }
   .sim-other-avatar { width: 22px; height: 22px; }
   .sim-other-name { font-size: 0.6rem; max-width: 48px; }
@@ -636,9 +646,10 @@ body {
   .sim-controls { gap: 6px; padding: 6px 10px; }
   .btn-action { padding: 4px 10px; font-size: 10px; }
   .sim-self-name { font-size: 0.8rem; }
-  .sim-middle-area { gap: 8px; padding: 4px 8px; }
+  .sim-middle-area { gap: 8px; padding: 4px 8px; max-height: 30vh; }
   .card-pile { padding: 6px; border-radius: 20px; }
   .sim-self-info { padding: 4px 10px; border-radius: 20px; }
   .community-hint-text { font-size: 11px; letter-spacing: 2px; }
   .self-hint-text { font-size: 9px; letter-spacing: 2px; }
+  .sim-self-area { min-height: 80px; max-height: 30vh; padding: 6px 8px 10px; }
 }
