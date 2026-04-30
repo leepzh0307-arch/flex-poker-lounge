@@ -133,23 +133,110 @@ function handleRollResult(room, roomId, io, playerId, values) {
   sendDiceUpdate(roomId, io, room);
 }
 
-function handleRevealAll(room, roomId, io, playerId) {
+function handleRevealSelf(room, roomId, io, playerId) {
+  var gs = room.gameState;
+  if (gs.phase !== 'ROLLING') return;
+
+  if (!gs.playerDice[playerId] || gs.playerDice[playerId].length === 0) return;
+
+  gs.playerRevealed[playerId] = true;
+
+  var allRevealed = room.players.every(function (p) {
+    return gs.playerRevealed[p.id];
+  });
+
+  if (allRevealed) {
+    gs.phase = 'REVEAL';
+    gs.revealerId = playerId;
+    gs.currentPlayerId = null;
+  }
+
+  sendDiceUpdate(roomId, io, room);
+}
+
+function handleRequestRevealAll(room, roomId, io, playerId) {
   var gs = room.gameState;
   if (gs.phase !== 'ROLLING') return;
 
   var allRolled = room.players.every(function (p) {
     return gs.playerDice[p.id] && gs.playerDice[p.id].length > 0;
   });
-
   if (!allRolled) return;
 
-  gs.phase = 'REVEAL';
-  gs.revealerId = playerId;
-  gs.currentPlayerId = null;
+  gs.revealAllVotes = {};
+  gs.revealAllVotes[playerId] = true;
+  gs.revealAllRequester = playerId;
+
+  var requester = room.players.find(function (p) { return p.id === playerId; });
+  var requesterName = requester ? requester.nickname : '有人';
+
+  var totalVoters = room.players.filter(function (p) { return !p.isAI; }).length;
+  var agreedCount = Object.keys(gs.revealAllVotes).length;
+
+  var aiPlayers = room.players.filter(function (p) { return p.isAI; });
+  aiPlayers.forEach(function (ai) {
+    gs.revealAllVotes[ai.id] = true;
+    agreedCount++;
+  });
+
+  if (agreedCount >= totalVoters + aiPlayers.length) {
+    gs.phase = 'REVEAL';
+    gs.revealerId = playerId;
+    gs.currentPlayerId = null;
+    room.players.forEach(function (p) {
+      gs.playerRevealed[p.id] = true;
+    });
+    gs.revealAllVotes = null;
+    gs.revealAllRequester = null;
+    sendDiceUpdate(roomId, io, room);
+    return;
+  }
 
   room.players.forEach(function (p) {
-    gs.playerRevealed[p.id] = true;
+    if (p.isAI || p.id === playerId) return;
+    io.to(p.id).emit('diceAction', {
+      type: 'revealAllVote',
+      requesterName: requesterName,
+      voteStatus: { agreed: agreedCount, total: totalVoters + aiPlayers.length },
+    });
   });
+
+  sendDiceUpdate(roomId, io, room);
+}
+
+function handleVoteRevealAll(room, roomId, io, playerId, vote) {
+  var gs = room.gameState;
+  if (!gs.revealAllVotes) return;
+
+  gs.revealAllVotes[playerId] = vote;
+
+  if (!vote) {
+    room.players.forEach(function (p) {
+      if (!p.isAI) {
+        io.to(p.id).emit('diceAction', { type: 'revealAllRejected' });
+      }
+    });
+    gs.revealAllVotes = null;
+    gs.revealAllRequester = null;
+    sendDiceUpdate(roomId, io, room);
+    return;
+  }
+
+  var totalPlayers = room.players.length;
+  var agreedCount = Object.keys(gs.revealAllVotes).filter(function (pid) {
+    return gs.revealAllVotes[pid] === true;
+  }).length;
+
+  if (agreedCount >= totalPlayers) {
+    gs.phase = 'REVEAL';
+    gs.revealerId = gs.revealAllRequester;
+    gs.currentPlayerId = null;
+    room.players.forEach(function (p) {
+      gs.playerRevealed[p.id] = true;
+    });
+    gs.revealAllVotes = null;
+    gs.revealAllRequester = null;
+  }
 
   sendDiceUpdate(roomId, io, room);
 }
@@ -475,8 +562,14 @@ module.exports = function (socket, rooms, io) {
         case 'rollResult':
           handleRollResult(room, socketData.roomId, io, playerId, actionData.values);
           break;
-        case 'revealAll':
-          handleRevealAll(room, socketData.roomId, io, playerId);
+        case 'revealSelf':
+          handleRevealSelf(room, socketData.roomId, io, playerId);
+          break;
+        case 'requestRevealAll':
+          handleRequestRevealAll(room, socketData.roomId, io, playerId);
+          break;
+        case 'voteRevealAll':
+          handleVoteRevealAll(room, socketData.roomId, io, playerId, data.vote || false);
           break;
         case 'addDice':
           handleAddDice(room, socketData.roomId, io, playerId);

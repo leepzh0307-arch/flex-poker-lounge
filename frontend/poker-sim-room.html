@@ -42,7 +42,11 @@
   </header>
 
   <main class="sim-game-area">
-    <div class="sim-top-players" id="other-players"></div>
+    <div class="sim-top-players" id="other-players">
+      <div class="sim-zone-hint" id="top-zone-hint">
+        <span class="sim-zone-hint-text">PLAYERS</span>
+      </div>
+    </div>
 
     <div class="sim-middle-area">
       <div class="sim-middle-left">
@@ -53,6 +57,7 @@
       </div>
       <div class="sim-middle-right">
         <div class="community-cards-section" id="community-cards-section">
+          <span class="sim-zone-hint-text community-hint-text" id="community-hint">COMMUNITY</span>
           <div class="community-cards-row" id="community-cards"></div>
         </div>
         <div class="table-info" id="table-info">
@@ -62,7 +67,10 @@
     </div>
 
     <div class="sim-self-area" id="self-area">
-      <div class="sim-self-cards" id="self-cards"></div>
+      <div class="sim-self-cards-wrapper">
+        <span class="sim-zone-hint-text self-hint-text" id="self-hint">MY HAND</span>
+        <div class="sim-self-cards" id="self-cards"></div>
+      </div>
       <div class="sim-self-info">
         <img class="sim-self-avatar" id="self-avatar" src="" alt="">
         <div class="sim-self-name" id="self-name"></div>

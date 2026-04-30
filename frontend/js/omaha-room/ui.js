@@ -311,6 +311,8 @@ class OmahaRoomUI {
     });
 
     bindEvent(document.getElementById('start-game'), () => {
+      const setupModal = document.getElementById('host-setup-modal');
+      if (setupModal) setupModal.style.display = 'none';
       if (window.omahaGameManager) {
         const config = this.getHostConfig();
         window.omahaGameManager.sendGameAction('startGame', config);

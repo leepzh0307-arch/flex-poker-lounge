@@ -29,7 +29,8 @@ var DiceRoomUI = (function () {
       myDiceAdjust: document.getElementById('my-dice-adjust'),
       myDicePreview: document.getElementById('my-dice-preview'),
       rollBtn: document.getElementById('roll-btn'),
-      revealBtn: document.getElementById('reveal-btn'),
+      revealSelfBtn: document.getElementById('reveal-self-btn'),
+      revealAllBtn: document.getElementById('reveal-all-btn'),
       addDiceBtn: document.getElementById('add-dice-btn'),
       removeDiceBtn: document.getElementById('remove-dice-btn'),
       confirmRoundBtn: document.getElementById('confirm-round-btn'),
@@ -44,6 +45,12 @@ var DiceRoomUI = (function () {
       gameOverResults: document.getElementById('game-over-results'),
       playAgainBtn: document.getElementById('play-again-btn'),
       backToLobbyBtn: document.getElementById('back-to-lobby-btn'),
+      voteOverlay: document.getElementById('vote-overlay'),
+      voteDesc: document.getElementById('vote-desc'),
+      voteStatus: document.getElementById('vote-status'),
+      voteActions: document.getElementById('vote-actions'),
+      voteYesBtn: document.getElementById('vote-yes-btn'),
+      voteNoBtn: document.getElementById('vote-no-btn'),
     };
   };
 
@@ -67,8 +74,12 @@ var DiceRoomUI = (function () {
       if (window.diceGameManager) diceGameManager.sendGameAction('rollDice');
     });
 
-    bindEvent(this.elements.revealBtn, function () {
-      if (window.diceGameManager) diceGameManager.sendGameAction('revealAll');
+    bindEvent(this.elements.revealSelfBtn, function () {
+      if (window.diceGameManager) diceGameManager.sendGameAction('revealSelf');
+    });
+
+    bindEvent(this.elements.revealAllBtn, function () {
+      if (window.diceGameManager) diceGameManager.sendGameAction('requestRevealAll');
     });
 
     bindEvent(this.elements.addDiceBtn, function () {
@@ -99,6 +110,16 @@ var DiceRoomUI = (function () {
 
     bindEvent(self.elements.backToLobbyBtn, function () {
       window.location.href = 'index.html';
+    });
+
+    bindEvent(this.elements.voteYesBtn, function () {
+      if (window.diceGameManager) diceGameManager.sendGameAction('voteRevealAll', { vote: true });
+      if (self.elements.voteOverlay) self.elements.voteOverlay.style.display = 'none';
+    });
+
+    bindEvent(this.elements.voteNoBtn, function () {
+      if (window.diceGameManager) diceGameManager.sendGameAction('voteRevealAll', { vote: false });
+      if (self.elements.voteOverlay) self.elements.voteOverlay.style.display = 'none';
     });
 
     window.addEventListener('resize', function () {
@@ -194,8 +215,11 @@ var DiceRoomUI = (function () {
     if (this.elements.rollBtn) {
       this.elements.rollBtn.style.display = (phase === 'ROLLING' && isMyTurn && !hasRolled) ? 'inline-block' : 'none';
     }
-    if (this.elements.revealBtn) {
-      this.elements.revealBtn.style.display = (phase === 'ROLLING' && allRolled) ? 'inline-block' : 'none';
+    if (this.elements.revealSelfBtn) {
+      this.elements.revealSelfBtn.style.display = (phase === 'ROLLING' && hasRolled && !me.diceRevealed) ? 'inline-block' : 'none';
+    }
+    if (this.elements.revealAllBtn) {
+      this.elements.revealAllBtn.style.display = (phase === 'ROLLING' && allRolled) ? 'inline-block' : 'none';
     }
     if (this.elements.addDiceBtn) {
       this.elements.addDiceBtn.style.display = (phase === 'REVEAL') ? 'inline-block' : 'none';
@@ -416,6 +440,28 @@ var DiceRoomUI = (function () {
   UI.prototype.hideGameOver = function () {
     if (this.elements.gameOverOverlay) {
       this.elements.gameOverOverlay.style.display = 'none';
+    }
+  };
+
+  UI.prototype.showVotePopup = function (requesterName, voteStatus) {
+    if (!this.elements.voteOverlay) return;
+    if (this.elements.voteDesc) {
+      this.elements.voteDesc.textContent = (requesterName || '有人') + ' 申请全员公开骰子';
+    }
+    if (this.elements.voteStatus && voteStatus) {
+      var agreed = voteStatus.agreed || 0;
+      var total = voteStatus.total || 0;
+      this.elements.voteStatus.textContent = '投票进度: ' + agreed + '/' + total + ' 人同意';
+    }
+    if (this.elements.voteActions) {
+      this.elements.voteActions.style.display = 'flex';
+    }
+    this.elements.voteOverlay.style.display = 'flex';
+  };
+
+  UI.prototype.hideVotePopup = function () {
+    if (this.elements.voteOverlay) {
+      this.elements.voteOverlay.style.display = 'none';
     }
   };
 

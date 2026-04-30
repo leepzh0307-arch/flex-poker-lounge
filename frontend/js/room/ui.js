@@ -325,6 +325,8 @@ class RoomUI {
 
     // 房主按钮事件绑定
     bindEvent(document.getElementById('start-game'), () => {
+      const setupModal = document.getElementById('host-setup-modal');
+      if (setupModal) setupModal.style.display = 'none';
       if (window.gameManager) {
         const config = this.getHostConfig();
         window.gameManager.sendGameAction('startGame', config);

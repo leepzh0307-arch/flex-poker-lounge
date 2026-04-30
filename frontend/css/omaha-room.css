@@ -1013,26 +1013,26 @@ body {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform-origin: 50% calc(100% + 75%);
+  transform-origin: 50% calc(100% + 100%);
 }
 
 .seat-self .player-cards .poker-card:nth-child(1) {
-  transform: translateX(-50%) rotate(-24deg);
+  transform: translateX(-50%) rotate(-45deg);
   z-index: 1;
 }
 
 .seat-self .player-cards .poker-card:nth-child(2) {
-  transform: translateX(-50%) rotate(-8deg);
+  transform: translateX(-50%) rotate(-15deg);
   z-index: 2;
 }
 
 .seat-self .player-cards .poker-card:nth-child(3) {
-  transform: translateX(-50%) rotate(8deg);
+  transform: translateX(-50%) rotate(15deg);
   z-index: 3;
 }
 
 .seat-self .player-cards .poker-card:nth-child(4) {
-  transform: translateX(-50%) rotate(24deg);
+  transform: translateX(-50%) rotate(45deg);
   z-index: 4;
 }
 
@@ -2130,19 +2130,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-24deg);
+    transform: translateX(-50%) rotate(-45deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-8deg);
+    transform: translateX(-50%) rotate(-15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(8deg);
+    transform: translateX(-50%) rotate(15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(24deg);
+    transform: translateX(-50%) rotate(45deg);
   }
 
   .community-cards-row .poker-card {
@@ -2228,19 +2228,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-24deg);
+    transform: translateX(-50%) rotate(-45deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-8deg);
+    transform: translateX(-50%) rotate(-15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(8deg);
+    transform: translateX(-50%) rotate(15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(24deg);
+    transform: translateX(-50%) rotate(45deg);
   }
 
   .community-cards-row .poker-card {
@@ -2352,19 +2352,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-20deg);
+    transform: translateX(-50%) rotate(-36deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-7deg);
+    transform: translateX(-50%) rotate(-12deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(7deg);
+    transform: translateX(-50%) rotate(12deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(20deg);
+    transform: translateX(-50%) rotate(36deg);
   }
 
   .player-cards .poker-card:nth-child(2),
@@ -2622,19 +2622,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-18deg);
+    transform: translateX(-50%) rotate(-30deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-6deg);
+    transform: translateX(-50%) rotate(-10deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(6deg);
+    transform: translateX(-50%) rotate(10deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(18deg);
+    transform: translateX(-50%) rotate(30deg);
   }
 
   .player-cards .poker-card:nth-child(2),
@@ -2826,19 +2826,19 @@ body {
 }
 
 .seat-self .player-cards .poker-card:nth-child(1) {
-  transform: translateX(-50%) rotate(-24deg);
+  transform: translateX(-50%) rotate(-45deg);
 }
 
 .seat-self .player-cards .poker-card:nth-child(2) {
-  transform: translateX(-50%) rotate(-8deg);
+  transform: translateX(-50%) rotate(-15deg);
 }
 
 .seat-self .player-cards .poker-card:nth-child(3) {
-  transform: translateX(-50%) rotate(8deg);
+  transform: translateX(-50%) rotate(15deg);
 }
 
 .seat-self .player-cards .poker-card:nth-child(4) {
-  transform: translateX(-50%) rotate(24deg);
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .seat-self .player-cards {

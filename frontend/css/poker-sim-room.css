@@ -89,6 +89,7 @@ body {
 
 .icon-sm { width: 14px; height: 14px; vertical-align: middle; }
 
+/* ===== 游戏主区域 ===== */
 .sim-game-area {
   flex: 1;
   display: flex;
@@ -96,8 +97,26 @@ body {
   overflow: hidden;
   min-height: 0;
   background: var(--sim-bg);
+  position: relative;
 }
 
+/* ===== 高透明度区域提示 ===== */
+.sim-zone-hint-text {
+  color: rgba(140, 154, 132, 0.18);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: var(--sim-font-body);
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.sim-zone-hint-text.hidden {
+  opacity: 0;
+}
+
+/* ===== 上方玩家区 ===== */
 .sim-top-players {
   display: flex;
   justify-content: center;
@@ -106,6 +125,23 @@ body {
   padding: 10px 10px 6px;
   flex-wrap: wrap;
   flex-shrink: 0;
+  position: relative;
+}
+
+.sim-zone-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(140, 154, 132, 0.12);
+  border-radius: 16px;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.sim-zone-hint.hidden {
+  opacity: 0;
 }
 
 .sim-other-player {
@@ -173,6 +209,7 @@ body {
   margin-left: -12px;
 }
 
+/* ===== 中部区域：牌堆 + 公共牌 ===== */
 .sim-middle-area {
   display: flex;
   align-items: center;
@@ -231,45 +268,68 @@ body {
   font-family: var(--sim-font-body);
 }
 
+/* ===== 公共牌区 - 固定屏幕中心，足够大 ===== */
 .community-cards-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 60px;
-  min-height: 40px;
+  justify-content: center;
+  gap: 6px;
+  min-width: 200px;
+  min-height: 140px;
   border-radius: 24px;
-  padding: 8px 12px;
-  background: #FFFFFF;
-  border: 1px solid var(--sim-stone);
-  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(140, 154, 132, 0.15);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.03);
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .community-cards-section.drag-over {
   background: rgba(194, 123, 102, 0.06);
   border-color: var(--sim-terracotta);
+  border-style: solid;
 }
 
 .community-cards-section.drag-target {
   border: 2px dashed var(--sim-accent);
 }
 
-.community-cards-row {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
+.community-hint-text {
+  font-size: 14px;
+  letter-spacing: 4px;
 }
 
+/* 公共牌圆弧排列容器 */
+.community-cards-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+  min-height: 80px;
+  width: 100%;
+}
+
+/* 公共牌圆弧排列 - 底边中点分布在圆弧上 */
 .community-card {
-  width: 40px;
+  width: 52px;
   aspect-ratio: 951 / 1346;
   border-radius: 6px;
   box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.08);
   object-fit: contain;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform-origin: 50% calc(100% + 100%);
 }
+
+.community-card:nth-child(1) { transform: translateX(-50%) rotate(-20deg); z-index: 1; }
+.community-card:nth-child(2) { transform: translateX(-50%) rotate(-10deg); z-index: 2; }
+.community-card:nth-child(3) { transform: translateX(-50%) rotate(0deg); z-index: 3; }
+.community-card:nth-child(4) { transform: translateX(-50%) rotate(10deg); z-index: 4; }
+.community-card:nth-child(5) { transform: translateX(-50%) rotate(20deg); z-index: 5; }
+.community-card:nth-child(n+6) { transform: translateX(-50%) rotate(calc((var(--idx, 6) - 3) * 10deg)); z-index: 6; }
 
 .table-info {
   text-align: center;
@@ -282,6 +342,7 @@ body {
   font-family: var(--sim-font-body);
 }
 
+/* ===== 本玩家区域 ===== */
 .sim-self-area {
   flex: 1;
   display: flex;
@@ -291,6 +352,31 @@ body {
   gap: 6px;
   padding: 4px 12px 12px;
   min-height: 0;
+}
+
+.sim-self-cards-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  padding: 8px 16px;
+  border: 1px dashed rgba(140, 154, 132, 0.12);
+  border-radius: 16px;
+  min-width: 160px;
+  min-height: 60px;
+  transition: all 0.5s ease;
+}
+
+.sim-self-cards-wrapper.has-cards {
+  border-color: transparent;
+  min-width: auto;
+  min-height: auto;
+}
+
+.self-hint-text {
+  font-size: 11px;
+  letter-spacing: 3px;
 }
 
 .sim-self-info {
@@ -381,6 +467,7 @@ body {
   box-shadow: 0 4px 6px -1px rgba(140, 154, 132, 0.2);
 }
 
+/* ===== 底部控制栏 ===== */
 .sim-controls {
   display: flex;
   align-items: center;
@@ -572,7 +659,8 @@ body {
   .sim-card { width: 38px; }
   .sim-self-cards .sim-card { width: 48px; }
   .card-pile-img { width: 40px; }
-  .community-card { width: 34px; }
+  .community-card { width: 44px; }
+  .community-cards-section { min-width: 160px; min-height: 110px; }
   .sim-middle-area { gap: 12px; padding: 6px 10px; }
 }
 
@@ -585,13 +673,15 @@ body {
   .sim-card { width: 34px; }
   .sim-self-cards .sim-card { width: 44px; }
   .card-pile-img { width: 36px; }
-  .community-card { width: 30px; }
+  .community-card { width: 38px; }
+  .community-cards-section { min-width: 130px; min-height: 90px; padding: 8px 10px; }
   .game-type-badge { font-size: 11px; padding: 3px 10px; }
   .sim-controls { gap: 6px; padding: 6px 10px; }
   .btn-action { padding: 4px 10px; font-size: 10px; }
   .sim-self-name { font-size: 0.8rem; }
   .sim-middle-area { gap: 8px; padding: 4px 8px; }
   .card-pile { padding: 6px; border-radius: 20px; }
-  .community-cards-section { padding: 6px 8px; border-radius: 20px; }
   .sim-self-info { padding: 4px 10px; border-radius: 20px; }
+  .community-hint-text { font-size: 11px; letter-spacing: 2px; }
+  .self-hint-text { font-size: 9px; letter-spacing: 2px; }
 }

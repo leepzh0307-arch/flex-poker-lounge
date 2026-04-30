@@ -350,6 +350,7 @@ var PokerSimGameManager = (function () {
     this.updateSimControls();
     this.updateRevealButton();
     this.updateTableInfo();
+    this.updateZoneHints();
 
     var gameStarted = data.deck && data.deck.length > 0;
     var hasCards = Object.keys(data.playerCards || {}).some(function (pid) {
@@ -365,7 +366,9 @@ var PokerSimGameManager = (function () {
     var container = document.getElementById('other-players');
     if (!container) return;
 
+    var hint = document.getElementById('top-zone-hint');
     container.innerHTML = '';
+    if (hint) container.appendChild(hint);
 
     this.players.forEach(function (player) {
       if (player.id === self.playerId) return;
@@ -547,6 +550,29 @@ var PokerSimGameManager = (function () {
       label.textContent = '牌堆: ' + this.deck.length + ' 张';
     } else {
       label.textContent = '';
+    }
+  };
+
+  GameManager.prototype.updateZoneHints = function () {
+    var topHint = document.getElementById('top-zone-hint');
+    if (topHint) {
+      var hasOtherPlayers = this.players.some(function (p) { return p.id !== this.playerId; }.bind(this));
+      topHint.classList.toggle('hidden', hasOtherPlayers);
+    }
+
+    var communityHint = document.getElementById('community-hint');
+    if (communityHint) {
+      communityHint.classList.toggle('hidden', this.communityCards.length > 0);
+    }
+
+    var selfHint = document.getElementById('self-hint');
+    var selfWrapper = document.querySelector('.sim-self-cards-wrapper');
+    var myCards = this.playerCards[this.playerId] || [];
+    if (selfHint) {
+      selfHint.classList.toggle('hidden', myCards.length > 0);
+    }
+    if (selfWrapper) {
+      selfWrapper.classList.toggle('has-cards', myCards.length > 0);
     }
   };
 

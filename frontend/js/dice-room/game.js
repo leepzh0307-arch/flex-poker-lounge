@@ -67,6 +67,11 @@ var DiceGameManager = (function () {
         self.ui.showGameOver(data.results);
       } else if (data.type === 'message') {
         self.ui.showNotification(data.message);
+      } else if (data.type === 'revealAllVote') {
+        self.ui.showVotePopup(data.requesterName, data.voteStatus);
+      } else if (data.type === 'revealAllRejected') {
+        self.ui.hideVotePopup();
+        self.ui.showNotification('全员公开被拒绝');
       }
     });
 

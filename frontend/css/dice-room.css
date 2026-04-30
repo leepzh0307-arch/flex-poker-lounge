@@ -585,6 +585,71 @@ body {
   justify-content: center;
 }
 
+.vote-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 58, 49, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 350;
+  backdrop-filter: blur(5px);
+}
+
+.vote-content {
+  text-align: center;
+  padding: 32px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  border: 1px solid var(--dice-stone);
+  max-width: 90vw;
+  min-width: 260px;
+  box-shadow: 0 25px 50px -12px rgba(45, 58, 49, 0.15);
+}
+
+.vote-title {
+  color: var(--dice-accent-dark);
+  font-size: 20px;
+  margin-bottom: 12px;
+  font-family: var(--dice-font-heading);
+  font-weight: 600;
+}
+
+.vote-desc {
+  color: var(--dice-accent);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.vote-status {
+  color: var(--dice-accent-dark);
+  font-size: 12px;
+  margin-bottom: 16px;
+  min-height: 20px;
+}
+
+.vote-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-danger-vote {
+  background: var(--dice-red);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--dice-font-body);
+  transition: all 0.3s ease;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.btn-danger-vote:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(194,123,102,0.2); }
+
 @media (max-width: 768px) {
   .dice-game-area { flex: 1; min-height: 0; }
   .players-circle { gap: 8px; padding: 4px; }
