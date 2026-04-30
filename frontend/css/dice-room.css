@@ -1,23 +1,38 @@
 :root {
-  --dice-bg: #1a2a1a;
-  --dice-bg-dark: #0d1a0d;
-  --dice-felt: #1e3a1e;
-  --dice-accent: #d4a843;
-  --dice-red: #cc3333;
-  --dice-blue: #3366cc;
-  --dice-gold: #d4a843;
-  --dice-cup: #2a1a0a;
-  --dice-cup-rim: #8B7355;
+  --dice-bg: #F9F8F4;
+  --dice-bg-dark: #EDE9E0;
+  --dice-felt: #F2F0EB;
+  --dice-accent: #8C9A84;
+  --dice-accent-dark: #2D3A31;
+  --dice-red: #C27B66;
+  --dice-blue: #5B7B95;
+  --dice-gold: #8C9A84;
+  --dice-clay: #DCCFC2;
+  --dice-stone: #E6E2DA;
+  --dice-terracotta: #C27B66;
+  --dice-font-heading: 'Playfair Display', Georgia, serif;
+  --dice-font-body: 'Source Sans 3', 'DM Sans', sans-serif;
 }
 
 body {
-  background: var(--dice-bg-dark);
+  background: var(--dice-bg);
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--dice-font-body);
   display: flex;
   flex-direction: column;
+  color: var(--dice-accent-dark);
+}
+
+.dice-texture-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 .game-header {
@@ -25,7 +40,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  background: rgba(0,0,0,0.4);
+  background: var(--dice-accent-dark);
   backdrop-filter: blur(10px);
   z-index: 100;
   position: relative;
@@ -45,9 +60,10 @@ body {
   border-radius: 20px;
   letter-spacing: 2px;
   color: #fff;
+  font-family: var(--dice-font-heading);
 }
 .dice-badge {
-  background: linear-gradient(135deg, var(--dice-red), var(--dice-blue));
+  background: linear-gradient(135deg, var(--dice-terracotta), var(--dice-blue));
 }
 
 .room-label { color: rgba(255,255,255,0.6); font-size: 12px; }
@@ -58,14 +74,14 @@ body {
   border: 1px solid rgba(255,255,255,0.15);
   color: #fff;
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 12px;
-  transition: all 0.2s;
+  font-family: var(--dice-font-body);
+  transition: all 0.3s ease;
 }
 .btn-icon:hover { background: rgba(255,255,255,0.2); }
-.btn-icon.btn-danger { border-color: rgba(204,51,51,0.5); color: var(--dice-red); }
-.btn-icon.btn-danger:hover { background: rgba(204,51,51,0.2); }
+.btn-icon.btn-danger { border-color: rgba(194,123,102,0.5); color: var(--dice-terracotta); }
 
 .icon-sm { width: 16px; height: 16px; vertical-align: middle; }
 
@@ -74,7 +90,7 @@ body {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  background: radial-gradient(ellipse at center, var(--dice-felt) 0%, var(--dice-bg-dark) 100%);
+  background: var(--dice-bg);
   position: relative;
   overflow: hidden;
 }
@@ -95,20 +111,23 @@ body {
   align-items: center;
   gap: 16px;
   padding: 6px 20px;
-  background: rgba(0,0,0,0.4);
-  border-radius: 20px;
+  background: #FFFFFF;
+  border-radius: 24px;
   margin-bottom: 8px;
   z-index: 10;
+  border: 1px solid var(--dice-stone);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 
 .phase-text {
-  color: var(--dice-accent);
+  color: var(--dice-accent-dark);
   font-weight: 600;
   font-size: 14px;
+  font-family: var(--dice-font-body);
 }
 
 .round-info {
-  color: rgba(255,255,255,0.6);
+  color: var(--dice-accent);
   font-size: 12px;
 }
 
@@ -127,16 +146,16 @@ body {
   align-items: center;
   gap: 4px;
   padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(42, 26, 10, 0.9) 0%, rgba(30, 18, 6, 0.95) 100%);
+  background: #FFFFFF;
   border-radius: 50%;
-  border: 2px solid var(--dice-cup-rim);
+  border: 1px solid var(--dice-stone);
   min-width: 80px;
   min-height: 80px;
   width: 90px;
   height: 90px;
   justify-content: center;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 
 .circle-avatar {
@@ -144,17 +163,18 @@ body {
   height: 28px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 2px solid var(--dice-clay);
 }
 
 .circle-name {
-  color: #fff;
+  color: var(--dice-accent-dark);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   max-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
 }
 
 .circle-dice-info {
@@ -172,20 +192,20 @@ body {
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  border-radius: 3px;
+  border-radius: 4px;
   color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 4px rgba(45, 58, 49, 0.1);
 }
 
 .circle-die.dot-red { background: var(--dice-red); }
 .circle-die.dot-blue { background: var(--dice-blue); }
 .circle-die.circle-die-hidden {
-  background: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.5);
+  background: var(--dice-clay);
+  color: rgba(45, 58, 49, 0.5);
 }
 
 .circle-die-empty {
-  color: rgba(255,255,255,0.3);
+  color: var(--dice-accent);
   font-size: 9px;
 }
 
@@ -210,18 +230,21 @@ body {
   width: 100%;
   max-width: 500px;
   padding: 12px;
-  background: rgba(0,0,0,0.4);
-  border-radius: 12px;
+  background: #FFFFFF;
+  border-radius: 24px;
   margin-top: 8px;
   z-index: 10;
+  border: 1px solid var(--dice-stone);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 
 .public-title {
-  color: var(--dice-accent);
+  color: var(--dice-accent-dark);
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
   text-align: center;
+  font-family: var(--dice-font-heading);
 }
 
 .public-dice-grid {
@@ -237,9 +260,9 @@ body {
 }
 
 .public-player-name {
-  color: #fff;
+  color: var(--dice-accent-dark);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   min-width: 60px;
 }
 
@@ -257,9 +280,9 @@ body {
   justify-content: center;
   font-size: 14px;
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: 6px;
   color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(45, 58, 49, 0.1);
 }
 
 .public-die.red { background: var(--dice-red); }
@@ -269,8 +292,8 @@ body {
   flex: 0 0 auto;
   padding: 8px 16px 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
-  background: rgba(0,0,0,0.3);
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background: #FFFFFF;
+  border-top: 1px solid var(--dice-stone);
 }
 
 .my-info-row {
@@ -285,16 +308,17 @@ body {
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--dice-accent);
 }
 
 .my-info-row .nickname {
-  color: #fff;
+  color: var(--dice-accent-dark);
   font-weight: 600;
   font-size: 14px;
 }
 
 .cup-status {
-  color: rgba(255,255,255,0.5);
+  color: var(--dice-accent);
   font-size: 12px;
 }
 
@@ -307,13 +331,13 @@ body {
 }
 
 .dice-adjust-badge.positive {
-  background: rgba(51,102,204,0.3);
-  color: #6fa3ff;
+  background: rgba(91, 123, 149, 0.15);
+  color: var(--dice-blue);
 }
 
 .dice-adjust-badge.negative {
-  background: rgba(204,51,51,0.3);
-  color: #ff6b6b;
+  background: rgba(194, 123, 102, 0.15);
+  color: var(--dice-red);
 }
 
 .my-dice-preview {
@@ -332,17 +356,17 @@ body {
   justify-content: center;
   font-size: 18px;
   font-weight: 700;
-  border-radius: 5px;
+  border-radius: 6px;
   color: #fff;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
+  box-shadow: 0 3px 6px rgba(45, 58, 49, 0.1);
+  transition: transform 0.3s ease;
 }
 
 .my-die.red { background: var(--dice-red); }
 .my-die.blue { background: var(--dice-blue); }
 .my-die.hidden-die {
-  background: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.5);
+  background: var(--dice-clay);
+  color: rgba(45, 58, 49, 0.5);
 }
 
 .action-buttons {
@@ -354,60 +378,64 @@ body {
 
 .btn-action {
   padding: 8px 20px;
-  border-radius: 20px;
+  border-radius: 24px;
   font-weight: 600;
   font-size: 14px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   color: #fff;
+  font-family: var(--dice-font-body);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .btn-roll {
-  background: linear-gradient(135deg, var(--dice-accent), #b8922e);
+  background: var(--dice-accent-dark);
 }
-.btn-roll:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
+.btn-roll:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(45,58,49,0.1); }
 
 .btn-reveal {
-  background: linear-gradient(135deg, #27AE60, #1e8449);
+  background: var(--dice-accent);
 }
-.btn-reveal:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39,174,96,0.4); }
+.btn-reveal:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(140,154,132,0.2); }
 
 .btn-add {
-  background: linear-gradient(135deg, var(--dice-blue), #254d99);
+  background: var(--dice-blue);
 }
-.btn-add:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(51,102,204,0.4); }
+.btn-add:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(91,123,149,0.2); }
 
 .btn-remove {
-  background: linear-gradient(135deg, var(--dice-red), #992626);
+  background: var(--dice-red);
 }
-.btn-remove:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(204,51,51,0.4); }
+.btn-remove:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(194,123,102,0.2); }
 
 .btn-confirm {
-  background: linear-gradient(135deg, var(--dice-accent), #b8922e);
+  background: var(--dice-accent-dark);
 }
-.btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
+.btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(45,58,49,0.1); }
 
 .btn-end-game {
-  background: linear-gradient(135deg, var(--dice-red), #992626);
+  background: var(--dice-red);
 }
-.btn-end-game:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(204,51,51,0.4); }
+.btn-end-game:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(194,123,102,0.2); }
 
 .notification {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.85);
+  background: var(--dice-accent-dark);
   color: #fff;
   padding: 16px 32px;
-  border-radius: 16px;
+  border-radius: 24px;
   font-size: 18px;
   font-weight: 600;
   z-index: 200;
   backdrop-filter: blur(10px);
   text-align: center;
   pointer-events: none;
+  font-family: var(--dice-font-body);
 }
 
 .host-panel {
@@ -415,19 +443,25 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.9);
+  background: #FFFFFF;
   padding: 24px;
-  border-radius: 16px;
+  border-radius: 24px;
   z-index: 150;
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-width: 200px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--dice-stone);
+  box-shadow: 0 25px 50px -12px rgba(45, 58, 49, 0.15);
 }
 
-.host-panel h3 { color: #fff; text-align: center; margin-bottom: 8px; }
+.host-panel h3 {
+  color: var(--dice-accent-dark);
+  text-align: center;
+  margin-bottom: 8px;
+  font-family: var(--dice-font-heading);
+  font-weight: 600;
+}
 
 .host-setting-row {
   display: flex;
@@ -436,50 +470,55 @@ body {
 }
 
 .host-setting-row label {
-  color: rgba(255,255,255,0.7);
+  color: var(--dice-accent);
   font-size: 13px;
   min-width: 70px;
 }
 
 .host-setting-row select {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 6px;
-  padding: 4px 8px;
+  background: var(--dice-felt);
+  color: var(--dice-accent-dark);
+  border: 1px solid var(--dice-stone);
+  border-radius: 10px;
+  padding: 6px 10px;
   font-size: 13px;
+  font-family: var(--dice-font-body);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--dice-accent), #b8922e);
+  background: var(--dice-accent-dark);
   color: #fff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
+  padding: 10px 24px;
+  border-radius: 24px;
   font-weight: 600;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  font-family: var(--dice-font-body);
+  transition: all 0.3s ease;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
+.btn-primary:hover { background: var(--dice-accent); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(45,58,49,0.1); }
 
 .btn {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--dice-accent-dark);
+  border: 1px solid var(--dice-stone);
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 24px;
   font-weight: 500;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  font-family: var(--dice-font-body);
+  transition: all 0.3s ease;
 }
-.btn:hover { background: rgba(255,255,255,0.2); }
+.btn:hover { background: var(--dice-felt); }
 
 .game-over-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(45, 58, 49, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -490,17 +529,19 @@ body {
 .game-over-content {
   text-align: center;
   padding: 40px;
-  background: rgba(0,0,0,0.9);
+  background: #FFFFFF;
   border-radius: 24px;
-  border: 2px solid var(--dice-accent);
+  border: 1px solid var(--dice-stone);
   max-width: 90vw;
+  box-shadow: 0 25px 50px -12px rgba(45, 58, 49, 0.15);
 }
 
 .game-over-content h2 {
-  color: var(--dice-accent);
+  color: var(--dice-accent-dark);
   font-size: 28px;
   margin-bottom: 20px;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--dice-font-heading);
+  font-weight: 600;
 }
 
 .game-over-results {
@@ -510,11 +551,11 @@ body {
 .game-over-result-row {
   margin: 8px 0;
   font-size: 14px;
-  color: rgba(255,255,255,0.8);
+  color: var(--dice-accent);
 }
 
 .game-over-result-row strong {
-  color: #fff;
+  color: var(--dice-accent-dark);
 }
 
 .result-die {
@@ -523,7 +564,7 @@ body {
   height: 22px;
   line-height: 22px;
   text-align: center;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 700;
   color: #fff;
@@ -534,7 +575,7 @@ body {
 .result-die.blue { background: var(--dice-blue); }
 
 .result-total {
-  color: var(--dice-accent);
+  color: var(--dice-accent-dark);
   font-weight: 600;
 }
 

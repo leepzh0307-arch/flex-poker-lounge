@@ -285,6 +285,7 @@ class RoomUI {
     // 继续游戏按钮点击事件
     const continueGameBtn = document.getElementById('continue-game-btn');
     bindEvent(continueGameBtn, () => {
+      this.showContinueGameButton(false);
       if (window.gameManager) {
         window.gameManager.sendGameAction('confirmContinue');
       }
@@ -557,10 +558,6 @@ class RoomUI {
         if (currentBet > 0 && player.isActive) {
           const initialChips = this._getInitialChips();
 
-          if (betChanged) {
-            this._animateChipToSeat(seatEl, betEl, currentBet, initialChips);
-          }
-
           const existingChip = betEl.querySelector('.chip-display');
           if (existingChip) {
             ChipDisplay.updateChipElement(existingChip, currentBet, initialChips);
@@ -571,6 +568,12 @@ class RoomUI {
             betEl.appendChild(chipEl);
           }
           betEl.style.display = 'flex';
+
+          if (betChanged) {
+            requestAnimationFrame(() => {
+              this._animateChipToSeat(seatEl, betEl, currentBet, initialChips);
+            });
+          }
         } else {
           if (player.id) {
             this.previousBets[player.id] = 0;
@@ -923,6 +926,8 @@ class RoomUI {
     }
     const settleBtn = document.getElementById('settle-game-btn');
     if (settleBtn) settleBtn.style.display = show ? 'inline-block' : 'none';
+    const hostBtnWrapper = document.getElementById('host-btn-wrapper');
+    if (hostBtnWrapper) hostBtnWrapper.style.display = show ? 'block' : 'none';
   }
 
   showStartGameButton(show) {

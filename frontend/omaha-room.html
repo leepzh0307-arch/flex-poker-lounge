@@ -498,11 +498,9 @@
 
       var startGameBtn = document.getElementById('start-game');
       var hostSetupModalEl = document.getElementById('host-setup-modal');
-      var hostBtnWrapper = document.getElementById('host-btn-wrapper');
-      if (startGameBtn && hostSetupModalEl && hostBtnWrapper) {
+      if (startGameBtn && hostSetupModalEl) {
         startGameBtn.addEventListener('click', function() {
           hostSetupModalEl.style.display = 'none';
-          hostBtnWrapper.style.display = 'block';
           if (window.omahaGameManager) {
             omahaGameManager.onStartGame();
           }

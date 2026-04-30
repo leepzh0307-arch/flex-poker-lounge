@@ -268,6 +268,7 @@ class OmahaRoomUI {
 
     const continueGameBtn = document.getElementById('continue-game-btn');
     bindEvent(continueGameBtn, () => {
+      this.showContinueGameButton(false);
       if (window.omahaGameManager) {
         window.omahaGameManager.sendGameAction('confirmContinue');
       }
@@ -515,10 +516,6 @@ class OmahaRoomUI {
         if (currentBet > 0 && player.isActive) {
           const initialChips = this._getInitialChips();
 
-          if (betChanged) {
-            this._animateChipToSeat(seatEl, betEl, currentBet, initialChips);
-          }
-
           const existingChip = betEl.querySelector('.chip-display');
           if (existingChip) {
             ChipDisplay.updateChipElement(existingChip, currentBet, initialChips);
@@ -529,6 +526,12 @@ class OmahaRoomUI {
             betEl.appendChild(chipEl);
           }
           betEl.style.display = 'flex';
+
+          if (betChanged) {
+            requestAnimationFrame(() => {
+              this._animateChipToSeat(seatEl, betEl, currentBet, initialChips);
+            });
+          }
         } else {
           if (player.id) {
             this.previousBets[player.id] = 0;
@@ -849,6 +852,8 @@ class OmahaRoomUI {
     }
     const settleBtn = document.getElementById('settle-game-btn');
     if (settleBtn) settleBtn.style.display = show ? 'inline-block' : 'none';
+    const hostBtnWrapper = document.getElementById('host-btn-wrapper');
+    if (hostBtnWrapper) hostBtnWrapper.style.display = show ? 'block' : 'none';
   }
 
   showStartGameButton(show) {

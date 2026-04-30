@@ -9,11 +9,12 @@ var PokerSimGameManager = (function () {
     this.playerCards = {};
     this.communityCards = [];
     this.revealedPlayers = {};
+    this.revealedCards = {};
     this.includeJoker = true;
     this.revealed = false;
     this.isDragging = false;
     this.dragCard = null;
-    this.dragGhost = null;
+    this.selectedCardIndices = [];
     this.agoraVoice = null;
     this.isMuted = false;
     this.notificationTimeout = null;
@@ -154,11 +155,16 @@ var PokerSimGameManager = (function () {
     var selfRevealBtn = document.getElementById('self-reveal-btn');
     if (selfRevealBtn) {
       selfRevealBtn.addEventListener('click', function () {
-        var isRevealed = self.revealedPlayers[self.playerId] || false;
+        if (self.selectedCardIndices.length === 0) {
+          self.showNotification('请先点击手牌选中要公开的牌');
+          return;
+        }
         self.socket.emit('pokerSimAction', {
-          action: isRevealed ? 'hideMyCards' : 'revealMyCards',
-          data: {},
+          action: 'revealMyCards',
+          data: { cardIndices: self.selectedCardIndices.slice() },
         });
+        self.selectedCardIndices = [];
+        self.renderSelfArea();
       });
     }
 
@@ -333,6 +339,7 @@ var PokerSimGameManager = (function () {
     this.playerCards = data.playerCards || {};
     this.communityCards = data.communityCards || [];
     this.revealedPlayers = data.revealedPlayers || {};
+    this.revealedCards = data.revealedCards || {};
     this.includeJoker = data.includeJoker !== undefined ? data.includeJoker : this.includeJoker;
     this.revealed = data.revealed || false;
 
@@ -383,11 +390,13 @@ var PokerSimGameManager = (function () {
 
       var cards = self.playerCards[player.id] || [];
       var isRevealed = self.revealedPlayers[player.id] || false;
-      cards.forEach(function (card) {
+      var playerRevealedCards = self.revealedCards[player.id] || [];
+      cards.forEach(function (card, idx) {
         var img = document.createElement('img');
         img.className = 'sim-card';
-        if (isRevealed) {
+        if (isRevealed || playerRevealedCards.indexOf(idx) !== -1) {
           img.src = self.getCardImageSrc(card);
+          img.classList.add('card-revealed');
         } else {
           img.src = self.getCardImageSrc({ suit: 'back', rank: 'back' });
         }
@@ -415,24 +424,30 @@ var PokerSimGameManager = (function () {
     if (avatarEl) avatarEl.src = 'images/avatars/' + (myInfo.avatar || 'bear') + '.gif';
     if (nameEl) nameEl.textContent = myInfo.nickname || '--';
 
+    var myCards = this.playerCards[this.playerId] || [];
+    var myRevealedCards = this.revealedCards[this.playerId] || [];
+    var isAllRevealed = this.revealedPlayers[this.playerId] || false;
+
     if (revealBtn) {
-      var isRevealed = this.revealedPlayers[this.playerId] || false;
-      revealBtn.textContent = isRevealed ? '隐藏手牌' : '公开手牌';
-      revealBtn.style.display = 'inline-block';
-      if (isRevealed) revealBtn.classList.add('revealed');
-      else revealBtn.classList.remove('revealed');
+      revealBtn.style.display = myCards.length > 0 ? 'inline-block' : 'none';
+      if (this.selectedCardIndices.length > 0) {
+        revealBtn.textContent = '公开选中(' + this.selectedCardIndices.length + ')';
+        revealBtn.classList.remove('revealed');
+      } else {
+        revealBtn.textContent = '公开选中';
+        revealBtn.classList.remove('revealed');
+      }
     }
 
     if (cardsContainer) {
       cardsContainer.innerHTML = '';
 
-      var cards = this.playerCards[this.playerId] || [];
-      cards.forEach(function (card, idx) {
+      myCards.forEach(function (card, idx) {
         var img = document.createElement('img');
         img.className = 'sim-card';
 
-        var isThisRevealed = self.revealedPlayers[self.playerId] || false;
-        if (isThisRevealed) {
+        var isThisCardRevealed = isAllRevealed || myRevealedCards.indexOf(idx) !== -1;
+        if (isThisCardRevealed) {
           img.src = self.getCardImageSrc(card);
           img.classList.add('card-revealed');
         } else {
@@ -444,11 +459,19 @@ var PokerSimGameManager = (function () {
         img.draggable = false;
         img.dataset.cardIdx = idx;
 
+        if (self.selectedCardIndices.indexOf(idx) !== -1) {
+          img.classList.add('card-selected');
+        }
+
         img.addEventListener('click', function () {
-          self.socket.emit('pokerSimAction', {
-            action: isThisRevealed ? 'hideMyCards' : 'revealMyCards',
-            data: {},
-          });
+          var cardIdx = parseInt(this.dataset.cardIdx, 10);
+          var pos = self.selectedCardIndices.indexOf(cardIdx);
+          if (pos === -1) {
+            self.selectedCardIndices.push(cardIdx);
+          } else {
+            self.selectedCardIndices.splice(pos, 1);
+          }
+          self.renderSelfArea();
         });
 
         cardsContainer.appendChild(img);

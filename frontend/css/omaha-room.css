@@ -814,6 +814,11 @@ body {
   z-index: 12;
   line-height: 1.2;
   letter-spacing: 0.02em;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
 }
 
 .pos-btn {
@@ -1008,7 +1013,7 @@ body {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform-origin: bottom center;
+  transform-origin: 50% calc(100% + 75%);
 }
 
 .seat-self .player-cards .poker-card:nth-child(1) {
@@ -1238,10 +1243,10 @@ body {
   flex-shrink: 0;
   background: #FFFFFF;
   border-top: 1px solid rgba(45, 58, 49, 0.08);
-  padding: 8px 12px;
+  padding: 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .action-panel h3 {

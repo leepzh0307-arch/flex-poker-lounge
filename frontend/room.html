@@ -498,11 +498,9 @@
 
       var startGameBtn = document.getElementById('start-game');
       var hostSetupModal = document.getElementById('host-setup-modal');
-      var hostBtnWrapper = document.getElementById('host-btn-wrapper');
-      if (startGameBtn && hostSetupModal && hostBtnWrapper) {
+      if (startGameBtn && hostSetupModal) {
         startGameBtn.addEventListener('click', function() {
           hostSetupModal.style.display = 'none';
-          hostBtnWrapper.style.display = 'block';
           if (window.pokerGame) {
             pokerGame.onStartGame();
           }

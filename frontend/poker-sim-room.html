@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1a2a1a">
+  <meta name="theme-color" content="#F9F8F4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Flex Poker - 全真扑克牌模拟</title>
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/poker-sim-room.css">
   <link rel="stylesheet" href="css/themePopup.css">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="game-loading-mask" class="game-loading-mask">
     <div class="game-loading-spinner"></div>
     <div class="game-loading-text">加载中...</div>
   </div>
+
+  <div class="sim-texture-overlay"></div>
 
   <header class="game-header">
     <div class="header-left">
@@ -25,7 +27,7 @@
       <button id="copy-room" class="btn-icon" title="复制">复制</button>
     </div>
     <div class="header-center">
-      <span class="game-type-badge sim-badge">全真扑克牌模拟</span>
+      <span class="game-type-badge sim-badge">扑克牌模拟</span>
     </div>
     <div class="header-right">
       <span id="connection-status" class="connection-status">
@@ -40,28 +42,32 @@
   </header>
 
   <main class="sim-game-area">
-    <div class="sim-other-players" id="other-players"></div>
+    <div class="sim-top-players" id="other-players"></div>
 
     <div class="sim-middle-area">
-      <div class="card-pile" id="card-pile">
-        <img class="card-pile-img" id="pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
-        <span class="card-pile-count" id="pile-count">54</span>
+      <div class="sim-middle-left">
+        <div class="card-pile" id="card-pile">
+          <img class="card-pile-img" id="pile-img" src="images/Cards/card_pile2.svg" alt="牌堆" draggable="false">
+          <span class="card-pile-count" id="pile-count">54</span>
+        </div>
       </div>
-      <div class="community-cards-section" id="community-cards-section">
-        <div class="community-cards-row" id="community-cards"></div>
-      </div>
-      <div class="table-info" id="table-info">
-        <span class="table-info-label" id="table-info-label"></span>
+      <div class="sim-middle-right">
+        <div class="community-cards-section" id="community-cards-section">
+          <div class="community-cards-row" id="community-cards"></div>
+        </div>
+        <div class="table-info" id="table-info">
+          <span class="table-info-label" id="table-info-label"></span>
+        </div>
       </div>
     </div>
 
     <div class="sim-self-area" id="self-area">
+      <div class="sim-self-cards" id="self-cards"></div>
       <div class="sim-self-info">
         <img class="sim-self-avatar" id="self-avatar" src="" alt="">
         <div class="sim-self-name" id="self-name"></div>
-        <button class="sim-self-reveal-btn" id="self-reveal-btn" style="display:none">公开手牌</button>
+        <button class="sim-self-reveal-btn" id="self-reveal-btn" style="display:none">公开选中</button>
       </div>
-      <div class="sim-self-cards" id="self-cards"></div>
     </div>
   </main>
 

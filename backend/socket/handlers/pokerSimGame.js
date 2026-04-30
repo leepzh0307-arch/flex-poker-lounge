@@ -48,9 +48,15 @@ function sendSimUpdate(roomId, io, room) {
       var isSelf = pid === p.id;
       var isRevealedAll = gs.revealed;
       var isRevealedIndividual = gs.revealedPlayers[pid] || false;
+      var playerRevealedCards = (gs.revealedCards && gs.revealedCards[pid]) || [];
 
       if (isSelf || isRevealedAll || isRevealedIndividual) {
         playerCardsToSend[pid] = gs.playerCards[pid];
+      } else if (playerRevealedCards.length > 0) {
+        playerCardsToSend[pid] = gs.playerCards[pid].map(function (card, idx) {
+          if (playerRevealedCards.indexOf(idx) !== -1) return card;
+          return { suit: 'back', rank: 'back' };
+        });
       } else {
         playerCardsToSend[pid] = gs.playerCards[pid].map(function () {
           return { suit: 'back', rank: 'back' };
@@ -71,6 +77,7 @@ function sendSimUpdate(roomId, io, room) {
       playerCards: playerCardsToSend,
       communityCards: gs.communityCards.map(function (c) { return { suit: c.suit, rank: c.rank }; }),
       revealedPlayers: Object.assign({}, gs.revealedPlayers),
+      revealedCards: Object.assign({}, gs.revealedCards || {}),
       includeJoker: gs.includeJoker,
       revealed: gs.revealed || false,
     });
@@ -283,13 +290,27 @@ module.exports = function (socket, rooms, io) {
 
     if (action === 'revealMyCards') {
       if (!gs.started) return;
-      gs.revealedPlayers[socket.id] = true;
+      var cardIndices = data.cardIndices || null;
+      if (cardIndices && Array.isArray(cardIndices) && cardIndices.length > 0) {
+        if (!gs.revealedCards) gs.revealedCards = {};
+        if (!gs.revealedCards[socket.id]) gs.revealedCards[socket.id] = [];
+        cardIndices.forEach(function (idx) {
+          if (gs.revealedCards[socket.id].indexOf(idx) === -1) {
+            gs.revealedCards[socket.id].push(idx);
+          }
+        });
+      } else {
+        gs.revealedPlayers[socket.id] = true;
+      }
       sendSimUpdate(socketData.roomId, io, room);
     }
 
     if (action === 'hideMyCards') {
       if (!gs.started) return;
       gs.revealedPlayers[socket.id] = false;
+      if (gs.revealedCards && gs.revealedCards[socket.id]) {
+        delete gs.revealedCards[socket.id];
+      }
       sendSimUpdate(socketData.roomId, io, room);
     }
   });

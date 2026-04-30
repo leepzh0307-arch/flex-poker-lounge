@@ -1,36 +1,50 @@
 :root {
-  --sim-bg: #1a2a1a;
-  --sim-bg-dark: #0d1a0d;
-  --sim-felt: #1e3a1e;
-  --sim-felt-dark: #152a15;
-  --sim-felt-border: rgba(140, 154, 132, 0.25);
-  --sim-accent: #d4a843;
-  --sim-red: #cc3333;
-  --sim-blue: #3366cc;
-  --sim-gold: #d4a843;
+  --sim-bg: #F9F8F4;
+  --sim-bg-dark: #EDE9E0;
+  --sim-felt: #F2F0EB;
+  --sim-felt-border: #E6E2DA;
+  --sim-accent: #8C9A84;
+  --sim-accent-dark: #2D3A31;
+  --sim-terracotta: #C27B66;
+  --sim-clay: #DCCFC2;
+  --sim-stone: #E6E2DA;
+  --sim-gold: #8C9A84;
   --sim-card-w: 48px;
+  --sim-font-heading: 'Playfair Display', Georgia, serif;
+  --sim-font-body: 'Source Sans 3', 'DM Sans', sans-serif;
 }
 
 body {
-  background: var(--sim-bg-dark);
+  background: var(--sim-bg);
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--sim-font-body);
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   display: flex;
   flex-direction: column;
+  color: var(--sim-accent-dark);
+}
+
+.sim-texture-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 .game-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  background: rgba(0,0,0,0.4);
+  padding: 8px 16px;
+  background: var(--sim-accent-dark);
   backdrop-filter: blur(10px);
   z-index: 100;
   flex-shrink: 0;
@@ -39,19 +53,20 @@ body {
 .header-left, .header-center, .header-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .game-type-badge {
   font-weight: 700;
   font-size: 14px;
-  padding: 3px 12px;
-  border-radius: 16px;
+  padding: 4px 16px;
+  border-radius: 20px;
   letter-spacing: 1px;
   color: #fff;
+  font-family: var(--sim-font-heading);
 }
 .sim-badge {
-  background: linear-gradient(135deg, #2D3A31, #8C9A84);
+  background: linear-gradient(135deg, var(--sim-accent-dark), var(--sim-accent));
 }
 
 .room-label { color: rgba(255,255,255,0.6); font-size: 11px; }
@@ -62,14 +77,15 @@ body {
   border: 1px solid rgba(255,255,255,0.15);
   color: #fff;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 11px;
-  transition: all 0.2s;
+  font-family: var(--sim-font-body);
+  transition: all 0.3s ease;
   touch-action: manipulation;
 }
 .btn-icon:hover { background: rgba(255,255,255,0.2); }
-.btn-icon.btn-danger { border-color: rgba(204,51,51,0.5); color: var(--sim-red); }
+.btn-icon.btn-danger { border-color: rgba(194,123,102,0.5); color: var(--sim-terracotta); }
 
 .icon-sm { width: 14px; height: 14px; vertical-align: middle; }
 
@@ -79,15 +95,15 @@ body {
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
-  background: radial-gradient(ellipse at center, var(--sim-felt) 0%, var(--sim-bg-dark) 100%);
+  background: var(--sim-bg);
 }
 
-.sim-other-players {
+.sim-top-players {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 8px;
-  padding: 8px 8px 4px;
+  gap: 10px;
+  padding: 10px 10px 6px;
   flex-wrap: wrap;
   flex-shrink: 0;
 }
@@ -96,44 +112,45 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.08);
-  min-width: 70px;
-  transition: border-color 0.2s, background 0.2s;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 24px;
+  background: #FFFFFF;
+  border: 1px solid var(--sim-stone);
+  min-width: 72px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 
 .sim-other-player.drag-target {
-  border: 2px dashed rgba(255,255,255,0.2);
-  background: rgba(212, 168, 67, 0.05);
+  border: 2px dashed var(--sim-accent);
+  background: rgba(140, 154, 132, 0.05);
 }
 
 .sim-other-player.drag-over {
-  border-color: var(--sim-accent);
-  background: rgba(212, 168, 67, 0.15);
+  border-color: var(--sim-terracotta);
+  background: rgba(194, 123, 102, 0.08);
+  box-shadow: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
 }
 
 .sim-other-avatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255,255,255,0.15);
+  border: 2px solid var(--sim-clay);
 }
 
 .sim-other-name {
-  color: #000;
+  color: var(--sim-accent-dark);
   font-size: 0.75rem;
-  font-weight: 800;
-  -webkit-text-stroke: 0.4px rgba(255,255,255,0.8);
-  paint-order: stroke fill;
-  max-width: 60px;
+  font-weight: 600;
+  max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
+  font-family: var(--sim-font-body);
 }
 
 .sim-other-cards {
@@ -145,10 +162,11 @@ body {
 .sim-card {
   width: var(--sim-card-w);
   aspect-ratio: 951 / 1346;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.08);
   object-fit: contain;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
 .sim-other-cards .sim-card:nth-child(n+2) {
@@ -157,24 +175,43 @@ body {
 
 .sim-middle-area {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 16px;
+  flex-shrink: 0;
+}
+
+.sim-middle-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sim-middle-right {
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 4px 8px;
-  flex-shrink: 0;
 }
 
 .card-pile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   cursor: grab;
-  transition: transform 0.2s;
+  transition: transform 0.5s ease;
+  padding: 10px;
+  border-radius: 24px;
+  background: #FFFFFF;
+  border: 1px solid var(--sim-stone);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 
 .card-pile:hover {
-  transform: scale(1.08);
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
 }
 
 .card-pile:active {
@@ -182,16 +219,16 @@ body {
 }
 
 .card-pile-img {
-  width: 44px;
+  width: 48px;
   height: auto;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 4px rgba(45, 58, 49, 0.1));
 }
 
 .card-pile-count {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  color: var(--sim-accent);
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  font-family: var(--sim-font-body);
 }
 
 .community-cards-section {
@@ -201,18 +238,21 @@ body {
   gap: 4px;
   min-width: 60px;
   min-height: 40px;
-  border-radius: 10px;
-  padding: 4px 8px;
-  transition: border-color 0.2s, background 0.2s;
+  border-radius: 24px;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--sim-stone);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
+  transition: all 0.3s ease;
 }
 
 .community-cards-section.drag-over {
-  background: rgba(212, 168, 67, 0.1);
-  border: 2px dashed var(--sim-accent);
+  background: rgba(194, 123, 102, 0.06);
+  border-color: var(--sim-terracotta);
 }
 
 .community-cards-section.drag-target {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border: 2px dashed var(--sim-accent);
 }
 
 .community-cards-row {
@@ -226,8 +266,8 @@ body {
 .community-card {
   width: 40px;
   aspect-ratio: 951 / 1346;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.08);
   object-fit: contain;
 }
 
@@ -236,9 +276,10 @@ body {
 }
 
 .table-info-label {
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  color: var(--sim-accent);
   font-weight: 500;
+  font-family: var(--sim-font-body);
 }
 
 .sim-self-area {
@@ -246,9 +287,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 6px;
-  padding: 4px 12px 8px;
+  padding: 4px 12px 12px;
   min-height: 0;
 }
 
@@ -256,6 +297,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 6px 14px;
+  border-radius: 24px;
+  background: #FFFFFF;
+  border: 1px solid var(--sim-stone);
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
 }
 
 .sim-self-avatar {
@@ -267,54 +313,64 @@ body {
 }
 
 .sim-self-name {
-  color: #000;
-  font-size: 1rem;
-  font-weight: 800;
-  -webkit-text-stroke: 0.4px rgba(255,255,255,0.8);
-  paint-order: stroke fill;
+  color: var(--sim-accent-dark);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--sim-font-body);
 }
 
 .sim-self-reveal-btn {
   font-size: 0.7rem;
-  padding: 3px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(39, 174, 96, 0.5);
-  background: rgba(39, 174, 96, 0.2);
-  color: #27AE60;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--sim-accent);
+  background: transparent;
+  color: var(--sim-accent-dark);
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s;
+  font-family: var(--sim-font-body);
+  transition: all 0.3s ease;
   touch-action: manipulation;
   white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .sim-self-reveal-btn:hover {
-  background: rgba(39, 174, 96, 0.35);
+  background: var(--sim-accent);
+  color: #fff;
 }
 
 .sim-self-reveal-btn.revealed {
-  border-color: rgba(212, 175, 55, 0.5);
-  background: rgba(212, 175, 55, 0.2);
-  color: var(--sim-gold);
+  border-color: var(--sim-terracotta);
+  background: var(--sim-terracotta);
+  color: #fff;
 }
 
 .sim-self-cards {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 4px;
 }
 
 .sim-self-cards .sim-card {
   width: 56px;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid transparent;
+  border-radius: 6px;
 }
 
 .sim-self-cards .sim-card:hover {
-  transform: translateY(-6px);
-  z-index: 10;
+  transform: translateY(-8px);
+  box-shadow: 0 10px 15px -3px rgba(45, 58, 49, 0.1);
+}
+
+.sim-self-cards .sim-card.card-selected {
+  border-color: var(--sim-terracotta);
+  transform: translateY(-12px);
+  box-shadow: 0 10px 15px -3px rgba(194, 123, 102, 0.2);
 }
 
 .sim-self-cards .sim-card.card-back {
@@ -322,7 +378,7 @@ body {
 }
 
 .sim-self-cards .sim-card.card-revealed {
-  box-shadow: 0 2px 8px rgba(212, 168, 67, 0.4);
+  box-shadow: 0 4px 6px -1px rgba(140, 154, 132, 0.2);
 }
 
 .sim-controls {
@@ -330,8 +386,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 16px;
+  background: var(--sim-accent-dark);
   backdrop-filter: blur(10px);
   z-index: 50;
   flex-shrink: 0;
@@ -344,6 +400,7 @@ body {
   cursor: pointer;
   color: rgba(255,255,255,0.7);
   font-size: 12px;
+  font-family: var(--sim-font-body);
 }
 
 .joker-toggle input {
@@ -385,26 +442,29 @@ body {
 }
 
 .btn-action {
-  padding: 5px 14px;
-  border-radius: 14px;
+  padding: 6px 16px;
+  border-radius: 20px;
   font-weight: 600;
   font-size: 11px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   color: #fff;
   touch-action: manipulation;
+  font-family: var(--sim-font-body);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .btn-reset {
-  background: linear-gradient(135deg, var(--sim-accent), #b8922e);
+  background: var(--sim-accent-dark);
 }
-.btn-reset:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
+.btn-reset:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(45,58,49,0.2); }
 
 .btn-reveal {
-  background: linear-gradient(135deg, #27AE60, #1e8449);
+  background: var(--sim-accent);
 }
-.btn-reveal:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(39,174,96,0.4); }
+.btn-reveal:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(140,154,132,0.3); }
 
 .drag-ghost {
   position: fixed;
@@ -418,8 +478,8 @@ body {
   width: 52px;
   height: auto;
   aspect-ratio: 951 / 1346;
-  border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  border-radius: 8px;
+  box-shadow: 0 20px 40px -10px rgba(45, 58, 49, 0.15);
   object-fit: contain;
 }
 
@@ -428,16 +488,17 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.85);
+  background: var(--sim-accent-dark);
   color: #fff;
-  padding: 14px 28px;
-  border-radius: 14px;
+  padding: 16px 32px;
+  border-radius: 24px;
   font-size: 16px;
   font-weight: 600;
   z-index: 200;
   backdrop-filter: blur(10px);
   text-align: center;
   pointer-events: none;
+  font-family: var(--sim-font-body);
 }
 
 .host-panel {
@@ -445,19 +506,25 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.9);
-  padding: 20px;
-  border-radius: 14px;
+  background: #FFFFFF;
+  padding: 24px;
+  border-radius: 24px;
   z-index: 150;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: 180px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
+  gap: 12px;
+  min-width: 200px;
+  border: 1px solid var(--sim-stone);
+  box-shadow: 0 25px 50px -12px rgba(45, 58, 49, 0.15);
 }
 
-.host-panel h3 { color: #fff; text-align: center; margin-bottom: 6px; }
+.host-panel h3 {
+  color: var(--sim-accent-dark);
+  text-align: center;
+  margin-bottom: 4px;
+  font-family: var(--sim-font-heading);
+  font-weight: 600;
+}
 
 .host-setting-row {
   display: flex;
@@ -467,42 +534,64 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--sim-accent), #b8922e);
+  background: var(--sim-accent-dark);
   color: #fff;
   border: none;
-  padding: 8px 18px;
-  border-radius: 8px;
+  padding: 10px 24px;
+  border-radius: 24px;
   font-weight: 600;
   cursor: pointer;
   font-size: 13px;
-  transition: all 0.2s;
+  font-family: var(--sim-font-body);
+  transition: all 0.3s ease;
   touch-action: manipulation;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,168,67,0.4); }
+.btn-primary:hover { background: var(--sim-accent); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(45,58,49,0.1); }
+
+.btn {
+  background: transparent;
+  color: var(--sim-accent-dark);
+  border: 1px solid var(--sim-stone);
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--sim-font-body);
+  transition: all 0.3s ease;
+}
+.btn:hover { background: var(--sim-felt); }
 
 @media (max-width: 768px) {
-  .sim-other-players { gap: 6px; padding: 6px 4px 2px; }
-  .sim-other-player { padding: 4px 6px; min-width: 60px; }
-  .sim-other-avatar { width: 24px; height: 24px; }
-  .sim-other-name { font-size: 0.65rem; max-width: 50px; }
+  .sim-top-players { gap: 8px; padding: 8px 6px 4px; }
+  .sim-other-player { padding: 6px 8px; min-width: 64px; }
+  .sim-other-avatar { width: 26px; height: 26px; }
+  .sim-other-name { font-size: 0.65rem; max-width: 54px; }
   .sim-card { width: 38px; }
   .sim-self-cards .sim-card { width: 48px; }
-  .card-pile-img { width: 38px; }
+  .card-pile-img { width: 40px; }
   .community-card { width: 34px; }
+  .sim-middle-area { gap: 12px; padding: 6px 10px; }
 }
 
 @media (max-width: 480px) {
-  .game-header { padding: 4px 8px; }
-  .sim-other-players { gap: 4px; padding: 4px 2px 2px; }
-  .sim-other-player { padding: 3px 4px; min-width: 52px; }
+  .game-header { padding: 6px 10px; }
+  .sim-top-players { gap: 5px; padding: 6px 4px 2px; }
+  .sim-other-player { padding: 4px 6px; min-width: 56px; border-radius: 20px; }
   .sim-other-avatar { width: 22px; height: 22px; }
-  .sim-other-name { font-size: 0.6rem; max-width: 44px; }
+  .sim-other-name { font-size: 0.6rem; max-width: 48px; }
   .sim-card { width: 34px; }
   .sim-self-cards .sim-card { width: 44px; }
-  .card-pile-img { width: 34px; }
+  .card-pile-img { width: 36px; }
   .community-card { width: 30px; }
-  .game-type-badge { font-size: 11px; padding: 2px 8px; }
-  .sim-controls { gap: 6px; padding: 4px 8px; }
-  .btn-action { padding: 4px 8px; font-size: 10px; }
-  .sim-self-name { font-size: 0.85rem; }
+  .game-type-badge { font-size: 11px; padding: 3px 10px; }
+  .sim-controls { gap: 6px; padding: 6px 10px; }
+  .btn-action { padding: 4px 10px; font-size: 10px; }
+  .sim-self-name { font-size: 0.8rem; }
+  .sim-middle-area { gap: 8px; padding: 4px 8px; }
+  .card-pile { padding: 6px; border-radius: 20px; }
+  .community-cards-section { padding: 6px 8px; border-radius: 20px; }
+  .sim-self-info { padding: 4px 10px; border-radius: 20px; }
 }
