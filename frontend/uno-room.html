@@ -10,6 +10,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="game-loading-mask" class="game-loading-mask">
+    <div class="game-loading-spinner"></div>
+    <div class="game-loading-text">加载中...</div>
+  </div>
+
   <header class="game-header">
     <div class="header-left">
       <span class="room-label">房间号:</span>
@@ -90,10 +95,14 @@
   <script src="js/socket.io.min.js"></script>
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/preloader.js"></script>
   <script src="js/socket.js"></script>
   <script src="js/agora.js"></script>
   <script src="js/sounds.js"></script>
   <script src="js/uno-room/ui.js"></script>
   <script src="js/uno-room/game.js"></script>
+  <script>
+    GamePreloader.init({ images: ['images/UNO/back.png'] });
+  </script>
 </body>
 </html>

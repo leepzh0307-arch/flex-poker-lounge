@@ -23,19 +23,19 @@ const AI_CONFIGS = {
     label: '简单',
     mistakeRate: 0.20,
     winBonus: 0.0,
-    think: [1500, 2500]
+    think: [600, 1200]
   },
   medium: {
     label: '中等',
     mistakeRate: 0.08,
     winBonus: 0.05,
-    think: [1800, 3200]
+    think: [800, 1500]
   },
   hard: {
     label: '困难',
     mistakeRate: 0.02,
     winBonus: 0.10,
-    think: [2000, 4000]
+    think: [1000, 2000]
   }
 };
 
@@ -427,7 +427,7 @@ function getThinkTime(difficulty, personality) {
   const p = AI_PERSONALITIES[personality || 'FISH'];
   const speedMul = p.aggression > 0.7 ? 0.85 : p.aggression < 0.3 ? 1.2 : 1.0;
   const base = cfg.think[0] + Math.random() * (cfg.think[1] - cfg.think[0]);
-  return Math.max(1500, Math.floor(base * speedMul));
+  return Math.max(500, Math.floor(base * speedMul));
 }
 
 module.exports = {

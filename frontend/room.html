@@ -38,6 +38,11 @@
 </head>
 <body>
 
+  <div id="game-loading-mask" class="game-loading-mask">
+    <div class="game-loading-spinner"></div>
+    <div class="game-loading-text">加载中...</div>
+  </div>
+
   <div class="game-bg"></div>
 
   <div class="room-container">
@@ -423,6 +428,7 @@
   <script src="js/socket.io.min.js"></script>
   <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/preloader.js"></script>
   <script src="js/chipDisplay.js"></script>
   <script src="js/themeManager.js"></script>
   <script src="js/themePopup.js"></script>
@@ -435,6 +441,18 @@
   <script src="js/room/rules/custom.js"></script>
 
   <script>
+    (function() {
+      var chipImages = ChipDisplay.getAllImagePaths();
+      var cardBackSrc = ThemeManager.getCardBackSrc();
+      var cardPileSrc = ThemeManager.getCardPileSrc();
+      var allImages = chipImages.concat([cardBackSrc, cardPileSrc, 'css/images/poker-power.webp']);
+      var bgTheme = ThemeManager.getTableTheme();
+      var videos = [];
+      if (bgTheme === 1) videos.push('css/images/game-bg1.mp4');
+      if (bgTheme === 2) videos.push('css/images/game-bg2.mp4');
+      ChipDisplay.preloadAll();
+      GamePreloader.init({ images: allImages, videos: videos });
+    })();
     document.addEventListener('DOMContentLoaded', function() {
       var gameLogToggle = document.getElementById('game-log-toggle');
       var gameLogBody = document.getElementById('game-log-body');

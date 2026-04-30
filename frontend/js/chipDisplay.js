@@ -16,6 +16,33 @@ var ChipDisplay = (function () {
 
   var currentSeries = 1;
 
+  var preloadedCache = {};
+
+  function preloadAll() {
+    Object.keys(SERIES).forEach(function (seriesId) {
+      var tiers = SERIES[seriesId];
+      Object.keys(tiers).forEach(function (tier) {
+        var src = tiers[tier];
+        if (!preloadedCache[src]) {
+          var img = new Image();
+          img.src = src;
+          preloadedCache[src] = img;
+        }
+      });
+    });
+  }
+
+  function getAllImagePaths() {
+    var paths = [];
+    Object.keys(SERIES).forEach(function (seriesId) {
+      var tiers = SERIES[seriesId];
+      Object.keys(tiers).forEach(function (tier) {
+        paths.push(tiers[tier]);
+      });
+    });
+    return paths;
+  }
+
   function setSeries(series) {
     if (SERIES[series]) currentSeries = series;
   }
@@ -67,5 +94,7 @@ var ChipDisplay = (function () {
     getChipImage: getChipImage,
     createChipElement: createChipElement,
     updateChipElement: updateChipElement,
+    preloadAll: preloadAll,
+    getAllImagePaths: getAllImagePaths,
   };
 })();
