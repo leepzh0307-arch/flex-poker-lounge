@@ -539,7 +539,7 @@ class OmahaRoomUI {
             setTimeout(() => {
               betEl.style.display = 'none';
               betEl.classList.remove('fade-out');
-            }, 800);
+            }, 300);
           } else {
             betEl.style.display = 'none';
           }

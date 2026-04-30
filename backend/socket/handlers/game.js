@@ -1301,7 +1301,11 @@ function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
     if (idx !== -1) room._aiTimerIds.splice(idx, 1);
     try {
       if (!room || room.gameState.currentPlayer !== aiPlayer.id) return;
-      if (!aiPlayer.isActive || aiPlayer.chips === 0) return;
+      if (!aiPlayer.isActive) return;
+      if (aiPlayer.chips === 0) {
+        moveToNextPlayer(room, roomId, io, rooms);
+        return;
+      }
 
       const gameState = buildAiGameState(room, aiPlayer);
       const decision = makeDecision(aiPlayer.aiDifficulty || 'medium', gameState, aiPlayer.id);
@@ -1334,6 +1338,16 @@ function scheduleAiAction(room, roomId, io, aiPlayer, rooms) {
     }
   }, thinkTime);
   trackAiTimer(room, timerId);
+
+  const safetyTimerId = setTimeout(() => {
+    const sIdx = room._aiTimerIds ? room._aiTimerIds.indexOf(safetyTimerId) : -1;
+    if (sIdx !== -1) room._aiTimerIds.splice(sIdx, 1);
+    if (room && room.gameState.currentPlayer === aiPlayer.id && aiPlayer.isActive) {
+      console.warn(`[AI] 安全超时：强制 ${aiPlayer.nickname} 弃牌`);
+      handleFold(room, roomId, io, aiPlayer.id, rooms);
+    }
+  }, Math.max(thinkTime + 5000, 10000));
+  trackAiTimer(room, safetyTimerId);
 }
 
 function buildAiGameState(room, aiPlayer) {
