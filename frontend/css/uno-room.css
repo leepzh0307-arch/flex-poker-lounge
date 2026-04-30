@@ -15,62 +15,29 @@ body {
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Source Sans 3', 'DM Sans', sans-serif;
   display: flex;
   flex-direction: column;
+  color: #fff;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.game-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.header-left, .header-center, .header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.uno-texture-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 .game-type-badge {
   background: linear-gradient(135deg, var(--uno-red), var(--uno-yellow));
-  color: #fff;
-  font-weight: 700;
-  font-size: 18px;
-  padding: 4px 16px;
-  border-radius: 20px;
-  letter-spacing: 2px;
 }
-
-.room-label { color: rgba(255,255,255,0.6); font-size: 12px; }
-.room-id { color: #fff; font-weight: 600; font-size: 14px; }
-
-.btn-icon {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-  touch-action: manipulation;
-}
-.btn-icon:hover { background: rgba(255,255,255,0.2); }
-.btn-icon.btn-danger { border-color: rgba(231,76,60,0.5); color: #E74C3C; }
-.btn-icon.btn-danger:hover { background: rgba(231,76,60,0.2); }
-
-.icon-sm { width: 16px; height: 16px; vertical-align: middle; }
 
 .uno-game-area {
   display: flex;

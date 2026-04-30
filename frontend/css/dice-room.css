@@ -35,55 +35,12 @@ body {
   background-repeat: repeat;
 }
 
-.game-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  background: var(--dice-accent-dark);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.header-left, .header-center, .header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .game-type-badge {
-  font-weight: 700;
-  font-size: 18px;
-  padding: 4px 16px;
-  border-radius: 20px;
-  letter-spacing: 2px;
-  color: #fff;
   font-family: var(--dice-font-heading);
 }
 .dice-badge {
   background: linear-gradient(135deg, var(--dice-terracotta), var(--dice-blue));
 }
-
-.room-label { color: rgba(255,255,255,0.6); font-size: 12px; }
-.room-id { color: #fff; font-weight: 600; font-size: 14px; }
-
-.btn-icon {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: var(--dice-font-body);
-  transition: all 0.3s ease;
-}
-.btn-icon:hover { background: rgba(255,255,255,0.2); }
-.btn-icon.btn-danger { border-color: rgba(194,123,102,0.5); color: var(--dice-terracotta); }
-
-.icon-sm { width: 16px; height: 16px; vertical-align: middle; }
 
 .dice-game-area {
   display: flex;

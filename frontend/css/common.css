@@ -25,6 +25,117 @@ body {
   padding: var(--spacing-md);
 }
 
+/* ===== 游戏页统一 Header (Botanical 风格) ===== */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #2D3A31;
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.08);
+}
+
+.header-left, .header-center, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.game-type-badge {
+  font-weight: 700;
+  font-size: 15px;
+  padding: 5px 18px;
+  border-radius: 24px;
+  letter-spacing: 2px;
+  color: #fff;
+  font-family: 'Playfair Display', Georgia, serif;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(45, 58, 49, 0.12);
+}
+
+.room-label {
+  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+  font-family: 'Source Sans 3', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.room-id {
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: 'Source Sans 3', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.btn-icon {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  touch-action: manipulation;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.btn-icon:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-icon:active {
+  transform: translateY(0);
+}
+
+.btn-icon.btn-danger {
+  border-color: rgba(194, 123, 102, 0.4);
+  color: #C27B66;
+}
+
+.btn-icon.btn-danger:hover {
+  background: rgba(194, 123, 102, 0.15);
+  color: #d4917a;
+}
+
+.icon-sm {
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
+.connection-status {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .game-header {
+    padding: 7px 12px;
+  }
+  .game-type-badge {
+    font-size: 12px;
+    padding: 3px 12px;
+    letter-spacing: 1px;
+  }
+  .room-label { font-size: 10px; }
+  .room-id { font-size: 11px; }
+  .btn-icon { padding: 4px 8px; font-size: 10px; }
+  .icon-sm { width: 12px; height: 12px; }
+  .header-left, .header-center, .header-right { gap: 6px; }
+}
+
 /* 通用按钮样式 */
 .btn {
   display: inline-block;

@@ -39,55 +39,12 @@ body {
   background-repeat: repeat;
 }
 
-.game-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  background: var(--sim-accent-dark);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  flex-shrink: 0;
-}
-
-.header-left, .header-center, .header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .game-type-badge {
-  font-weight: 700;
-  font-size: 14px;
-  padding: 4px 16px;
-  border-radius: 20px;
-  letter-spacing: 1px;
-  color: #fff;
   font-family: var(--sim-font-heading);
 }
 .sim-badge {
   background: linear-gradient(135deg, var(--sim-accent-dark), var(--sim-accent));
 }
-
-.room-label { color: rgba(255,255,255,0.6); font-size: 11px; }
-.room-id { color: #fff; font-weight: 600; font-size: 13px; }
-
-.btn-icon {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 11px;
-  font-family: var(--sim-font-body);
-  transition: all 0.3s ease;
-  touch-action: manipulation;
-}
-.btn-icon:hover { background: rgba(255,255,255,0.2); }
-.btn-icon.btn-danger { border-color: rgba(194,123,102,0.5); color: var(--sim-terracotta); }
-
-.icon-sm { width: 14px; height: 14px; vertical-align: middle; }
 
 /* ===== 游戏主区域 ===== */
 .sim-game-area {
