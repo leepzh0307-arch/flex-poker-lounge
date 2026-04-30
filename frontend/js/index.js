@@ -380,15 +380,9 @@
       if (simPvpNickname) simPvpNickname.focus();
       return;
     }
-    socketClient.createPokerSimRoom(nickname, getAvatar('sim-pvp'), function(err, roomId) {
-      if (err) {
-        showToast('创建房间失败: ' + err);
-        return;
-      }
-      var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&isHost=true&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
-      closeAllModals();
-      setTimeout(function() { navigateToRoom(targetUrl); }, 300);
-    });
+    var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&isCreating=true&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
 
   function joinSimRoom() {
@@ -404,15 +398,9 @@
       if (simPvpRoomId) simPvpRoomId.focus();
       return;
     }
-    socketClient.joinPokerSimRoom(roomId, nickname, getAvatar('sim-pvp'), function(err) {
-      if (err) {
-        showToast('加入房间失败: ' + err);
-        return;
-      }
-      var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
-      closeAllModals();
-      setTimeout(function() { navigateToRoom(targetUrl); }, 300);
-    });
+    var targetUrl = 'poker-sim-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&gameType=poker-sim&avatar=' + getAvatar('sim-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
   }
 
   var createSimRoomBtn = document.getElementById('create-sim-room');

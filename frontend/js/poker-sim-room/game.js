@@ -24,7 +24,7 @@ var PokerSimGameManager = (function () {
     var params = new URLSearchParams(window.location.search);
     var nickname = params.get('nickname') || 'Player';
     var avatar = params.get('avatar') || 'bear';
-    var isHost = params.get('isHost') === 'true';
+    var isCreating = params.get('isCreating') === 'true';
     var roomId = params.get('roomId');
 
     if (!window.socketClient) {
@@ -43,6 +43,12 @@ var PokerSimGameManager = (function () {
       self.updateRoomId(data.roomId);
       self.showNotification('房间创建成功: ' + data.roomId);
       self.initVoice();
+
+      var url = new URL(window.location);
+      url.searchParams.set('roomId', data.roomId);
+      url.searchParams.delete('isCreating');
+      url.searchParams.set('isHost', 'true');
+      window.history.replaceState({}, '', url);
     });
 
     this.socket.on('roomJoined', function (data) {
@@ -73,11 +79,7 @@ var PokerSimGameManager = (function () {
       self.playerId = self.socket.getSocketId();
       self.updateConnectionStatus('已连接');
 
-      if (isHost && roomId) {
-        self.isHost = true;
-        self.roomId = roomId;
-        self.socket.emit('joinPokerSimRoom', { roomId: roomId, nickname: nickname, avatar: avatar });
-      } else if (isHost) {
+      if (isCreating) {
         self.isHost = true;
         self.createRoom(nickname, avatar);
       } else if (roomId) {
