@@ -1173,11 +1173,11 @@ class RoomUI {
 
     let rx, ry, betDist;
     if (isSmallMobile) {
-      rx = 28; ry = 32; betDist = 10;
+      rx = 28; ry = 32; betDist = 16;
     } else if (isMobile) {
-      rx = 33; ry = 37; betDist = 11;
+      rx = 33; ry = 37; betDist = 18;
     } else {
-      rx = 38; ry = 42; betDist = 12;
+      rx = 38; ry = 42; betDist = 20;
     }
     const cx = 50;
     const cy = 50;
