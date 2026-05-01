@@ -167,9 +167,11 @@ class RoomUI {
     this.bindEvents();
     this._setupGameLogObserver();
     this.updateLanguage();
+    Object.keys(BasePokerUI).forEach(function(method) {
+      if (!RoomUI.prototype[method]) { RoomUI.prototype[method] = BasePokerUI[method]; }
+    });
     this._applyInitialTheme();
   }
-
   _applyInitialTheme() {
     if (typeof ThemeManager !== 'undefined') {
       ThemeManager.applyAll();

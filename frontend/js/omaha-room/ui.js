@@ -157,9 +157,11 @@ class OmahaRoomUI {
 
     this.bindEvents();
     this.updateLanguage();
+    Object.keys(BasePokerUI).forEach(function(method) {
+      if (!OmahaRoomUI.prototype[method]) { OmahaRoomUI.prototype[method] = BasePokerUI[method]; }
+    });
     this._applyInitialTheme();
   }
-
   _applyInitialTheme() {
     if (typeof ThemeManager !== 'undefined') {
       ThemeManager.applyAll();
@@ -175,10 +177,12 @@ class OmahaRoomUI {
       if (element) {
         let handled = false;
         element.addEventListener('click', (e) => {
+          if (element.disabled) return;
           if (handled) { handled = false; return; }
           handler(e);
         });
         element.addEventListener('touchstart', (e) => {
+          if (element.disabled) return;
           handled = true;
           e.preventDefault();
           handler(e);

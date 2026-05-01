@@ -1,99 +1,3 @@
-:root {
-  --bg-deep: #F9F8F4;
-  --bg-primary: #F9F8F4;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #F2F0EB;
-  --bg-card: #FFFFFF;
-  --bg-overlay: rgba(249, 248, 244, 0.9);
-
-  --gold: #8C9A84;
-  --gold-light: #A3B49A;
-  --gold-dim: #6B7D63;
-  --gold-glow: rgba(140, 154, 132, 0.15);
-
-  --felt: #8C9A84;
-  --felt-dark: #6B7D63;
-  --felt-border: #A3B49A;
-
-  --text-primary: #2D3A31;
-  --text-secondary: #5A6B5E;
-  --text-muted: #8C9A84;
-  --text-dark: #2D3A31;
-
-  --accent-red: #C27B66;
-  --accent-green: #8C9A84;
-  --accent-blue: #5B7A9D;
-  --accent-teal: #6B8F71;
-  --accent-purple: #7A6B8A;
-
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Source Sans 3', -apple-system, 'Segoe UI', sans-serif;
-
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
-
-  --shadow-sm: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
-  --shadow-md: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
-  --shadow-lg: 0 20px 40px -10px rgba(45, 58, 49, 0.05);
-  --shadow-gold: 0 0 20px rgba(140, 154, 132, 0.15);
-
-  --header-height: 48px;
-  --table-max-w: 480px;
-  --table-aspect: 1.1;
-
-  --transition-fast: 300ms ease;
-  --transition-normal: 500ms ease;
-  --transition-slow: 700ms ease;
-}
-
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  font-size: 14px;
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  font-family: var(--font-body);
-  background: var(--bg-deep);
-  color: var(--text-primary);
-  overflow: hidden;
-  height: 100vh;
-  height: 100dvh;
-  width: 100vw;
-  position: relative;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.game-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(140,154,132,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(140,154,132,0.06) 0%, transparent 40%),
-    radial-gradient(ellipse at 20% 90%, rgba(194,123,102,0.05) 0%, transparent 40%),
-    linear-gradient(180deg, #F9F8F4 0%, #F2F0EB 40%, #EDE9E0 100%);
-}
-
-.game-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.015;
-  pointer-events: none;
-}
-
 .portrait-overlay {
   position: fixed;
   top: 0;
@@ -152,131 +56,6 @@ body {
   font-size: 0.85rem !important;
   color: var(--text-muted) !important;
   margin-top: 0.5rem;
-}
-
-.room-container {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-}
-
-.room-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--header-height);
-  padding: 0 12px;
-  background: #FFFFFF;
-  border-bottom: 1px solid rgba(45, 58, 49, 0.08);
-  flex-shrink: 0;
-  z-index: 10;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.room-label {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 500;
-}
-
-.room-id {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--gold);
-  letter-spacing: 0.05em;
-  font-style: italic;
-}
-
-.header-btn {
-  background: rgba(45, 58, 49, 0.03);
-  border: 1px solid rgba(45, 58, 49, 0.06);
-  color: var(--text-secondary);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-body);
-  white-space: nowrap;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.header-btn:hover {
-  background: rgba(140, 154, 132, 0.1);
-  border-color: rgba(140, 154, 132, 0.2);
-  color: var(--gold-dim);
-}
-
-.header-btn:active {
-  transform: scale(0.96);
-}
-
-.copy-btn {
-  padding: 3px 8px;
-  font-size: 0.7rem;
-}
-
-.header-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.connection-status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 8px;
-  transition: all var(--transition-fast);
-}
-
-.connection-status .status-icon {
-  width: 18px;
-  height: 18px;
-  display: block;
-}
-
-.connection-status.connected {
-  background: rgba(39, 174, 96, 0.1);
-}
-
-.connection-status.disconnected {
-  background: rgba(192, 57, 43, 0.1);
-}
-
-.connection-status.connecting {
-  background: rgba(212, 175, 55, 0.1);
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.exit-btn {
-  color: var(--accent-red) !important;
-  border-color: rgba(192, 57, 43, 0.2) !important;
-}
-
-.exit-btn:hover {
-  background: rgba(192, 57, 43, 0.15) !important;
-  color: #E74C3C !important;
 }
 
 .info-bar {
@@ -1018,26 +797,26 @@ body {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform-origin: 50% calc(100% + 90%);
+  transform-origin: 50% calc(100% + 120%);
 }
 
 .seat-self .player-cards .poker-card:nth-child(1) {
-  transform: translateX(-50%) rotate(-40deg);
+  transform: translateX(-50%) rotate(-45deg);
   z-index: 1;
 }
 
 .seat-self .player-cards .poker-card:nth-child(2) {
-  transform: translateX(-50%) rotate(-13deg);
+  transform: translateX(-50%) rotate(-15deg);
   z-index: 2;
 }
 
 .seat-self .player-cards .poker-card:nth-child(3) {
-  transform: translateX(-50%) rotate(13deg);
+  transform: translateX(-50%) rotate(15deg);
   z-index: 3;
 }
 
 .seat-self .player-cards .poker-card:nth-child(4) {
-  transform: translateX(-50%) rotate(40deg);
+  transform: translateX(-50%) rotate(45deg);
   z-index: 4;
 }
 
@@ -2136,19 +1915,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-40deg);
+    transform: translateX(-50%) rotate(-45deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-13deg);
+    transform: translateX(-50%) rotate(-15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(13deg);
+    transform: translateX(-50%) rotate(15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(40deg);
+    transform: translateX(-50%) rotate(45deg);
   }
 
   .community-cards-row .poker-card {
@@ -2235,19 +2014,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-40deg);
+    transform: translateX(-50%) rotate(-45deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-13deg);
+    transform: translateX(-50%) rotate(-15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(13deg);
+    transform: translateX(-50%) rotate(15deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(40deg);
+    transform: translateX(-50%) rotate(45deg);
   }
 
   .community-cards-row .poker-card {
@@ -2360,19 +2139,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-35deg);
+    transform: translateX(-50%) rotate(-40deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-12deg);
+    transform: translateX(-50%) rotate(-13deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(12deg);
+    transform: translateX(-50%) rotate(13deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(35deg);
+    transform: translateX(-50%) rotate(40deg);
   }
 
   .player-cards .poker-card:nth-child(2),
@@ -2631,19 +2410,19 @@ body {
   }
 
   .seat-self .player-cards .poker-card:nth-child(1) {
-    transform: translateX(-50%) rotate(-30deg);
+    transform: translateX(-50%) rotate(-35deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(2) {
-    transform: translateX(-50%) rotate(-10deg);
+    transform: translateX(-50%) rotate(-12deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(3) {
-    transform: translateX(-50%) rotate(10deg);
+    transform: translateX(-50%) rotate(12deg);
   }
 
   .seat-self .player-cards .poker-card:nth-child(4) {
-    transform: translateX(-50%) rotate(30deg);
+    transform: translateX(-50%) rotate(35deg);
   }
 
   .player-cards .poker-card:nth-child(2),

@@ -252,6 +252,8 @@ var PokerSimGameManager = (function () {
     others.forEach(function (s) { s.classList.add('drag-target'); });
     var comm = document.getElementById('community-cards-section');
     if (comm) comm.classList.add('drag-target');
+    var selfArea = document.getElementById('self-area');
+    if (selfArea) selfArea.classList.add('drag-target');
   };
 
   GameManager.prototype.moveDrag = function (x, y, ghost) {
@@ -277,6 +279,16 @@ var PokerSimGameManager = (function () {
         comm.classList.remove('drag-over');
       }
     }
+
+    var selfArea = document.getElementById('self-area');
+    if (selfArea) {
+      var rect = selfArea.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        selfArea.classList.add('drag-over');
+      } else {
+        selfArea.classList.remove('drag-over');
+      }
+    }
   };
 
   GameManager.prototype.endDrag = function (x, y, ghost) {
@@ -285,6 +297,7 @@ var PokerSimGameManager = (function () {
 
     var targetPlayerId = null;
     var targetCommunity = false;
+    var targetSelf = false;
 
     var others = document.querySelectorAll('.sim-other-player');
     others.forEach(function (s) {
@@ -300,10 +313,23 @@ var PokerSimGameManager = (function () {
     if (comm) {
       comm.classList.remove('drag-over');
       comm.classList.remove('drag-target');
-      if (targetPlayerId) return;
-      var rect = comm.getBoundingClientRect();
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        targetCommunity = true;
+      if (!targetPlayerId) {
+        var rect = comm.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          targetCommunity = true;
+        }
+      }
+    }
+
+    var selfArea = document.getElementById('self-area');
+    if (selfArea) {
+      selfArea.classList.remove('drag-over');
+      selfArea.classList.remove('drag-target');
+      if (!targetPlayerId && !targetCommunity) {
+        var rect = selfArea.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          targetSelf = true;
+        }
       }
     }
 
@@ -316,6 +342,11 @@ var PokerSimGameManager = (function () {
       this.socket.emit('pokerSimAction', {
         action: 'dealToCommunity',
         data: {},
+      });
+    } else if (targetSelf && this.dragCard) {
+      this.socket.emit('pokerSimAction', {
+        action: 'dealCard',
+        data: { playerId: this.playerId },
       });
     }
 
@@ -488,12 +519,17 @@ var PokerSimGameManager = (function () {
     if (!row) return;
     row.innerHTML = '';
 
-    this.communityCards.forEach(function (card) {
+    var total = this.communityCards.length;
+    var mid = (total + 1) / 2;
+
+    this.communityCards.forEach(function (card, idx) {
       var img = document.createElement('img');
       img.className = 'community-card';
       img.src = self.getCardImageSrc(card);
       img.alt = card.suit + ' ' + card.rank;
       img.draggable = false;
+      img.style.setProperty('--idx', idx + 1);
+      img.style.setProperty('--mid', mid);
       row.appendChild(img);
     });
   };

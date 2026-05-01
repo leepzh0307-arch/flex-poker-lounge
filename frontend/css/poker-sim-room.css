@@ -82,10 +82,9 @@ body {
   gap: 10px;
   padding: 6px 10px;
   flex-wrap: wrap;
-  flex-shrink: 0;
+  flex: 1 1 0;
   position: relative;
   min-height: 40px;
-  max-height: 25vh;
   overflow-y: auto;
 }
 
@@ -177,8 +176,7 @@ body {
   justify-content: center;
   gap: 16px;
   padding: 8px 16px;
-  flex-shrink: 0;
-  max-height: 40vh;
+  flex: 1 1 0;
 }
 
 .sim-middle-left {
@@ -237,16 +235,17 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 200px;
-  min-height: 140px;
+  min-width: 260px;
+  min-height: 180px;
   border-radius: 24px;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: rgba(255, 255, 255, 0.5);
   border: 1px dashed rgba(140, 154, 132, 0.15);
   box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.03);
   transition: all 0.3s ease;
   position: relative;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .community-cards-section.drag-over {
@@ -270,13 +269,13 @@ body {
   justify-content: center;
   align-items: flex-end;
   position: relative;
-  min-height: 50px;
+  min-height: 80px;
   width: 100%;
 }
 
 /* 公共牌圆弧排列 - 底边中点分布在圆弧上 */
 .community-card {
-  width: 52px;
+  width: 44px;
   aspect-ratio: 951 / 1346;
   border-radius: 6px;
   box-shadow: 0 4px 6px -1px rgba(45, 58, 49, 0.08);
@@ -284,15 +283,15 @@ body {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform-origin: 50% calc(100% + 100%);
+  transform-origin: 50% calc(100% + 120%);
 }
 
-.community-card:nth-child(1) { transform: translateX(-50%) rotate(-20deg); z-index: 1; }
-.community-card:nth-child(2) { transform: translateX(-50%) rotate(-10deg); z-index: 2; }
-.community-card:nth-child(3) { transform: translateX(-50%) rotate(0deg); z-index: 3; }
-.community-card:nth-child(4) { transform: translateX(-50%) rotate(10deg); z-index: 4; }
-.community-card:nth-child(5) { transform: translateX(-50%) rotate(20deg); z-index: 5; }
-.community-card:nth-child(n+6) { transform: translateX(-50%) rotate(calc((var(--idx, 6) - 3) * 10deg)); z-index: 6; }
+.community-card:nth-child(1) { transform: translateX(-50%) rotate(calc((var(--idx, 1) - var(--mid, 3)) * 8deg)); z-index: 1; }
+.community-card:nth-child(2) { transform: translateX(-50%) rotate(calc((var(--idx, 2) - var(--mid, 3)) * 8deg)); z-index: 2; }
+.community-card:nth-child(3) { transform: translateX(-50%) rotate(calc((var(--idx, 3) - var(--mid, 3)) * 8deg)); z-index: 3; }
+.community-card:nth-child(4) { transform: translateX(-50%) rotate(calc((var(--idx, 4) - var(--mid, 3)) * 8deg)); z-index: 4; }
+.community-card:nth-child(5) { transform: translateX(-50%) rotate(calc((var(--idx, 5) - var(--mid, 3)) * 8deg)); z-index: 5; }
+.community-card:nth-child(n+6) { transform: translateX(-50%) rotate(calc((var(--idx, 6) - var(--mid, 3)) * 8deg)); z-index: calc(var(--idx, 6)); }
 
 .table-info {
   text-align: center;
@@ -307,7 +306,7 @@ body {
 
 /* ===== 本玩家区域 ===== */
 .sim-self-area {
-  flex: 0 0 auto;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -316,8 +315,18 @@ body {
   padding: 8px 12px 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   min-height: 100px;
-  max-height: 40vh;
   overflow: visible;
+  transition: all 0.3s ease;
+}
+
+.sim-self-area.drag-target {
+  border: 2px dashed var(--sim-accent);
+  border-radius: 16px;
+}
+
+.sim-self-area.drag-over {
+  border-color: var(--sim-terracotta);
+  background: rgba(194, 123, 102, 0.08);
 }
 
 .sim-self-cards-wrapper {
@@ -625,23 +634,23 @@ body {
   .sim-card { width: 38px; }
   .sim-self-cards .sim-card { width: 48px; }
   .card-pile-img { width: 40px; }
-  .community-card { width: 44px; }
-  .community-cards-section { min-width: 160px; min-height: 110px; }
-  .sim-middle-area { gap: 12px; padding: 6px 10px; max-height: 35vh; }
-  .sim-self-area { min-height: 90px; max-height: 35vh; }
+  .community-card { width: 38px; }
+  .community-cards-section { min-width: 200px; min-height: 130px; }
+  .sim-middle-area { gap: 12px; padding: 6px 10px; }
+  .sim-self-area { min-height: 90px; }
 }
 
 @media (max-width: 480px) {
   .game-header { padding: 6px 10px; }
-  .sim-top-players { gap: 5px; padding: 6px 4px 2px; max-height: 20vh; }
+  .sim-top-players { gap: 5px; padding: 6px 4px 2px; }
   .sim-other-player { padding: 4px 6px; min-width: 56px; border-radius: 20px; }
   .sim-other-avatar { width: 22px; height: 22px; }
   .sim-other-name { font-size: 0.6rem; max-width: 48px; }
   .sim-card { width: 34px; }
   .sim-self-cards .sim-card { width: 44px; }
   .card-pile-img { width: 36px; }
-  .community-card { width: 38px; }
-  .community-cards-section { min-width: 130px; min-height: 90px; padding: 8px 10px; }
+  .community-card { width: 34px; }
+  .community-cards-section { min-width: 170px; min-height: 110px; padding: 8px 10px; }
   .game-type-badge { font-size: 11px; padding: 3px 10px; }
   .sim-controls { gap: 6px; padding: 6px 10px; }
   .btn-action { padding: 4px 10px; font-size: 10px; }
