@@ -739,7 +739,11 @@ class OmahaRoomUI {
   }
 
   updateMyChips(chips) {
-    this.elements.myChips.textContent = chips;
+    var el = document.getElementById('my-chips');
+    if (el) this.elements.myChips = el;
+    if (this.elements.myChips) {
+      this.elements.myChips.textContent = chips;
+    }
   }
 
   addChipsHistoryEntry(amount, isWin) {
@@ -941,7 +945,9 @@ class OmahaRoomUI {
     if (this.elements.statusTitle) this.elements.statusTitle.textContent = title;
     if (this.elements.statusMessage) this.elements.statusMessage.textContent = message;
     this.elements.gameStatus.style.display = 'block';
-    setTimeout(() => { this.hideGameStatus(); }, 2000);
+    if (title !== '连接失败') {
+      setTimeout(() => { this.hideGameStatus(); }, 2000);
+    }
   }
 
   hideGameStatus() {

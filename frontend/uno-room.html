@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="css/themes/default.css">
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/uno-room.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -97,14 +99,13 @@
   </div>
 
   <script src="js/socket.io.min.js"></script>
-  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/preloader.js"></script>
-  <script src="js/socket.js"></script>
-  <script src="js/agora.js"></script>
-  <script src="js/sounds.js"></script>
-  <script src="js/uno-room/ui.js"></script>
-  <script src="js/uno-room/game.js"></script>
+  <script defer src="js/config.js"></script>
+  <script defer src="js/preloader.js"></script>
+  <script defer src="js/socket.js"></script>
+  <script defer src="js/agora.js"></script>
+  <script defer src="js/sounds.js"></script>
+  <script defer src="js/uno-room/ui.js"></script>
+  <script defer src="js/uno-room/game.js"></script>
   <script>
     GamePreloader.init({ images: ['images/UNO/back.png'] });
   </script>

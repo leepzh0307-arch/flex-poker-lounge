@@ -131,12 +131,11 @@ body {
 }
 
 .room-id {
-  font-family: var(--font-display);
+  font-family: 'Source Sans 3', sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--gold);
   letter-spacing: 0.05em;
-  font-style: italic;
 }
 
 .header-btn {

@@ -20,6 +20,7 @@ function sendDiceUpdate(roomId, io, room) {
     if (p.isAI) return;
 
     var playerData = room.players.map(function (op) {
+      var isSelf = op.id === p.id;
       return {
         id: op.id,
         nickname: op.nickname,
@@ -28,7 +29,7 @@ function sendDiceUpdate(roomId, io, room) {
         isOnline: op.isOnline !== false,
         diceCount: gs.playerDice[op.id] ? gs.playerDice[op.id].length : 0,
         diceTotal: gs.playerDiceCount[op.id] || gs.diceCount,
-        diceValues: gs.playerRevealed[op.id] ? (gs.playerDice[op.id] || []) : [],
+        diceValues: (isSelf || gs.playerRevealed[op.id]) ? (gs.playerDice[op.id] || []) : [],
         diceRevealed: gs.playerRevealed[op.id] || false,
         diceAdjust: gs.playerDiceAdjust[op.id] || 0,
         confirmed: gs.confirmedPlayers.indexOf(op.id) !== -1,
@@ -52,7 +53,15 @@ function getNextPlayerId(room, currentId) {
   var idx = room.players.findIndex(function (p) { return p.id === currentId; });
   if (idx === -1) return room.players[0].id;
   var nextIdx = (idx + 1) % room.players.length;
-  return room.players[nextIdx].id;
+  var nextPlayer = room.players[nextIdx];
+  var maxSkips = room.players.length;
+  var skips = 0;
+  while (nextPlayer.isOnline === false && !nextPlayer.isAI && skips < maxSkips) {
+    nextIdx = (nextIdx + 1) % room.players.length;
+    nextPlayer = room.players[nextIdx];
+    skips++;
+  }
+  return nextPlayer.id;
 }
 
 function handleStartGame(room, roomId, io, diceCount) {
@@ -103,6 +112,7 @@ function handleRollDice(room, roomId, io, playerId) {
   });
 
   var allRolled = room.players.every(function (p) {
+    if (p.isOnline === false && !p.isAI) return true;
     return gs.playerDice[p.id] && gs.playerDice[p.id].length > 0;
   });
 
@@ -120,9 +130,14 @@ function handleRollResult(room, roomId, io, playerId, values) {
   if (!values || !Array.isArray(values)) return;
   if (gs.phase !== 'ROLLING') return;
 
+  if (gs.playerDice[playerId] && gs.playerDice[playerId].length > 0) {
+    return;
+  }
+
   gs.playerDice[playerId] = values;
 
   var allRolled = room.players.every(function (p) {
+    if (p.isOnline === false && !p.isAI) return true;
     return gs.playerDice[p.id] && gs.playerDice[p.id].length > 0;
   });
 
@@ -569,7 +584,7 @@ module.exports = function (socket, rooms, io) {
           handleRequestRevealAll(room, socketData.roomId, io, playerId);
           break;
         case 'voteRevealAll':
-          handleVoteRevealAll(room, socketData.roomId, io, playerId, data.vote || false);
+          handleVoteRevealAll(room, socketData.roomId, io, playerId, actionData.vote || false);
           break;
         case 'addDice':
           handleAddDice(room, socketData.roomId, io, playerId);

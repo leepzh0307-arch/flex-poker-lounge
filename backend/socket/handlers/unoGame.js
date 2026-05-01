@@ -15,34 +15,41 @@ function trackAiTimer(room, timerId) {
   room._aiTimerIds.push(timerId);
 }
 
+function getPlayerId(socketOrObj) {
+  if (socketOrObj && socketOrObj.id) return socketOrObj.id;
+  return null;
+}
+
 function unoGameHandler(socket, rooms, io) {
-  socket.on('unoAction', ({ action, data }) => {
-    const roomId = findPlayerRoom(socket.id, rooms);
+  socket.on('unoAction', function(data) {
+    var action = data.action;
+    var actionData = data.data;
+    var roomId = findPlayerRoom(socket.id, rooms);
     if (!roomId) return;
-    const room = rooms.get(roomId);
+    var room = rooms.get(roomId);
     if (!room || room.gameType !== 'uno') return;
 
     switch (action) {
       case 'startGame': handleStartGame(room, roomId, io); break;
-      case 'playCard': handlePlayCard(room, roomId, io, socket, data); break;
+      case 'playCard': handlePlayCard(room, roomId, io, socket, actionData); break;
       case 'drawCard': handleDrawCard(room, roomId, io, socket); break;
-      case 'chooseColor': handleChooseColor(room, roomId, io, socket, data); break;
+      case 'chooseColor': handleChooseColor(room, roomId, io, socket, actionData); break;
       case 'callUno': handleCallUno(room, roomId, io, socket); break;
-      case 'catchUno': handleCatchUno(room, roomId, io, socket, data); break;
+      case 'catchUno': handleCatchUno(room, roomId, io, socket, actionData); break;
       case 'passTurn': handlePassTurn(room, roomId, io, socket); break;
       case 'resetGame': handleResetGame(room, roomId, io); break;
       case 'continueGame': handleContinueGame(room, roomId, io); break;
-      case 'setPlayerChips': handleSetPlayerChips(room, roomId, io, socket, data); break;
-      case 'addPlayerChips': handleAddPlayerChips(room, roomId, io, socket, data); break;
+      case 'setPlayerChips': handleSetPlayerChips(room, roomId, io, socket, actionData); break;
+      case 'addPlayerChips': handleAddPlayerChips(room, roomId, io, socket, actionData); break;
       default: break;
     }
   });
 }
 
 function findPlayerRoom(socketId, rooms) {
-  for (const [roomId, room] of rooms) {
-    if (room.players && room.players.some(p => p.id === socketId)) {
-      return roomId;
+  for (var entry of rooms.entries()) {
+    if (entry[1].players && entry[1].players.some(function(p) { return p.id === socketId; })) {
+      return entry[0];
     }
   }
   return null;
@@ -52,40 +59,43 @@ function handleStartGame(room, roomId, io) {
   if (room.gameState.phase !== 'WAITING') return;
   clearAiTimers(room);
 
-  const activePlayers = room.players.filter(p => p.isOnline !== false);
+  var activePlayers = room.players.filter(function(p) { return p.isOnline !== false; });
   if (activePlayers.length < 2) return;
 
-  const deck = shuffleDeck(generateUnoDeck());
-  const playerCards = {};
-  const playerOrder = [];
+  var deck = shuffleDeck(generateUnoDeck());
+  var playerCards = {};
+  var playerOrder = [];
 
-  activePlayers.forEach(player => {
+  activePlayers.forEach(function(player) {
     playerCards[player.id] = deck.splice(0, STARTING_HAND);
     playerOrder.push(player.id);
     player.isActive = true;
     player.calledUno = false;
   });
 
-  let firstCard;
+  var firstCard;
   do {
     firstCard = deck.shift();
     if (firstCard.type === 'wild') {
       deck.push(firstCard);
-      const shuffled = shuffleDeck(deck);
+      var shuffled = shuffleDeck(deck);
       deck.length = 0;
-      deck.push(...shuffled);
+      deck.push.apply(deck, shuffled);
     }
   } while (firstCard.type === 'wild');
 
-  let startingColor = firstCard.color;
-  let direction = 1;
-  let skipNext = false;
-  let drawCount = 0;
+  var startingColor = firstCard.color;
+  var direction = 1;
+  var skipNext = false;
+  var drawCount = 0;
 
   if (firstCard.value === 'skip') {
     skipNext = true;
   } else if (firstCard.value === 'reverse') {
     direction = -1;
+    if (activePlayers.length === 2) {
+      skipNext = true;
+    }
   } else if (firstCard.value === 'draw2') {
     drawCount = 2;
   }
@@ -111,11 +121,13 @@ function handleStartGame(room, roomId, io) {
 
   if (skipNext) {
     advanceTurn(room);
+    advanceTurn(room);
   }
 
   if (drawCount > 0) {
-    const nextPlayerId = room.gameState.playerOrder[room.gameState.currentPlayerIndex];
+    var nextPlayerId = getNextPlayerId(room);
     drawCardsForPlayer(room, nextPlayerId, drawCount);
+    advanceTurn(room);
     advanceTurn(room);
   }
 
@@ -125,19 +137,20 @@ function handleStartGame(room, roomId, io) {
 }
 
 function handlePlayCard(room, roomId, io, socket, data) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (gs.phase !== 'PLAYING') return;
 
-  const playerId = socket.id;
+  var playerId = getPlayerId(socket);
   if (gs.playerOrder[gs.currentPlayerIndex] !== playerId) return;
   if (gs.pendingColorChoice) return;
 
-  const { cardId, chosenColor } = data;
-  const hand = gs.playerCards[playerId];
-  const cardIndex = hand.findIndex(c => c.id === cardId);
+  var cardId = data.cardId;
+  var chosenColor = data.chosenColor;
+  var hand = gs.playerCards[playerId];
+  var cardIndex = hand.findIndex(function(c) { return c.id === cardId; });
   if (cardIndex === -1) return;
 
-  const card = hand[cardIndex];
+  var card = hand[cardIndex];
   if (!canPlayCard(card, gs.topCard, gs.currentColor)) return;
 
   hand.splice(cardIndex, 1);
@@ -145,8 +158,8 @@ function handlePlayCard(room, roomId, io, socket, data) {
   gs.topCard = card;
   gs.hasDrawnThisTurn = false;
 
-  const player = room.players.find(p => p.id === playerId);
-  const nickname = player ? player.nickname : 'Unknown';
+  var player = room.players.find(function(p) { return p.id === playerId; });
+  var nickname = player ? player.nickname : 'Unknown';
 
   if (card.type === 'wild') {
     if (chosenColor && COLORS.includes(chosenColor)) {
@@ -165,29 +178,30 @@ function handlePlayCard(room, roomId, io, socket, data) {
 }
 
 function handleChooseColor(room, roomId, io, socket, data) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (!gs.pendingColorChoice) return;
-  if (gs.playerOrder[gs.currentPlayerIndex] !== socket.id) return;
+  var playerId = getPlayerId(socket);
+  if (gs.playerOrder[gs.currentPlayerIndex] !== playerId) return;
 
-  const { color } = data;
+  var color = data.color;
   if (!COLORS.includes(color)) return;
 
   gs.currentColor = color;
   gs.pendingColorChoice = false;
 
-  const card = gs.pendingColorCard;
+  var card = gs.pendingColorCard;
   gs.pendingColorCard = null;
 
-  const player = room.players.find(p => p.id === socket.id);
-  const nickname = player ? player.nickname : 'Unknown';
+  var player = room.players.find(function(p) { return p.id === playerId; });
+  var nickname = player ? player.nickname : 'Unknown';
 
-  applyCardEffect(room, roomId, io, card, socket.id, nickname);
+  applyCardEffect(room, roomId, io, card, playerId, nickname);
 }
 
 function applyCardEffect(room, roomId, io, card, playerId, nickname) {
-  const gs = room.gameState;
+  var gs = room.gameState;
 
-  const logEntry = { player: nickname, card: card, action: 'play' };
+  var logEntry = { player: nickname, card: card, action: 'play' };
   gs.actionLog.push(logEntry);
 
   if (card.value === 'skip') {
@@ -204,35 +218,31 @@ function applyCardEffect(room, roomId, io, card, playerId, nickname) {
       advanceTurn(room);
     }
   } else if (card.value === 'draw2') {
-    const nextId = getNextPlayerId(room);
+    var nextId = getNextPlayerId(room);
     drawCardsForPlayer(room, nextId, 2);
-    const nextPlayer = room.players.find(p => p.id === nextId);
+    var nextPlayer = room.players.find(function(p) { return p.id === nextId; });
     broadcastAction(roomId, io, 'cardEffect', { effect: 'draw2', player: nickname, target: nextPlayer ? nextPlayer.nickname : '' });
     advanceTurn(room);
     advanceTurn(room);
   } else if (card.value === 'wild_draw4') {
-    const nextId = getNextPlayerId(room);
-    drawCardsForPlayer(room, nextId, 4);
-    const nextPlayer = room.players.find(p => p.id === nextId);
-    broadcastAction(roomId, io, 'cardEffect', { effect: 'wild_draw4', player: nickname, target: nextPlayer ? nextPlayer.nickname : '' });
+    var nextId2 = getNextPlayerId(room);
+    drawCardsForPlayer(room, nextId2, 4);
+    var nextPlayer2 = room.players.find(function(p) { return p.id === nextId2; });
+    broadcastAction(roomId, io, 'cardEffect', { effect: 'wild_draw4', player: nickname, target: nextPlayer2 ? nextPlayer2.nickname : '' });
     advanceTurn(room);
     advanceTurn(room);
   } else {
     advanceTurn(room);
   }
 
-  const hand = gs.playerCards[playerId];
+  var hand = gs.playerCards[playerId];
   if (hand && hand.length === 0) {
     gs.phase = 'GAME_END';
     gs.winner = playerId;
-    const winner = room.players.find(p => p.id === playerId);
+    var winner = room.players.find(function(p) { return p.id === playerId; });
     broadcastAction(roomId, io, 'gameEnd', { winner: winner ? winner.nickname : 'Unknown' });
     sendUnoUpdate(room, roomId, io);
     return;
-  }
-
-  if (hand && hand.length === 1 && !room.players.find(p => p.id === playerId).calledUno) {
-    // Player has 1 card and hasn't called UNO - they can be caught
   }
 
   sendUnoUpdate(room, roomId, io);
@@ -240,11 +250,11 @@ function applyCardEffect(room, roomId, io, card, playerId, nickname) {
 }
 
 function handleDrawCard(room, roomId, io, socket) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (gs.phase !== 'PLAYING') return;
   if (gs.pendingColorChoice) return;
 
-  const playerId = socket.id;
+  var playerId = getPlayerId(socket);
   if (gs.playerOrder[gs.currentPlayerIndex] !== playerId) return;
   if (gs.hasDrawnThisTurn) return;
 
@@ -252,11 +262,11 @@ function handleDrawCard(room, roomId, io, socket) {
 
   if (gs.deck.length === 0) return;
 
-  const card = gs.deck.shift();
+  var card = gs.deck.shift();
   gs.playerCards[playerId].push(card);
   gs.hasDrawnThisTurn = true;
 
-  const player = room.players.find(p => p.id === playerId);
+  var player = room.players.find(function(p) { return p.id === playerId; });
   broadcastAction(roomId, io, 'drawCard', { player: player ? player.nickname : 'Unknown' });
 
   if (canPlayCard(card, gs.topCard, gs.currentColor)) {
@@ -270,12 +280,12 @@ function handleDrawCard(room, roomId, io, socket) {
 }
 
 function handleCallUno(room, roomId, io, socket) {
-  const gs = room.gameState;
-  const playerId = socket.id;
-  const hand = gs.playerCards[playerId];
+  var gs = room.gameState;
+  var playerId = getPlayerId(socket);
+  var hand = gs.playerCards[playerId];
   if (!hand || hand.length > 2) return;
 
-  const player = room.players.find(p => p.id === playerId);
+  var player = room.players.find(function(p) { return p.id === playerId; });
   if (player) {
     player.calledUno = true;
   }
@@ -285,18 +295,18 @@ function handleCallUno(room, roomId, io, socket) {
 }
 
 function handleCatchUno(room, roomId, io, socket, data) {
-  const gs = room.gameState;
-  const { targetPlayerId } = data;
-  const targetPlayer = room.players.find(p => p.id === targetPlayerId);
+  var gs = room.gameState;
+  var targetPlayerId = data.targetPlayerId;
+  var targetPlayer = room.players.find(function(p) { return p.id === targetPlayerId; });
   if (!targetPlayer) return;
 
-  const hand = gs.playerCards[targetPlayerId];
+  var hand = gs.playerCards[targetPlayerId];
   if (!hand || hand.length !== 1 || targetPlayer.calledUno) return;
 
   drawCardsForPlayer(room, targetPlayerId, 2);
   targetPlayer.calledUno = false;
 
-  const caller = room.players.find(p => p.id === socket.id);
+  var caller = room.players.find(function(p) { return p.id === getPlayerId(socket); });
   broadcastAction(roomId, io, 'catchUno', {
     caller: caller ? caller.nickname : 'Unknown',
     target: targetPlayer.nickname,
@@ -305,11 +315,11 @@ function handleCatchUno(room, roomId, io, socket, data) {
 }
 
 function handlePassTurn(room, roomId, io, socket) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (gs.phase !== 'PLAYING') return;
   if (!gs.hasDrawnThisTurn) return;
 
-  const playerId = socket.id;
+  var playerId = getPlayerId(socket);
   if (gs.playerOrder[gs.currentPlayerIndex] !== playerId) return;
 
   advanceTurn(room);
@@ -338,7 +348,7 @@ function handleResetGame(room, roomId, io) {
     actionLog: [],
   };
 
-  room.players.forEach(p => {
+  room.players.forEach(function(p) {
     p.isActive = true;
     p.calledUno = false;
   });
@@ -347,13 +357,13 @@ function handleResetGame(room, roomId, io) {
 }
 
 function handleContinueGame(room, roomId, io) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (gs.phase !== 'GAME_END' || !gs.winner) return;
 
-  const winnerId = gs.winner;
-  const winner = room.players.find(p => p.id === winnerId);
+  var winnerId = gs.winner;
+  var winner = room.players.find(function(p) { return p.id === winnerId; });
 
-  const remainingPlayers = room.players.filter(p => p.id !== winnerId);
+  var remainingPlayers = room.players.filter(function(p) { return p.id !== winnerId; });
 
   if (remainingPlayers.length < 2) {
     io.to(winnerId).emit('unoAction', { type: 'continueFailed', message: '剩余玩家不足，无法继续' });
@@ -369,7 +379,7 @@ function handleContinueGame(room, roomId, io) {
 
   room.players = remainingPlayers;
 
-  room.players.forEach(p => {
+  room.players.forEach(function(p) {
     p.isActive = true;
     p.calledUno = false;
   });
@@ -382,49 +392,66 @@ function handleContinueGame(room, roomId, io) {
 }
 
 function handleSetPlayerChips(room, roomId, io, socket, data) {
-  const { playerId, amount } = data;
-  const player = room.players.find(p => p.id === playerId);
+  var playerId = data.playerId;
+  var amount = data.amount;
+  var player = room.players.find(function(p) { return p.id === playerId; });
   if (!player) return;
   player.chips = amount;
   sendUnoUpdate(room, roomId, io);
 }
 
 function handleAddPlayerChips(room, roomId, io, socket, data) {
-  const { playerId, amount } = data;
-  const player = room.players.find(p => p.id === playerId);
+  var playerId = data.playerId;
+  var amount = data.amount;
+  var player = room.players.find(function(p) { return p.id === playerId; });
   if (!player) return;
   player.chips += amount;
   sendUnoUpdate(room, roomId, io);
 }
 
 function getNextPlayerId(room) {
-  const gs = room.gameState;
-  let nextIndex = gs.currentPlayerIndex + gs.direction;
+  var gs = room.gameState;
+  var nextIndex = gs.currentPlayerIndex + gs.direction;
   if (nextIndex >= gs.playerOrder.length) nextIndex = 0;
   if (nextIndex < 0) nextIndex = gs.playerOrder.length - 1;
   return gs.playerOrder[nextIndex];
 }
 
 function advanceTurn(room) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   gs.hasDrawnThisTurn = false;
 
-  let nextIndex = gs.currentPlayerIndex + gs.direction;
+  var nextIndex = gs.currentPlayerIndex + gs.direction;
   if (nextIndex >= gs.playerOrder.length) nextIndex = 0;
   if (nextIndex < 0) nextIndex = gs.playerOrder.length - 1;
 
   gs.currentPlayerIndex = nextIndex;
 
-  const nextPlayerId = gs.playerOrder[gs.currentPlayerIndex];
-  const nextPlayer = room.players.find(p => p.id === nextPlayerId);
+  var nextPlayerId = gs.playerOrder[gs.currentPlayerIndex];
+  var nextPlayer = room.players.find(function(p) { return p.id === nextPlayerId; });
   if (nextPlayer) {
     nextPlayer.calledUno = false;
+  }
+
+  if (nextPlayer && nextPlayer.isOnline === false && !nextPlayer.isAI && gs.playerOrder.length > 1) {
+    var maxSkips = gs.playerOrder.length;
+    var skips = 0;
+    while (nextPlayer.isOnline === false && !nextPlayer.isAI && skips < maxSkips) {
+      var ni = gs.currentPlayerIndex + gs.direction;
+      if (ni >= gs.playerOrder.length) ni = 0;
+      if (ni < 0) ni = gs.playerOrder.length - 1;
+      gs.currentPlayerIndex = ni;
+      nextPlayerId = gs.playerOrder[gs.currentPlayerIndex];
+      nextPlayer = room.players.find(function(p) { return p.id === nextPlayerId; });
+      if (!nextPlayer) break;
+      skips++;
+    }
   }
 }
 
 function drawCardsForPlayer(room, playerId, count) {
-  const gs = room.gameState;
-  for (let i = 0; i < count; i++) {
+  var gs = room.gameState;
+  for (var i = 0; i < count; i++) {
     ensureDeckHasCards(room);
     if (gs.deck.length > 0) {
       gs.playerCards[playerId].push(gs.deck.shift());
@@ -433,26 +460,26 @@ function drawCardsForPlayer(room, playerId, count) {
 }
 
 function ensureDeckHasCards(room) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (gs.deck.length === 0 && gs.discardPile.length > 1) {
-    const topCard = gs.discardPile.pop();
+    var topCard = gs.discardPile.pop();
     gs.deck = shuffleDeck(gs.discardPile);
     gs.discardPile = [topCard];
   }
 }
 
 function scheduleAiAction(room, roomId, io) {
-  const gs = room.gameState;
+  var gs = room.gameState;
   if (gs.phase !== 'PLAYING') return;
 
-  const currentPlayerId = gs.playerOrder[gs.currentPlayerIndex];
-  const player = room.players.find(p => p.id === currentPlayerId);
+  var currentPlayerId = gs.playerOrder[gs.currentPlayerIndex];
+  var player = room.players.find(function(p) { return p.id === currentPlayerId; });
   if (!player || !player.isAI) return;
 
-  const delay = room.aiThinkDelay || AI_THINK_DELAY;
+  var delay = room.aiThinkDelay || AI_THINK_DELAY;
 
-  const timerId = setTimeout(() => {
-    const idx = room._aiTimerIds ? room._aiTimerIds.indexOf(timerId) : -1;
+  var timerId = setTimeout(function() {
+    var idx = room._aiTimerIds ? room._aiTimerIds.indexOf(timerId) : -1;
     if (idx !== -1) room._aiTimerIds.splice(idx, 1);
     if (gs.phase !== 'PLAYING') return;
     if (gs.playerOrder[gs.currentPlayerIndex] !== currentPlayerId) return;
@@ -463,14 +490,14 @@ function scheduleAiAction(room, roomId, io) {
 }
 
 function makeAiDecision(room, roomId, io, aiPlayer) {
-  const gs = room.gameState;
-  const hand = gs.playerCards[aiPlayer.id];
+  var gs = room.gameState;
+  var hand = gs.playerCards[aiPlayer.id];
   if (!hand || hand.length === 0) return;
 
-  const playableCards = hand.filter(c => canPlayCard(c, gs.topCard, gs.currentColor));
+  var playableCards = hand.filter(function(c) { return canPlayCard(c, gs.topCard, gs.currentColor); });
 
   if (playableCards.length > 0) {
-    const priority = playableCards.sort((a, b) => {
+    var priority = playableCards.sort(function(a, b) {
       if (a.type === 'wild' && b.type !== 'wild') return 1;
       if (b.type === 'wild' && a.type !== 'wild') return -1;
       if (a.type === 'action' && b.type === 'number') return -1;
@@ -478,16 +505,16 @@ function makeAiDecision(room, roomId, io, aiPlayer) {
       return 0;
     });
 
-    const chosenCard = priority[0];
-    let chosenColor = null;
+    var chosenCard = priority[0];
+    var chosenColor = null;
 
     if (chosenCard.type === 'wild') {
-      const colorCounts = {};
-      COLORS.forEach(c => colorCounts[c] = 0);
-      hand.forEach(c => {
+      var colorCounts = {};
+      COLORS.forEach(function(c) { colorCounts[c] = 0; });
+      hand.forEach(function(c) {
         if (c.color !== 'wild') colorCounts[c.color]++;
       });
-      chosenColor = COLORS.reduce((a, b) => colorCounts[a] >= colorCounts[b] ? a : b);
+      chosenColor = COLORS.reduce(function(a, b) { return colorCounts[a] >= colorCounts[b] ? a : b; });
     }
 
     if (hand.length === 2) {
@@ -495,29 +522,29 @@ function makeAiDecision(room, roomId, io, aiPlayer) {
       broadcastAction(roomId, io, 'callUno', { player: aiPlayer.nickname });
     }
 
-    handlePlayCard(room, roomId, io, { id: aiPlayer.id }, { cardId: chosenCard.id, chosenColor });
+    handlePlayCard(room, roomId, io, { id: aiPlayer.id }, { cardId: chosenCard.id, chosenColor: chosenColor });
   } else {
     handleDrawCard(room, roomId, io, { id: aiPlayer.id });
 
-    const innerTimerId = setTimeout(() => {
-      const idx = room._aiTimerIds ? room._aiTimerIds.indexOf(innerTimerId) : -1;
+    var innerTimerId = setTimeout(function() {
+      var idx = room._aiTimerIds ? room._aiTimerIds.indexOf(innerTimerId) : -1;
       if (idx !== -1) room._aiTimerIds.splice(idx, 1);
       if (gs.phase !== 'PLAYING') return;
       if (gs.playerOrder[gs.currentPlayerIndex] !== aiPlayer.id) return;
 
-      const updatedHand = gs.playerCards[aiPlayer.id];
-      const drawnCard = updatedHand[updatedHand.length - 1];
+      var updatedHand = gs.playerCards[aiPlayer.id];
+      var drawnCard = updatedHand[updatedHand.length - 1];
       if (drawnCard && canPlayCard(drawnCard, gs.topCard, gs.currentColor)) {
-        let chosenColor = null;
+        var chosenColor2 = null;
         if (drawnCard.type === 'wild') {
-          const colorCounts = {};
-          COLORS.forEach(c => colorCounts[c] = 0);
-          updatedHand.forEach(c => {
-            if (c.color !== 'wild') colorCounts[c.color]++;
+          var colorCounts2 = {};
+          COLORS.forEach(function(c) { colorCounts2[c] = 0; });
+          updatedHand.forEach(function(c) {
+            if (c.color !== 'wild') colorCounts2[c.color]++;
           });
-          chosenColor = COLORS.reduce((a, b) => colorCounts[a] >= colorCounts[b] ? a : b);
+          chosenColor2 = COLORS.reduce(function(a, b) { return colorCounts2[a] >= colorCounts2[b] ? a : b; });
         }
-        handlePlayCard(room, roomId, io, { id: aiPlayer.id }, { cardId: drawnCard.id, chosenColor });
+        handlePlayCard(room, roomId, io, { id: aiPlayer.id }, { cardId: drawnCard.id, chosenColor: chosenColor2 });
       } else {
         advanceTurn(room);
         sendUnoUpdate(room, roomId, io);
@@ -529,25 +556,25 @@ function makeAiDecision(room, roomId, io, aiPlayer) {
 }
 
 function sendUnoUpdate(room, roomId, io) {
-  const gs = room.gameState;
+  var gs = room.gameState;
 
-  room.players.forEach(player => {
-    const isCurrentPlayer = gs.playerOrder[gs.currentPlayerIndex] === player.id;
-    const playerHand = gs.playerCards[player.id] || [];
+  room.players.forEach(function(player) {
+    var isCurrentPlayer = gs.playerOrder[gs.currentPlayerIndex] === player.id;
+    var playerHand = gs.playerCards[player.id] || [];
 
-    const otherPlayers = {};
-    gs.playerOrder.forEach(pid => {
+    var otherPlayers = {};
+    gs.playerOrder.forEach(function(pid) {
       if (pid !== player.id) {
-        const otherHand = gs.playerCards[pid] || [];
+        var otherHand = gs.playerCards[pid] || [];
         otherPlayers[pid] = {
           cardCount: otherHand.length,
-          cards: otherHand.map(c => ({ hidden: true })),
-          calledUno: room.players.find(p => p.id === pid)?.calledUno || false,
+          cards: otherHand.map(function(c) { return { hidden: true }; }),
+          calledUno: room.players.find(function(p) { return p.id === pid; }) ? (room.players.find(function(p) { return p.id === pid; }).calledUno || false) : false,
         };
       }
     });
 
-    const update = {
+    var update = {
       phase: gs.phase,
       currentPlayerId: gs.playerOrder[gs.currentPlayerIndex],
       direction: gs.direction,
@@ -562,15 +589,17 @@ function sendUnoUpdate(room, roomId, io) {
       pendingColorChoice: gs.pendingColorChoice && isCurrentPlayer,
       winner: gs.winner,
       actionLog: gs.actionLog.slice(-20),
-      players: room.players.map(p => ({
-        id: p.id,
-        nickname: p.nickname,
-        avatar: p.avatar,
-        chips: p.chips,
-        isAI: p.isAI,
-        isOnline: p.isOnline !== false,
-        calledUno: p.calledUno || false,
-      })),
+      players: room.players.map(function(p) {
+        return {
+          id: p.id,
+          nickname: p.nickname,
+          avatar: p.avatar,
+          chips: p.chips,
+          isAI: p.isAI,
+          isOnline: p.isOnline !== false,
+          calledUno: p.calledUno || false,
+        };
+      }),
       isMyTurn: isCurrentPlayer,
     };
 
@@ -579,7 +608,8 @@ function sendUnoUpdate(room, roomId, io) {
 }
 
 function broadcastAction(roomId, io, type, data) {
-  io.to(roomId).emit('unoAction', { type, ...data, timestamp: Date.now() });
+  var payload = Object.assign({ type: type, timestamp: Date.now() }, data || {});
+  io.to(roomId).emit('unoAction', payload);
 }
 
 module.exports = unoGameHandler;

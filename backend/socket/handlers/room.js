@@ -14,6 +14,110 @@ function generateAiPlayerId() {
 // 存储socket ID到玩家ID的映射（模块级别，所有连接共享）
 const socketToPlayerMap = new Map();
 
+function migrateGameStateKeys(gs, oldId, newId, gameType) {
+  if (!gs) return;
+
+  if (gs.playerCards && gs.playerCards[oldId] !== undefined) {
+    gs.playerCards[newId] = gs.playerCards[oldId];
+    delete gs.playerCards[oldId];
+  }
+  if (gs.bets && gs.bets[oldId] !== undefined) {
+    gs.bets[newId] = gs.bets[oldId];
+    delete gs.bets[oldId];
+  }
+  if (gs.roundBets && gs.roundBets[oldId] !== undefined) {
+    gs.roundBets[newId] = gs.roundBets[oldId];
+    delete gs.roundBets[oldId];
+  }
+  if (gs.handBets && gs.handBets[oldId] !== undefined) {
+    gs.handBets[newId] = gs.handBets[oldId];
+    delete gs.handBets[oldId];
+  }
+  if (gs.playersActedThisRound instanceof Set) {
+    if (gs.playersActedThisRound.has(oldId)) {
+      gs.playersActedThisRound.delete(oldId);
+      gs.playersActedThisRound.add(newId);
+    }
+  }
+  if (gs.playersConfirmedContinue instanceof Set) {
+    if (gs.playersConfirmedContinue.has(oldId)) {
+      gs.playersConfirmedContinue.delete(oldId);
+      gs.playersConfirmedContinue.add(newId);
+    }
+  }
+  if (gs.currentPlayer === oldId) {
+    gs.currentPlayer = newId;
+  }
+  if (gs.lastRaiserId === oldId) {
+    gs.lastRaiserId = newId;
+  }
+  if (gs.showdownPlayerIds && Array.isArray(gs.showdownPlayerIds)) {
+    var idx = gs.showdownPlayerIds.indexOf(oldId);
+    if (idx !== -1) gs.showdownPlayerIds[idx] = newId;
+  }
+  if (gs.pots && Array.isArray(gs.pots)) {
+    gs.pots.forEach(function(pot) {
+      if (pot.eligiblePlayers && Array.isArray(pot.eligiblePlayers)) {
+        var eidx = pot.eligiblePlayers.indexOf(oldId);
+        if (eidx !== -1) pot.eligiblePlayers[eidx] = newId;
+      }
+    });
+  }
+  if (gs.playerOrder && Array.isArray(gs.playerOrder)) {
+    var pidx = gs.playerOrder.indexOf(oldId);
+    if (pidx !== -1) gs.playerOrder[pidx] = newId;
+  }
+  if (gs.currentPlayerId === oldId) {
+    gs.currentPlayerId = newId;
+  }
+  if (gs.pendingColorChoice === oldId) {
+    gs.pendingColorChoice = newId;
+  }
+  if (gs.winner === oldId) {
+    gs.winner = newId;
+  }
+  if (gs.playerDice && gs.playerDice[oldId] !== undefined) {
+    gs.playerDice[newId] = gs.playerDice[oldId];
+    delete gs.playerDice[oldId];
+  }
+  if (gs.playerRevealed && gs.playerRevealed[oldId] !== undefined) {
+    gs.playerRevealed[newId] = gs.playerRevealed[oldId];
+    delete gs.playerRevealed[oldId];
+  }
+  if (gs.playerDiceCount && gs.playerDiceCount[oldId] !== undefined) {
+    gs.playerDiceCount[newId] = gs.playerDiceCount[oldId];
+    delete gs.playerDiceCount[oldId];
+  }
+  if (gs.playerDiceAdjust && gs.playerDiceAdjust[oldId] !== undefined) {
+    gs.playerDiceAdjust[newId] = gs.playerDiceAdjust[oldId];
+    delete gs.playerDiceAdjust[oldId];
+  }
+  if (gs.confirmedPlayers && Array.isArray(gs.confirmedPlayers)) {
+    var cidx = gs.confirmedPlayers.indexOf(oldId);
+    if (cidx !== -1) gs.confirmedPlayers[cidx] = newId;
+  }
+  if (gs.revealerId === oldId) {
+    gs.revealerId = newId;
+  }
+  if (gs.revealAllVotes && gs.revealAllVotes[oldId] !== undefined) {
+    gs.revealAllVotes[newId] = gs.revealAllVotes[oldId];
+    delete gs.revealAllVotes[oldId];
+  }
+  if (gs.revealAllRequester === oldId) {
+    gs.revealAllRequester = newId;
+  }
+  if (gs.revealedPlayers && gs.revealedPlayers[oldId] !== undefined) {
+    gs.revealedPlayers[newId] = gs.revealedPlayers[oldId];
+    delete gs.revealedPlayers[oldId];
+  }
+  if (gs.revealedCards && gs.revealedCards[oldId] !== undefined) {
+    gs.revealedCards[newId] = gs.revealedCards[oldId];
+    delete gs.revealedCards[oldId];
+  }
+
+  console.log('[重连迁移] gameState keys: ' + oldId + ' -> ' + newId + ' (gameType: ' + gameType + ')');
+}
+
 function buildGameUpdateForPlayer(room, playerId) {
   const gs = room.gameState;
   const isShowdownOrAfter = ['SHOWDOWN', 'HAND_END', 'CONFIRM_CONTINUE'].includes(gs.phase);
@@ -586,61 +690,6 @@ module.exports = (socket, rooms, io) => {
     }
   });
 
-  socket.on('createDiceRoom', ({ nickname, avatar }, callback) => {
-    try {
-      const roomId = generateRoomId();
-      const playerId = generatePlayerId();
-
-      const room = {
-        id: roomId,
-        host: socket.id,
-        hostPlayerId: playerId,
-        gameType: 'dice',
-        players: [{
-          id: socket.id,
-          playerId: playerId,
-          socketId: socket.id,
-          nickname: nickname || 'Player',
-          avatar: avatar || 'bear',
-          isAI: false,
-          isOnline: true,
-        }],
-        gameState: {
-          phase: 'WAITING',
-          diceCount: 5,
-          playerDice: {},
-          playerDiceCount: {},
-          playerRevealed: {},
-          playerConfirmed: {},
-          currentPlayerId: null,
-          revealerId: null,
-        },
-      };
-
-      rooms.set(roomId, room);
-      socket.join(roomId);
-      socket.data = { roomId, playerId };
-
-      if (callback) callback({ success: true, roomId });
-
-      socket.emit('roomCreated', { roomId });
-      socket.emit('diceUpdate', {
-        phase: 'WAITING',
-        diceCount: 5,
-        players: room.players.map(p => ({
-          id: p.id, nickname: p.nickname, avatar: p.avatar,
-          isAI: p.isAI, isOnline: true,
-          diceCount: 0, diceValues: [], diceRevealed: false,
-        })),
-        isMyTurn: false,
-        isRevealer: true,
-      });
-    } catch (error) {
-      console.error('创建骰子房间失败:', error);
-      if (callback) callback({ success: false, error: error.message });
-    }
-  });
-
   socket.on('createDiceAiRoom', ({ nickname, avatar, aiCount, aiDifficulty }, callback) => {
     try {
       const roomId = generateRoomId();
@@ -716,72 +765,6 @@ module.exports = (socket, rooms, io) => {
     }
   });
 
-  socket.on('joinDiceRoom', ({ roomId, nickname, avatar }, callback) => {
-    try {
-      const room = rooms.get(roomId);
-      if (!room) {
-        if (callback) callback({ success: false, error: '房间不存在' });
-        return;
-      }
-
-      if (room.gameType !== 'dice') {
-        if (callback) callback({ success: false, error: '不是骰子房间' });
-        return;
-      }
-
-      if (room.players.length >= 10) {
-        if (callback) callback({ success: false, error: '房间已满' });
-        return;
-      }
-
-      const newPlayerId = generatePlayerId();
-
-      const player = {
-        id: socket.id,
-        playerId: newPlayerId,
-        nickname: nickname || 'Player',
-        avatar: avatar || 'bear',
-        isAI: false,
-        isOnline: true,
-        joinedAt: Date.now(),
-      };
-
-      room.players.push(player);
-      socket.join(roomId);
-      socket.data = { roomId, playerId: newPlayerId };
-
-      if (callback) callback({ success: true, roomId });
-
-      socket.emit('roomJoined', { roomId, isHost: false });
-
-      room.players.forEach(function (p) {
-        if (!p.isAI) {
-          io.to(p.id).emit('diceUpdate', {
-            phase: room.gameState.phase,
-            diceCount: room.gameState.diceCount,
-            players: room.players.map(function (op) {
-              return {
-                id: op.id,
-                nickname: op.nickname,
-                avatar: op.avatar,
-                isAI: op.isAI,
-                isOnline: true,
-                diceCount: room.gameState.playerDiceCount[op.id] || 0,
-                diceValues: room.gameState.playerRevealed[op.id] ? (room.gameState.playerDice[op.id] || []) : [],
-                diceRevealed: room.gameState.playerRevealed[op.id] || false,
-              };
-            }),
-            isMyTurn: room.gameState.currentPlayerId === p.id,
-            isRevealer: room.gameState.revealerId === p.id,
-          });
-        }
-      });
-    } catch (error) {
-      console.error('加入骰子房间失败:', error);
-      if (callback) callback({ success: false, error: error.message });
-    }
-  });
-
   // 加入房间
   socket.on('joinRoom', ({ roomId, nickname, playerId: existingPlayerId, avatar }, callback) => {
     try {
@@ -805,15 +788,23 @@ module.exports = (socket, rooms, io) => {
           existingPlayer.id = socket.id;
           existingPlayer.isOnline = true;
           existingPlayer.lastReconnectAt = Date.now();
-          
+
           if (socket.disconnectTimeout) {
             clearTimeout(socket.disconnectTimeout);
             socket.disconnectTimeout = null;
           }
-          
+
           socketToPlayerMap.delete(oldSocketId);
           socketToPlayerMap.set(socket.id, { roomId, playerId: existingPlayerId });
-          
+
+          if (oldSocketId !== socket.id && room.gameState) {
+            migrateGameStateKeys(room.gameState, oldSocketId, socket.id, room.gameType);
+          }
+
+          if (room.host === oldSocketId) {
+            room.host = socket.id;
+          }
+
           player = existingPlayer;
           isReconnect = true;
           console.log(`[重连] 玩家 ${player.nickname} (PlayerID: ${existingPlayerId}) 重新连接到房间 ${roomId}`);

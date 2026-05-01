@@ -279,11 +279,12 @@ class UnoRoomUI {
       const isPlayable = state.isMyTurn && !state.pendingColorChoice &&
         this.canPlayCard(card, state.topCard, state.currentColor);
       const cardEl = this.createCardElement(card, true);
+      cardEl.dataset.cardId = card.id;
       cardEl.classList.add(isPlayable ? 'playable' : 'not-playable');
 
       if (isPlayable) {
         this.bindEvent(cardEl, () => {
-          if (this.onPlayCard) this.onPlayCard(card);
+          this._animateCardPlay(cardEl, card);
         });
       }
 
@@ -295,6 +296,23 @@ class UnoRoomUI {
 
     const showPass = state.isMyTurn && state.hasDrawnThisTurn;
     this.elements.passBtn.style.display = showPass ? 'block' : 'none';
+  }
+
+  _animateCardPlay(cardEl, card) {
+    var discardRect = this.elements.discardPile.getBoundingClientRect();
+    var cardRect = cardEl.getBoundingClientRect();
+    var dx = discardRect.left + discardRect.width / 2 - (cardRect.left + cardRect.width / 2);
+    var dy = discardRect.top + discardRect.height / 2 - (cardRect.top + cardRect.height / 2);
+
+    cardEl.style.setProperty('--fly-to-x', dx + 'px');
+    cardEl.style.setProperty('--fly-to-y', dy + 'px');
+    cardEl.classList.add('card-fly-out');
+
+    var self = this;
+    cardEl.addEventListener('animationend', function handler() {
+      cardEl.removeEventListener('animationend', handler);
+      if (self.onPlayCard) self.onPlayCard(card);
+    }, { once: true });
   }
 
   canPlayCard(card, topCard, currentColor) {

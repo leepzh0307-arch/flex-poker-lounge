@@ -1,24 +1,36 @@
 :root {
-  --uno-red: #E74C3C;
-  --uno-blue: #3498DB;
-  --uno-green: #27AE60;
-  --uno-yellow: #F1C40F;
-  --uno-wild: #1a1a1a;
-  --uno-bg: #1a472a;
-  --uno-bg-dark: #0d2818;
+  --uno-red: #C27B66;
+  --uno-blue: #5B7A9D;
+  --uno-green: #8C9A84;
+  --uno-yellow: #D4B96A;
+  --uno-wild: #2D3A31;
+  --botanical-bg: #F9F8F4;
+  --botanical-bg-warm: #F2F0EB;
+  --botanical-forest: #2D3A31;
+  --botanical-sage: #8C9A84;
+  --botanical-sage-light: #A3B49A;
+  --botanical-clay: #DCCFC2;
+  --botanical-stone: #E6E2DA;
+  --botanical-terracotta: #C27B66;
+  --botanical-terracotta-light: #D4917A;
   --card-width: 70px;
   --card-height: 105px;
+  --radius-card: 24px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
+  --shadow-medium: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
+  --shadow-lift: 0 20px 40px -10px rgba(45, 58, 49, 0.08);
 }
 
 body {
-  background: var(--uno-bg-dark);
+  background: var(--botanical-bg);
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
-  font-family: 'Source Sans 3', 'DM Sans', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
-  color: #fff;
+  color: var(--botanical-forest);
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -36,7 +48,10 @@ body {
 }
 
 .game-type-badge {
-  background: linear-gradient(135deg, var(--uno-red), var(--uno-yellow));
+  background: var(--botanical-forest);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  letter-spacing: 3px;
 }
 
 .uno-game-area {
@@ -44,7 +59,7 @@ body {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  background: radial-gradient(ellipse at center, var(--uno-bg) 0%, var(--uno-bg-dark) 100%);
+  background: var(--botanical-bg);
   position: relative;
   overflow: hidden;
 }
@@ -64,25 +79,27 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px 12px;
-  background: rgba(0,0,0,0.3);
-  border-radius: 12px;
-  border: 2px solid transparent;
+  padding: 10px 14px;
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--botanical-stone);
   min-width: 90px;
-  transition: all 0.3s;
+  transition: all 0.5s ease;
+  box-shadow: var(--shadow-soft);
 }
 .opponent-seat.active-turn {
-  border-color: var(--uno-yellow);
-  box-shadow: 0 0 15px rgba(241,196,15,0.4);
+  border-color: var(--botanical-sage);
+  box-shadow: 0 0 0 2px var(--botanical-sage), var(--shadow-medium);
 }
 .opponent-seat .avatar-img {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--botanical-clay);
 }
 .opponent-seat .nickname {
-  color: #fff;
+  color: var(--botanical-forest);
   font-size: 12px;
   font-weight: 500;
   max-width: 80px;
@@ -98,23 +115,23 @@ body {
 .opponent-seat .mini-card {
   width: 20px;
   height: 30px;
-  background: url('images/UNO/back.png') center/cover;
-  border-radius: 3px;
-  border: 1px solid rgba(255,255,255,0.2);
+  background: var(--botanical-forest);
+  border-radius: 4px;
+  border: 1px solid var(--botanical-sage);
 }
 .opponent-seat .card-count-num {
-  color: var(--uno-yellow);
+  color: var(--botanical-terracotta);
   font-weight: 700;
   font-size: 14px;
 }
 .opponent-seat .uno-badge {
-  background: var(--uno-red);
+  background: var(--botanical-terracotta);
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-  animation: pulse 1s infinite;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  animation: botanicalPulse 1.5s ease-in-out infinite;
 }
 
 .table-center {
@@ -131,14 +148,14 @@ body {
 
 .direction-indicator {
   font-size: 28px;
-  color: rgba(255,255,255,0.3);
-  transition: transform 0.5s;
+  color: var(--botanical-sage);
+  transition: transform 0.5s ease;
 }
 .direction-indicator.ccw {
-  animation: spinCCW 3s linear infinite;
+  animation: spinCCW 4s linear infinite;
 }
 .direction-indicator:not(.ccw) {
-  animation: spinCW 3s linear infinite;
+  animation: spinCW 4s linear infinite;
 }
 @keyframes spinCW {
   from { transform: rotate(0deg); }
@@ -158,27 +175,28 @@ body {
 .deck-pile {
   position: relative;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.3s ease;
   touch-action: manipulation;
 }
-.deck-pile:hover { transform: scale(1.05); }
-.deck-pile:active { transform: scale(0.95); }
+.deck-pile:hover { transform: scale(1.05) translateY(-2px); }
+.deck-pile:active { transform: scale(0.97); }
 .deck-img {
   width: var(--card-width);
   height: var(--card-height);
-  border-radius: 8px;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--botanical-stone);
 }
 .deck-count {
   position: absolute;
   bottom: -8px;
   right: -8px;
-  background: rgba(0,0,0,0.7);
+  background: var(--botanical-forest);
   color: #fff;
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
 }
 
 .discard-pile {
@@ -187,28 +205,30 @@ body {
 .discard-pile .empty-slot {
   width: var(--card-width);
   height: var(--card-height);
-  border: 2px dashed rgba(255,255,255,0.15);
-  border-radius: 8px;
+  border: 2px dashed var(--botanical-clay);
+  border-radius: var(--radius-card);
 }
 
 .current-color-indicator {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 3px solid rgba(255,255,255,0.5);
-  transition: background-color 0.3s;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  border: 3px solid var(--botanical-clay);
+  transition: background-color 0.5s ease;
+  box-shadow: var(--shadow-soft);
 }
 
 .color-chooser {
   display: none;
   gap: 12px;
-  padding: 12px;
-  background: rgba(0,0,0,0.85);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
+  padding: 16px;
+  background: rgba(255,255,255,0.95);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(12px);
   z-index: 100;
   position: relative;
+  border: 1px solid var(--botanical-stone);
+  box-shadow: var(--shadow-lift);
 }
 .color-chooser.visible { display: flex; }
 .color-option {
@@ -216,22 +236,22 @@ body {
   height: 48px;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid rgba(255,255,255,0.3);
-  transition: all 0.2s;
+  border: 3px solid var(--botanical-clay);
+  transition: all 0.3s ease;
   touch-action: manipulation;
 }
 .color-option:hover {
-  transform: scale(1.2);
-  border-color: #fff;
-  box-shadow: 0 0 15px currentColor;
+  transform: scale(1.15);
+  border-color: var(--botanical-forest);
+  box-shadow: var(--shadow-medium);
 }
 
 .my-area {
   flex: 1 1 auto;
   padding: 8px 16px 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
-  background: rgba(0,0,0,0.3);
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background: var(--botanical-bg-warm);
+  border-top: 1px solid var(--botanical-stone);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -249,46 +269,52 @@ body {
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--botanical-clay);
 }
 .my-info .nickname {
-  color: #fff;
+  color: var(--botanical-forest);
   font-weight: 600;
   font-size: 14px;
+  font-family: 'Source Sans 3', sans-serif;
 }
 
 .uno-button {
-  background: linear-gradient(135deg, var(--uno-red), #c0392b);
+  background: var(--botanical-terracotta);
   color: #fff;
   font-weight: 800;
-  font-size: 16px;
-  padding: 6px 18px;
-  border-radius: 25px;
+  font-size: 14px;
+  padding: 6px 20px;
+  border-radius: var(--radius-pill);
   border: none;
   cursor: pointer;
-  animation: pulse 0.8s infinite;
+  animation: botanicalPulse 1.5s ease-in-out infinite;
   margin-left: auto;
   touch-action: manipulation;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 }
-.uno-button:hover { transform: scale(1.1); }
+.uno-button:hover { transform: scale(1.08); background: var(--botanical-terracotta-light); }
 
 .pass-button {
-  background: rgba(255,255,255,0.15);
-  color: #fff;
+  background: transparent;
+  color: var(--botanical-forest);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   padding: 6px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--botanical-stone);
   cursor: pointer;
   margin-left: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   touch-action: manipulation;
+  letter-spacing: 1px;
 }
-.pass-button:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+.pass-button:hover { background: var(--botanical-clay); transform: translateY(-1px); }
 
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(231,76,60,0.5); }
-  50% { box-shadow: 0 0 20px rgba(231,76,60,0.8); }
+@keyframes botanicalPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(194, 123, 102, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(194, 123, 102, 0.5); }
 }
 
 .my-hand {
@@ -299,38 +325,40 @@ body {
   justify-content: center;
   flex-wrap: nowrap;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.2) transparent;
+  scrollbar-color: var(--botanical-clay) transparent;
 }
 .my-hand::-webkit-scrollbar { height: 4px; }
-.my-hand::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+.my-hand::-webkit-scrollbar-thumb { background: var(--botanical-clay); border-radius: 2px; }
 
 .uno-card {
   width: var(--card-width);
   height: var(--card-height);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
-  border: 2px solid rgba(255,255,255,0.15);
+  border: 1px solid var(--botanical-stone);
   touch-action: manipulation;
+  box-shadow: var(--shadow-soft);
 }
 .uno-card:hover {
   transform: translateY(-12px) scale(1.05);
   z-index: 10;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  box-shadow: var(--shadow-lift);
 }
 .uno-card.playable {
-  border-color: var(--uno-yellow);
-  box-shadow: 0 0 8px rgba(241,196,15,0.4);
+  border-color: var(--botanical-sage);
+  box-shadow: 0 0 0 2px var(--botanical-sage), var(--shadow-medium);
 }
 .uno-card.playable:hover {
-  box-shadow: 0 0 20px rgba(241,196,15,0.6);
+  box-shadow: 0 0 0 3px var(--botanical-sage), var(--shadow-lift);
 }
 .uno-card.not-playable {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  filter: grayscale(0.3);
 }
 .uno-card.not-playable:hover {
   transform: none;
@@ -349,8 +377,30 @@ body {
 .uno-card.color-yellow { background: var(--uno-yellow); }
 .uno-card.color-wild { background: var(--uno-wild); }
 
+.uno-card.card-fly-out {
+  animation: cardFlyOut 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
+  transition: none !important;
+  z-index: 50 !important;
+  pointer-events: none !important;
+}
+
+@keyframes cardFlyOut {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(var(--fly-to-x, 0px), var(--fly-to-y, -120px)) scale(0.85) rotate(calc(var(--fly-to-x, 0px) * -0.15deg));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--fly-to-x, 0px), var(--fly-to-y, -120px)) scale(0.5) rotate(calc(var(--fly-to-x, 0px) * -0.3deg));
+    opacity: 0;
+  }
+}
+
 .uno-card.card-fly-in {
-  animation: cardFlyIn 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
+  animation: cardFlyIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
   transition: none !important;
   z-index: 50 !important;
 }
@@ -360,15 +410,15 @@ body {
     transform: translate(var(--fly-from-x, 0px), var(--fly-from-y, -80px)) scale(var(--fly-from-scale, 0.4)) rotate(calc(var(--fly-from-x, 0px) * -0.2deg));
     opacity: 0;
   }
-  30% {
+  25% {
     opacity: 1;
   }
-  70% {
-    transform: translate(0, -10px) scale(1.12) rotate(-3deg);
+  65% {
+    transform: translate(0, -8px) scale(1.08) rotate(-2deg);
     opacity: 1;
   }
   85% {
-    transform: translate(0, 4px) scale(0.96) rotate(1deg);
+    transform: translate(0, 3px) scale(0.98) rotate(0.5deg);
   }
   100% {
     transform: translate(0, 0) scale(1) rotate(0deg);
@@ -381,24 +431,27 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.85);
-  color: #fff;
+  background: rgba(255,255,255,0.95);
+  color: var(--botanical-forest);
   padding: 16px 32px;
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   font-size: 18px;
   font-weight: 600;
+  font-family: 'Playfair Display', Georgia, serif;
   z-index: 200;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   text-align: center;
   animation: fadeInOut 2s ease-in-out;
   pointer-events: none;
+  border: 1px solid var(--botanical-stone);
+  box-shadow: var(--shadow-lift);
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
   15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
 }
 
 .host-panel {
@@ -406,18 +459,25 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.9);
-  padding: 24px;
-  border-radius: 16px;
+  background: rgba(255,255,255,0.98);
+  padding: 28px;
+  border-radius: var(--radius-card);
   z-index: 150;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 200px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
+  min-width: 220px;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--botanical-stone);
+  box-shadow: var(--shadow-lift);
 }
-.host-panel h3 { color: #fff; text-align: center; margin-bottom: 8px; }
+.host-panel h3 {
+  color: var(--botanical-forest);
+  text-align: center;
+  margin-bottom: 8px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 18px;
+}
 
 .host-toggle {
   position: fixed;
@@ -427,55 +487,62 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--uno-red), #c0392b);
+  background: var(--botanical-forest);
   color: #fff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 13px;
+  transition: all 0.3s ease;
   touch-action: manipulation;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Source Sans 3', sans-serif;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.4); }
+.btn-primary:hover { background: var(--botanical-sage); transform: translateY(-2px); box-shadow: var(--shadow-medium); }
 
 .btn {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.15);
-  padding: 10px 20px;
-  border-radius: 10px;
+  background: transparent;
+  color: var(--botanical-forest);
+  border: 1px solid var(--botanical-stone);
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
   font-weight: 500;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 13px;
+  transition: all 0.3s ease;
   touch-action: manipulation;
+  letter-spacing: 1px;
+  font-family: 'Source Sans 3', sans-serif;
 }
-.btn:hover { background: rgba(255,255,255,0.2); }
+.btn:hover { background: var(--botanical-bg-warm); }
 
 .game-end-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(249, 248, 244, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 300;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(8px);
 }
 .game-end-content {
   text-align: center;
   padding: 40px;
-  background: rgba(0,0,0,0.9);
-  border-radius: 24px;
-  border: 2px solid var(--uno-yellow);
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--botanical-stone);
+  box-shadow: var(--shadow-lift);
 }
 .game-end-content h2 {
-  color: var(--uno-yellow);
+  color: var(--botanical-forest);
   font-size: 28px;
   margin-bottom: 20px;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
 }
 
 .game-end-actions {
@@ -487,21 +554,24 @@ body {
 }
 
 .btn-accent {
-  background: linear-gradient(135deg, var(--uno-green), #1e8449);
+  background: var(--botanical-sage);
   color: #fff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 13px;
+  transition: all 0.3s ease;
   touch-action: manipulation;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Source Sans 3', sans-serif;
 }
-.btn-accent:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39,174,96,0.4); }
+.btn-accent:hover { background: var(--botanical-sage-light); transform: translateY(-2px); box-shadow: var(--shadow-medium); }
 
 .game-end-hint {
-  color: rgba(255,255,255,0.5);
+  color: var(--botanical-sage);
   font-size: 12px;
   margin-top: 8px;
 }
@@ -540,13 +610,14 @@ body {
   .game-end-content { padding: 24px; }
   .game-end-content h2 { font-size: 22px; }
   .game-end-actions { gap: 8px; }
-  .btn-primary, .btn-accent { padding: 8px 16px; font-size: 13px; }
+  .btn-primary, .btn-accent { padding: 8px 18px; font-size: 12px; }
 }
 
 @media (max-width: 480px) {
   :root {
     --card-width: 42px;
     --card-height: 63px;
+    --radius-card: 16px;
   }
   .game-header { padding: 6px 10px; }
   .opponents-area { gap: 6px; padding: 4px 6px; min-height: 40px; }
@@ -562,13 +633,13 @@ body {
   .my-info { gap: 4px; margin-bottom: 2px; }
   .my-info .avatar-img { width: 22px; height: 22px; }
   .my-info .nickname { font-size: 11px; }
-  .uno-button { font-size: 12px; padding: 3px 12px; }
-  .pass-button { font-size: 11px; padding: 3px 10px; }
+  .uno-button { font-size: 11px; padding: 3px 12px; }
+  .pass-button { font-size: 10px; padding: 3px 10px; }
   .my-hand { gap: 1px; padding: 2px 0; }
   .game-end-content { padding: 20px 16px; }
   .game-end-content h2 { font-size: 18px; }
   .game-end-hint { font-size: 10px; }
-  .btn-primary, .btn-accent { padding: 8px 14px; font-size: 12px; }
+  .btn-primary, .btn-accent { padding: 8px 14px; font-size: 11px; }
   .color-option { width: 36px; height: 36px; }
   .direction-indicator { font-size: 18px; }
   .current-color-indicator { width: 22px; height: 22px; }

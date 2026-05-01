@@ -481,12 +481,9 @@ var PokerSimGameManager = (function () {
         img.className = 'sim-card';
 
         var isThisCardRevealed = isAllRevealed || myRevealedCards.indexOf(idx) !== -1;
+        img.src = self.getCardImageSrc(card);
         if (isThisCardRevealed) {
-          img.src = self.getCardImageSrc(card);
           img.classList.add('card-revealed');
-        } else {
-          img.src = self.getCardImageSrc({ suit: 'back', rank: 'back' });
-          img.classList.add('card-back');
         }
 
         img.alt = '';

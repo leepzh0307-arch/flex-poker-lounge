@@ -57,6 +57,8 @@ module.exports = function(io) {
                 var updateEvent = 'gameUpdate';
                 if (checkRoom.gameType === 'uno') updateEvent = 'unoUpdate';
                 else if (checkRoom.gameType === 'omaha') updateEvent = 'omahaUpdate';
+                else if (checkRoom.gameType === 'dice') updateEvent = 'diceUpdate';
+                else if (checkRoom.gameType === 'poker-sim') updateEvent = 'simUpdate';
 
                 io.to(roomId).emit(updateEvent, {
                   roomId: roomId, players: checkRoom.players,
