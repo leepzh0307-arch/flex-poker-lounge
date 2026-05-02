@@ -83,6 +83,8 @@ var GomokuGameManager = (function() {
         self.roomId = response.roomId || self.roomId;
         localStorage.setItem('flexPoker_playerId', response.playerId);
         localStorage.setItem('flexPoker_roomId', self.roomId);
+        var roomIdEl = document.getElementById('room-id');
+        if (roomIdEl) roomIdEl.textContent = self.roomId;
       }
       self.initVoice();
     }).catch(function(err) {
