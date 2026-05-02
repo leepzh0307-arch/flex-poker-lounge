@@ -186,19 +186,21 @@
         </div>
 
         <div class="gallery-card" data-index="5">
-          <div class="gallery-card-inner poker-card poker-card--more">
+          <div class="gallery-card-inner poker-card poker-card--gomoku">
             <div class="gallery-card-visual">
-              <span class="suit suit--spade">♠</span>
-              <span class="suit suit--heart">♥</span>
-              <span class="suit suit--diamond">♦</span>
-              <span class="suit suit--club">♣</span>
+              <span style="font-size:32px;">⚫</span>
+              <span style="font-size:32px;">⚪</span>
             </div>
-            <h3 class="gallery-card-title">More Games</h3>
-            <p class="gallery-card-desc">敬请期待 — 更多精彩游戏即将上线，敬请期待！</p>
+            <h3 class="gallery-card-title">Gomoku</h3>
+            <p class="gallery-card-desc">五子棋 — 在15×15的棋盘上，先连成五子者胜。支持联机对战与观战。</p>
             <div class="gallery-card-modes">
-              <button class="mode-btn mode-btn--disabled" disabled>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                <span>敬请期待</span>
+              <button class="mode-btn mode-btn--pvp" data-mode="gomoku-pvp">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>PvP</span>
+              </button>
+              <button class="mode-btn mode-btn--pvc" data-mode="gomoku-pvc">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>PvAI</span>
               </button>
             </div>
           </div>
@@ -593,6 +595,87 @@
       <div class="form-actions">
         <button type="button" id="create-sim-room" class="btn btn--primary">创建房间</button>
         <button type="button" id="join-sim-room" class="btn btn--secondary">加入房间</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="gomoku-pvp-modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="gomoku-pvp-title" aria-modal="true">
+    <button class="modal-close" aria-label="关闭">&times;</button>
+    <div class="modal-header">
+      <div class="modal-icon modal-icon--pvp">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h2 id="gomoku-pvp-title">五子棋对战</h2>
+    </div>
+    <form id="gomoku-pvp-form" class="modal-form">
+      <div class="form-group">
+        <label class="form-label">选择头像</label>
+        <div class="avatar-picker" data-avatar-target="gomoku-pvp">
+          <div class="avatar-option selected" data-avatar="froggy"><img src="images/avatars/froggy.gif" alt="froggy"></div>
+          <div class="avatar-option" data-avatar="kitty"><img src="images/avatars/kitty.gif" alt="kitty"></div>
+          <div class="avatar-option" data-avatar="bones"><img src="images/avatars/bones.gif" alt="bones"></div>
+          <div class="avatar-option" data-avatar="bear"><img src="images/avatars/bear.gif" alt="bear"></div>
+          <div class="avatar-option" data-avatar="ghost"><img src="images/avatars/ghost.gif" alt="ghost"></div>
+          <div class="avatar-option" data-avatar="burger"><img src="images/avatars/burger.gif" alt="burger"></div>
+          <div class="avatar-option" data-avatar="bread"><img src="images/avatars/bread.gif" alt="bread"></div>
+          <div class="avatar-option avatar-blindbox" data-avatar="blindbox" title="盲盒头像"><span class="blindbox-icon">?</span></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="gomoku-pvp-nickname" class="form-label">昵称</label>
+        <input type="text" id="gomoku-pvp-nickname" class="form-input" placeholder="输入你的昵称" required autocomplete="off" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label for="gomoku-pvp-room" class="form-label">房间号 (加入已有房间)</label>
+        <input type="text" id="gomoku-pvp-room" class="form-input" placeholder="留空则创建新房间" autocomplete="off" maxlength="10">
+      </div>
+      <div class="form-actions">
+        <button type="button" id="create-gomoku-room" class="btn btn--primary">创建房间</button>
+        <button type="button" id="join-gomoku-room" class="btn btn--secondary">加入房间</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="gomoku-pvc-modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="gomoku-pvc-title" aria-modal="true">
+    <button class="modal-close" aria-label="关闭">&times;</button>
+    <div class="modal-header">
+      <div class="modal-icon modal-icon--pvc">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h2 id="gomoku-pvc-title">五子棋人机对战</h2>
+    </div>
+    <form id="gomoku-pvc-form" class="modal-form">
+      <div class="form-group">
+        <label class="form-label">选择头像</label>
+        <div class="avatar-picker" data-avatar-target="gomoku-pvc">
+          <div class="avatar-option selected" data-avatar="froggy"><img src="images/avatars/froggy.gif" alt="froggy"></div>
+          <div class="avatar-option" data-avatar="kitty"><img src="images/avatars/kitty.gif" alt="kitty"></div>
+          <div class="avatar-option" data-avatar="bones"><img src="images/avatars/bones.gif" alt="bones"></div>
+          <div class="avatar-option" data-avatar="bear"><img src="images/avatars/bear.gif" alt="bear"></div>
+          <div class="avatar-option" data-avatar="ghost"><img src="images/avatars/ghost.gif" alt="ghost"></div>
+          <div class="avatar-option" data-avatar="burger"><img src="images/avatars/burger.gif" alt="burger"></div>
+          <div class="avatar-option" data-avatar="bread"><img src="images/avatars/bread.gif" alt="bread"></div>
+          <div class="avatar-option avatar-blindbox" data-avatar="blindbox" title="盲盒头像"><span class="blindbox-icon">?</span></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="gomoku-pvc-nickname" class="form-label">昵称</label>
+        <input type="text" id="gomoku-pvc-nickname" class="form-input" placeholder="输入你的昵称" required autocomplete="off" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label for="gomoku-ai-difficulty" class="form-label">AI难度</label>
+        <select id="gomoku-ai-difficulty" class="form-select">
+          <option value="easy">简单</option>
+          <option value="medium" selected>中等</option>
+          <option value="hard">困难</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="button" id="create-gomoku-ai-room" class="btn btn--primary">开始游戏</button>
       </div>
     </form>
   </div>

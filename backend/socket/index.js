@@ -4,6 +4,7 @@ const omahaGameHandler = require('./handlers/omahaGame');
 const unoGameHandler = require('./handlers/unoGame');
 const diceGameHandler = require('./handlers/diceGame');
 const pokerSimGameHandler = require('./handlers/pokerSimGame');
+const gomokuGameHandler = require('./handlers/gomokuGame');
 const voiceHandler = require('./handlers/voice');
 const { clearRoomPersonality } = require('../utils/aiEngine');
 const StandUpGame = require('../utils/standupGame');
@@ -20,6 +21,7 @@ module.exports = function(io) {
     unoGameHandler(socket, rooms, io);
     diceGameHandler(socket, rooms, io);
     pokerSimGameHandler(socket, rooms, io);
+    gomokuGameHandler(socket, rooms, io);
     voiceHandler(socket, rooms, io);
 
     socket.on('disconnect', function() {
@@ -59,6 +61,7 @@ module.exports = function(io) {
                 else if (checkRoom.gameType === 'omaha') updateEvent = 'omahaUpdate';
                 else if (checkRoom.gameType === 'dice') updateEvent = 'diceUpdate';
                 else if (checkRoom.gameType === 'poker-sim') updateEvent = 'simUpdate';
+                else if (checkRoom.gameType === 'gomoku') updateEvent = 'gomokuUpdate';
 
                 io.to(roomId).emit(updateEvent, {
                   roomId: roomId, players: checkRoom.players,

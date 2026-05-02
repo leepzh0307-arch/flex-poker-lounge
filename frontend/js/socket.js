@@ -432,6 +432,49 @@ class SocketClient {
   getSocketId() {
     return this.socket ? this.socket.id : null;
   }
+
+  createGomokuRoom(nickname, avatar, boardSize) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+      this.socket.emit('createGomokuRoom', { nickname, avatar, boardSize: boardSize || 15 }, (response) => {
+        if (response.success) {
+          console.log('[Socket] 五子棋房间创建成功: ' + response.roomId);
+          resolve(response);
+        } else {
+          reject(new Error(response.error || '创建五子棋房间失败'));
+        }
+      });
+    });
+  }
+
+  createGomokuAiRoom(nickname, avatar, aiDifficulty, boardSize) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.socket) {
+        reject(new Error('未连接到服务器'));
+        return;
+      }
+      this.socket.emit('createGomokuAiRoom', { nickname, avatar, aiDifficulty: aiDifficulty || 'medium', boardSize: boardSize || 15 }, (response) => {
+        if (response.success) {
+          console.log('[Socket] 五子棋AI房间创建成功: ' + response.roomId);
+          resolve(response);
+        } else {
+          reject(new Error(response.error || '创建五子棋AI房间失败'));
+        }
+      });
+    });
+  }
+
+  sendGomokuAction(action, data) {
+    if (this.isConnected && this.socket) {
+      console.log('[Socket] 发送五子棋游戏操作: ' + action, data);
+      this.socket.emit('gomokuAction', { action: action, data: data });
+    } else {
+      console.warn('[Socket] 未连接，操作未发送: ' + action);
+    }
+  }
 }
 
 const socketClient = new SocketClient();

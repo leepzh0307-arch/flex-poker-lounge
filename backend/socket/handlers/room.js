@@ -114,6 +114,12 @@ function migrateGameStateKeys(gs, oldId, newId, gameType) {
     gs.revealedCards[newId] = gs.revealedCards[oldId];
     delete gs.revealedCards[oldId];
   }
+  if (gs.blackPlayerId === oldId) {
+    gs.blackPlayerId = newId;
+  }
+  if (gs.whitePlayerId === oldId) {
+    gs.whitePlayerId = newId;
+  }
 
   console.log('[重连迁移] gameState keys: ' + oldId + ' -> ' + newId + ' (gameType: ' + gameType + ')');
 }
@@ -690,6 +696,174 @@ module.exports = (socket, rooms, io) => {
     }
   });
 
+  socket.on('createGomokuRoom', ({ nickname, avatar, boardSize }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+      const size = boardSize || 15;
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        gameType: 'gomoku',
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            avatar: avatar || 'froggy',
+            isAI: false,
+            isSpectator: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          }
+        ],
+        gameState: {
+          phase: 'WAITING',
+          boardSize: size,
+          board: [],
+          moveHistory: [],
+          currentPlayer: 1,
+          blackPlayerId: null,
+          whitePlayerId: null,
+          winner: null,
+          winLine: null,
+          winReason: null,
+          undoRequest: null,
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log('[五子棋房间] ' + roomId + ' 创建成功，房主: ' + nickname);
+        io.to(socket.id).emit('gomokuUpdate', {
+          phase: 'WAITING',
+          boardSize: size,
+          board: [],
+          currentPlayer: 1,
+          myColor: 0,
+          isPlayer: false,
+          isSpectator: false,
+          moveHistory: [],
+          lastMove: null,
+          winner: null,
+          winLine: null,
+          winReason: null,
+          undoRequest: null,
+          players: room.players.map(function(p) {
+            return { id: p.id, nickname: p.nickname, avatar: p.avatar, isAI: p.isAI, isOnline: true, color: 'spectator' };
+          }),
+          isMyTurn: false,
+          message: '五子棋房间 ' + roomId + ' 创建成功，等待对手加入',
+        });
+      }, 0);
+
+    } catch (error) {
+      console.error('创建五子棋房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
+
+  socket.on('createGomokuAiRoom', ({ nickname, avatar, aiDifficulty, boardSize }, callback) => {
+    try {
+      const roomId = generateRoomId();
+      const playerId = generatePlayerId();
+      const difficulty = aiDifficulty || 'medium';
+      const size = boardSize || 15;
+
+      const aiId = generateAiPlayerId();
+      const aiAvatar = 'knight';
+
+      const room = {
+        id: roomId,
+        host: socket.id,
+        hostPlayerId: playerId,
+        isAiRoom: true,
+        gameType: 'gomoku',
+        aiDifficulty: difficulty,
+        aiThinkDelay: difficulty === 'easy' ? 2000 : difficulty === 'hard' ? 500 : 1000,
+        players: [
+          {
+            id: socket.id,
+            playerId: playerId,
+            nickname: nickname,
+            avatar: avatar || 'froggy',
+            isAI: false,
+            isSpectator: false,
+            isOnline: true,
+            joinedAt: Date.now()
+          },
+          {
+            id: aiId,
+            playerId: aiId,
+            nickname: '五子棋AI',
+            avatar: aiAvatar,
+            isAI: true,
+            isSpectator: false,
+            isOnline: true,
+            aiDifficulty: difficulty,
+            joinedAt: Date.now()
+          }
+        ],
+        gameState: {
+          phase: 'WAITING',
+          boardSize: size,
+          board: [],
+          moveHistory: [],
+          currentPlayer: 1,
+          blackPlayerId: null,
+          whitePlayerId: null,
+          winner: null,
+          winLine: null,
+          winReason: null,
+          undoRequest: null,
+        },
+        createdAt: Date.now()
+      };
+
+      rooms.set(roomId, room);
+      socketToPlayerMap.set(socket.id, { roomId, playerId });
+      socket.join(roomId);
+
+      callback({ success: true, roomId: roomId, playerId: playerId });
+
+      setTimeout(() => {
+        console.log('[五子棋AI房间] ' + roomId + ' 创建成功，房主: ' + nickname);
+        io.to(socket.id).emit('gomokuUpdate', {
+          phase: 'WAITING',
+          boardSize: size,
+          board: [],
+          currentPlayer: 1,
+          myColor: 0,
+          isPlayer: false,
+          isSpectator: false,
+          moveHistory: [],
+          lastMove: null,
+          winner: null,
+          winLine: null,
+          winReason: null,
+          undoRequest: null,
+          players: room.players.map(function(p) {
+            return { id: p.id, nickname: p.nickname, avatar: p.avatar, isAI: p.isAI, isOnline: true, color: 'spectator' };
+          }),
+          isMyTurn: false,
+          message: '五子棋人机对战房间已创建',
+        });
+      }, 0);
+
+    } catch (error) {
+      console.error('创建五子棋AI房间失败:', error);
+      callback({ success: false, error: error.message });
+    }
+  });
+
   socket.on('createDiceAiRoom', ({ nickname, avatar, aiCount, aiDifficulty }, callback) => {
     try {
       const roomId = generateRoomId();
@@ -829,11 +1003,12 @@ module.exports = (socket, rooms, io) => {
           playerId: newPlayerId,
           nickname: nickname,
           avatar: avatar || 'froggy',
-          chips: room.gameType === 'uno' || room.gameType === 'dice' ? 0 : 1000,
+          chips: room.gameType === 'uno' || room.gameType === 'dice' || room.gameType === 'gomoku' ? 0 : 1000,
           seat: seat,
           isActive: true,
           isTurn: false,
           isOnline: true,
+          isSpectator: room.gameType === 'gomoku' && room.players.filter(function(p) { return !p.isSpectator && !p.isAI; }).length >= 2,
           joinedAt: Date.now()
         };
         
@@ -916,6 +1091,37 @@ module.exports = (socket, rooms, io) => {
               isMyTurn: isCurrentPlayer,
               message: isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`,
             });
+          });
+        } else if (room.gameType === 'gomoku') {
+          room.players.forEach(function(p) {
+            if (!p.isAI) {
+              var isBlack = room.gameState.blackPlayerId === p.id;
+              var isWhite = room.gameState.whitePlayerId === p.id;
+              var isPlayer = isBlack || isWhite;
+              var myColor = isBlack ? 1 : (isWhite ? 2 : 0);
+              io.to(p.id).emit('gomokuUpdate', {
+                phase: room.gameState.phase,
+                boardSize: room.gameState.boardSize,
+                board: room.gameState.board,
+                currentPlayer: room.gameState.currentPlayer,
+                blackPlayerId: room.gameState.blackPlayerId,
+                whitePlayerId: room.gameState.whitePlayerId,
+                myColor: myColor,
+                isPlayer: isPlayer,
+                isSpectator: !isPlayer,
+                moveHistory: room.gameState.moveHistory,
+                lastMove: room.gameState.moveHistory.length > 0 ? room.gameState.moveHistory[room.gameState.moveHistory.length - 1] : null,
+                winner: room.gameState.winner,
+                winLine: room.gameState.winLine,
+                winReason: room.gameState.winReason,
+                undoRequest: room.gameState.undoRequest,
+                players: room.players.map(function(op) {
+                  return { id: op.id, nickname: op.nickname, avatar: op.avatar, isAI: op.isAI, isOnline: op.isOnline !== false, color: op.id === room.gameState.blackPlayerId ? 'black' : (op.id === room.gameState.whitePlayerId ? 'white' : 'spectator') };
+                }),
+                isMyTurn: isPlayer && room.gameState.currentPlayer === myColor,
+                message: isReconnect ? nickname + ' 重新连接' : nickname + ' 加入了房间',
+              });
+            }
           });
         } else {
           broadcastGameUpdate(room, io, isReconnect ? `${nickname} 重新连接` : `${nickname} 加入了房间`);

@@ -57,6 +57,8 @@
       else if (mode === 'uno-pvp') openModal('uno-pvp-modal');
       else if (mode === 'dice-pvp') openModal('dice-pvp-modal');
       else if (mode === 'sim-pvp') openModal('sim-pvp-modal');
+      else if (mode === 'gomoku-pvp') openModal('gomoku-pvp-modal');
+      else if (mode === 'gomoku-pvc') openModal('gomoku-pvc-modal');
     });
   });
 
@@ -408,6 +410,45 @@
   bindEvent(createSimRoomBtn, createSimRoom);
   bindEvent(joinSimRoomBtn, joinSimRoom);
 
+  var gomokuPvpNickname = document.getElementById('gomoku-pvp-nickname');
+  var gomokuPvpRoomId = document.getElementById('gomoku-pvp-room');
+  var gomokuPvcNickname = document.getElementById('gomoku-pvc-nickname');
+  var gomokuAiDifficulty = document.getElementById('gomoku-ai-difficulty');
+
+  function createGomokuRoom() {
+    var nickname = gomokuPvpNickname ? gomokuPvpNickname.value.trim() : '';
+    if (!nickname) { showToast('请输入昵称'); return; }
+    var targetUrl = 'gomoku-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&gameType=gomoku&avatar=' + getAvatar('gomoku-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  function joinGomokuRoom() {
+    var nickname = gomokuPvpNickname ? gomokuPvpNickname.value.trim() : '';
+    var roomId = gomokuPvpRoomId ? gomokuPvpRoomId.value.trim() : '';
+    if (!nickname) { showToast('请输入昵称'); return; }
+    if (!roomId) { showToast('请输入房间号'); return; }
+    var targetUrl = 'gomoku-room.html?nickname=' + encodeURIComponent(nickname) + '&roomId=' + encodeURIComponent(roomId) + '&isHost=false&gameType=gomoku&avatar=' + getAvatar('gomoku-pvp');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  function createGomokuAiRoom() {
+    var nickname = gomokuPvcNickname ? gomokuPvcNickname.value.trim() : '';
+    if (!nickname) { showToast('请输入昵称'); return; }
+    var difficulty = gomokuAiDifficulty ? gomokuAiDifficulty.value : 'medium';
+    var targetUrl = 'gomoku-room.html?nickname=' + encodeURIComponent(nickname) + '&isHost=true&isAiRoom=true&aiDifficulty=' + difficulty + '&gameType=gomoku&avatar=' + getAvatar('gomoku-pvc');
+    closeAllModals();
+    setTimeout(function() { navigateToRoom(targetUrl); }, 300);
+  }
+
+  var createGomokuRoomBtn = document.getElementById('create-gomoku-room');
+  var joinGomokuRoomBtn = document.getElementById('join-gomoku-room');
+  var createGomokuAiRoomBtn = document.getElementById('create-gomoku-ai-room');
+  bindEvent(createGomokuRoomBtn, createGomokuRoom);
+  bindEvent(joinGomokuRoomBtn, joinGomokuRoom);
+  bindEvent(createGomokuAiRoomBtn, createGomokuAiRoom);
+
   if (unoPvpNickname) {
     unoPvpNickname.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -460,7 +501,9 @@
     'uno-pvp': 'froggy',
     'uno-pvc': 'froggy',
     'dice-pvp': 'froggy',
-    'sim-pvp': 'froggy'
+    'sim-pvp': 'froggy',
+    'gomoku-pvp': 'froggy',
+    'gomoku-pvc': 'froggy'
   };
 
   var ALL_AVATARS = ['froggy', 'kitty', 'bones', 'bear', 'ghost', 'burger', 'bread', 'piggy', 'zombie', 'knight'];
