@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "flex-poker-lounge",
+  "compatibility_date": "2026-04-30",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "Threejs-rolling-dice-tutorial-master"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
